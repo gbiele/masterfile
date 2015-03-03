@@ -1,0 +1,75 @@
+################################
+### Neuropsychological tests ###
+################################
+spss syntax: Lage Arbeidsfil_juli2011_m_nevropsyk_tester.sps
+data files: 
+
+################################
+#### Diagnostic  interview #####
+################################
+spss syntax: Diagnosegrupper PAPA_konkl juni2012.sps
+data files: PAPA_*.sav
+
+
+################################
+##### IQ (Stanford-Binet) ######
+################################
+spss syntax: Stb
+data files: 
+
+
+################################
+## Kindergarden questionnaire ##
+################################
+
+BHG
+
+
+################################
+##### Parent questionnaire #####
+################################
+# spørsmålk om barn og familie
+SBF
+
+################################
+##### Boston naming task #####
+################################
+
+BNT
+
+################################
+##### Cookie delay task #####
+################################
+
+CDT
+
+################################
+##### Psychomotoric speed #####
+################################
+
+Pegs
+
+################################
+## Impuslvity / Visuospatial ###
+################################
+
+Snurr 
+Snurr boskne
+(spin the pots)
+
+################################
+## cognitive  ###
+################################
+TRLT
+Trucks reversal learning task
+
+Snurr boskne
+(spin the pots)
+
+
+################################
+############# MISC##############
+################################
+
+BP:   Barnepsykiatriske undersøkelse
+NUBU: ?Nevrologisk screening?
