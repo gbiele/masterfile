@@ -2,7 +2,9 @@
 ### Neuropsychological tests ###
 ################################
 spss syntax: Lage Arbeidsfil_juli2011_m_nevropsyk_tester.sps
-data files: 
+data files: NpY.sav, Delskårer_NEPSY_Forst_instr.sav, BNT.sav 
+
+USe for nepsy: phonological processing, figure copying/understanding instructions, visuomotor/cats&rabbits
 
 ################################
 #### Diagnostic  interview #####
@@ -14,62 +16,52 @@ data files: PAPA_*.sav
 ################################
 ##### IQ (Stanford-Binet) ######
 ################################
-spss syntax: Stb
-data files: 
+spss syntax: Beregne skalerte skårer og IQ i StanfordBinet.SPS.sps
+data files: Stb.sav 
 
 
 ################################
 ## Kindergarden questionnaire ##
 ################################
-
-BHG
+# includes BRIEF, SDQ, CDI
+data files: BHG.sav
 
 
 ################################
 ##### Parent questionnaire #####
 ################################
+# includes BRIEF, SDQ, CDI
 # spørsmålk om barn og familie
-SBF
+data files: SBF.sav
 
-################################
-##### Boston naming task #####
-################################
-
-BNT
 
 ################################
 ##### Cookie delay task #####
 ################################
-
-CDT
+data files: CDT.sav
 
 ################################
 ##### Psychomotoric speed #####
 ################################
-
-Pegs
+data files: Pegs.sav
 
 ################################
 ## Impuslvity / Visuospatial ###
 ################################
+#Snurr boskne
+#(spin the pots)
+data files: Snurr.sav
 
-Snurr 
-Snurr boskne
-(spin the pots)
 
 ################################
-## cognitive  ###
+#### cognitive flexibility  ####
 ################################
-TRLT
-Trucks reversal learning task
-
-Snurr boskne
-(spin the pots)
+#Trucks reversal learning task
+data files: TRLT.sav
 
 
 ################################
 ############# MISC##############
 ################################
-
 BP:   Barnepsykiatriske undersøkelse
 NUBU: ?Nevrologisk screening?
