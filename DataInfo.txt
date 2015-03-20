@@ -1,10 +1,3 @@
-################################
-### Neuropsychological tests ###
-################################
-spss syntax: Lage Arbeidsfil_juli2011_m_nevropsyk_tester.sps
-data files: NpY.sav, Delskårer_NEPSY_Forst_instr.sav, BNT.sav 
-
-USe for nepsy: phonological processing, figure copying/understanding instructions, visuomotor/cats&rabbits
 
 ################################
 #### Diagnostic  interview #####
@@ -35,29 +28,13 @@ data files: BHG.sav
 data files: SBF.sav
 
 
-################################
-##### Cookie delay task #####
-################################
-data files: CDT.sav
+
 
 ################################
 ##### Psychomotoric speed #####
 ################################
 data files: Pegs.sav
 
-################################
-## Impuslvity / Visuospatial ###
-################################
-#Snurr boskne
-#(spin the pots)
-data files: Snurr.sav
-
-
-################################
-#### cognitive flexibility  ####
-################################
-#Trucks reversal learning task
-data files: TRLT.sav
 
 
 ################################
@@ -65,3 +42,29 @@ data files: TRLT.sav
 ################################
 BP:   Barnepsykiatriske undersøkelse
 NUBU: ?Nevrologisk screening?
+
+
+################################
+############# DONE #############
+############# DONE #############
+################################
+
+
+### Neuropsychological tests ###
+spss syntax: Lage Arbeidsfil_juli2011_m_nevropsyk_tester.sps
+data files: NpY.sav, Delskårer_NEPSY_Forst_instr.sav, BNT.sav 
+
+USe for nepsy: phonological processing, figure copying/understanding instructions, visuomotor/cats&rabbits
+
+
+##### Cookie delay task #######
+data files: CDT.sav
+
+#### cognitive flexibility  ####
+#Trucks reversal learning task
+data files: TRLT.sav
+
+## Impuslvity / Visuospatial ###
+#Snurr boskne
+#(spin the pots)
+data files: Snurr.sav
