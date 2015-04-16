@@ -91,13 +91,13 @@ get_neuropsych = function() {
   
   gpt = data.table(read_sav("savs/Pegs.sav"))
   gpt[,GP1 := factor(GP1,labels = c("right","left"))]
-  setnames(gpt,"GPT.dominanthand","GP1")
+  setnames(gpt,"GP1","GPT.dominanthand")
   setnames(gpt,"GP2_1","GPT.dominant.seconds")
   setnames(gpt,"GP2_2","GPT.dominant.numbermissed")
   setnames(gpt,"GP2_3","GPT.dominant.number2hands")
-  setnames(gpt,"GP2_1","GPT.ndomnt.seconds")
-  setnames(gpt,"GPT.ndomnt.numbermissed","GP2_2")
-  setnames(gpt,"GPT.ndomnt.number2hands","GP2_3")
+  setnames(gpt,"GP3_1","GPT.ndomnt.seconds")
+  setnames(gpt,"GP3_2","GPT.ndomnt.numbermissed")
+  setnames(gpt,"GP3_3","GPT.ndomnt.number2hands")
   
   dt = merge(dt,gpt,by = c("PREG_ID_299","BARN_NR"))
   rm(gpt)

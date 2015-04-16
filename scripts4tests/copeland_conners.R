@@ -1,0 +1,13 @@
+
+
+# COPELAND
+# A BHCOPLAND1 - BHCOPLAND21
+# B B__1_1 - B__1_21
+
+
+# Conners
+# A BHCONNERS_B1 - BHCONNERS_B25
+# B B__1_1 - B__1_21
+
+# ECI
+# B b__4_1 b__487 
