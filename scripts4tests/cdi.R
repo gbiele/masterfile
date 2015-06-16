@@ -29,7 +29,7 @@ get_cdi = function(qu_a,qu_b,rater){
   setnames(cdi,names(cdi)[-c(1,2)], paste(base_name,c(1:50,".pronounciation",".understood"),sep = ".item"))
   
   cdi[[paste(base_name,"sum",sep =".")]] = rowSums(cdi[,paste(base_name,1:50,sep = ".item"),with = F],na.rm = T)
-  cdi[[paste(base_name,"mean",sep =".")]] = rowMeans(cdi[,paste(base_name,1:50,sep = ".item"),with = F],na.rm = T)*50
+  cdi[[paste(base_name,"mean",sep =".")]] = rowMeans(cdi[,paste(base_name,1:50,sep = ".item"),with = F],na.rm = T)
   cdi[[paste(base_name,"missings",sep =".")]] = rowSums(is.na(cdi[,paste(base_name,1:50,sep = ".item"),with = F]))
   return(cdi)
 }
@@ -42,13 +42,14 @@ get_cdi_kg = function(kgqa,kgqb){
   
   cdibvars = c("PREG_ID_299","BARN_NR",names(kgqb)[grep("B__2",names(kgqb))])
   cdib = kgqb[,cdibvars,with = F]
+  cdib = cbind(cdib[,1:2,with = F],cdib[,3:54,with = F] - 1)
   
   cdi = rbind(cdia,cdib,use.names = F)
   
   setnames(cdi,names(cdi)[-c(1,2)], paste("CDIlang.teacher.item",c(1:50,"pronounciation","understood"),sep = "."))
   
   cdi$CDIlang.teacher.score.sum = rowSums(cdi[,paste("CDIlang.teacher.item",1:50,sep = "."),with = F],na.rm = T)
-  cdi$CDIlang.teacher.score.mean = rowMeans(cdi[,paste("CDIlang.teacher.item",1:50,sep = "."),with = F],na.rm = T)*50
+  cdi$CDIlang.teacher.score.mean = rowMeans(cdi[,paste("CDIlang.teacher.item",1:50,sep = "."),with = F],na.rm = T)
   cdi$CDIlang.teacher.missings = rowSums(is.na(cdi[,paste("CDIlang.teacher.item",1:50,sep = "."),with = F]))
   return(cdi)
 }

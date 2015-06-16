@@ -73,6 +73,7 @@ setnames(AD,old_namesi,new_namesi)
 
 AD = AD[,c(names(AD)[1:2],new_names,new_namesi),with = F]
 
+ 
 ################################ BEHAVIOR ######################################
 BH = data.table(read_sav("savs/PAPA_K4.sav"))
 #BH$K44_14_1 = 2*(BH$K44_14_1 > = 2 | BH$K44_15_1 >= 2) #(Collaps "erter" and "mobber" into variable K44_14).
