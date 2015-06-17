@@ -19,6 +19,16 @@ rm(tmp,file.sources)
 # - 
 dt = get_neuropsych()
 
+#####################################################
+################## PAPA interview ###################
+#####################################################
+PAPA = get_PAPA()
+
+#####################################################
+################## Stanford Binet ###################
+#####################################################
+PAPA = get_StanfordBinet()
+
 
 #####################################################
 ################ Parent questionnaires ##############
@@ -34,7 +44,7 @@ cbq = get_cbq_eas(pqa,pqb)
 child_diags = get_diagnoses(pqa,pqb)
 fam_health = get_family_illness(pqa,pqb)
 
-
+rm(pqa,pqb)
 #####################################################
 ################ teacher questionnaires ##############
 #####################################################
@@ -45,4 +55,5 @@ kgqb = data.table(read_sav("savs/ADHD6_BHG.sav"))
 cdi_kg = get_cdi_kg(kgqa,kgqb)
 sdq_kg = get_sdq(kgqa,kgqb,"teacher")
 brief_kg = get_brief(kgqa,kgqb,"teacher")
+rm(kgqa,kgqb)
 # no cbq in kindergarden cbq = get_cbq_eas(pqa,pqb)
