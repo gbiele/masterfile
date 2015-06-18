@@ -98,6 +98,7 @@ get_StanfordBinet = function(){
                    seq(120, 141, 3), 143,
                    seq(146, 152, 3))
   StBdata[,WMindex := mapvalues(NVWMS + VWMS,WMsum_val,WMindex_val,warn_missing = F)]
+  
  
   #################### rename variables ###################
    
@@ -105,6 +106,13 @@ get_StanfordBinet = function(){
   old_item_names = names(StBdata)[grep("SB[0-9]_",names(StBdata))]
   new_item_names = gsub("SB","StBn.Item",old_item_names)
   setnames(StBdata,old_item_names,new_item_names)
+  
+  old_names = c("NVIQ","VIQ","NVWMS","VWMS","ABIQ","PercRank","WMindex" )
+  new_names = paste("StBn.SCORE.",old_names,sep = "")
+  setnames(StBdata,old_names,new_names)
+  
+  StBdata$PREG_ID_299 = as.numeric(StBdata$PREG_ID_299)
+  StBdata$BARN_NR = as.numeric(StBdata$BARN_NR)
   
   return(StBdata[,-grep("^SB",names(StBdata)),with = F])
 }
