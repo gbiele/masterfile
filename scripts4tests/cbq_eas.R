@@ -32,7 +32,7 @@ get_cbq_eas = function(pqa,pqb){
   cbq_scales = unique(cbq_item_info$scale)
   for (s in cbq_scales) {
     cbq[,x := rowMeans(cbq[,grep(s,names(cbq)),with = F])]
-    setnames(cbq,"x",paste("CBQ.parent.score",s,sep = "."))
+    setnames(cbq,"x",paste("CBQ.parent.SCORE",s,sep = "."))
   }
   
   
@@ -48,7 +48,7 @@ get_cbq_eas = function(pqa,pqb){
   for (s in names(eas_scales)) {
     w = eas_scales[[s]]  
     cbq[,x := (as.matrix(cbq[,paste("EAS.parent.item",abs(w),sep = ""),with = F]) %*% sign(w))]
-    setnames(cbq,"x",paste("EAS.parent.score",s,sep = "."))
+    setnames(cbq,"x",paste("EAS.parent.SCORE",s,sep = "."))
   }
   
   return(cbq)
