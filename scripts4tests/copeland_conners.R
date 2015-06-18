@@ -1,6 +1,4 @@
-
-
-get_PPBS = function(qu_a,qu_b){
+get_Copland = function(qu_a,qu_b){
   # COPLAND
   # A BHCOPLAND1 - BHCOPLAND21
   # B B__1_1 - B__1_21
@@ -44,9 +42,13 @@ get_PPBS = function(qu_a,qu_b){
   }
   
   PPBS = rbind(qu_a[,PPBS_vars,with = F],qu_b[,PPBS_vars,with = F])
+  for (v in names(items2dimensions)) {
+    PPBS[[paste("PPBS.teacher.",v,".sum.SCORE",sep = "")]] = make_sum_scores(PPBS[,grep(v,names(PPBS)),with = F])
+  }
+  return(PPBS)
 }
 
-get_CRS = function(qu_a,qu_b){
+get_Conners = function(qu_a,qu_b){
   # Conners
   # A BHCONNERS_B1 - BHCONNERS_B25
   
@@ -58,13 +60,19 @@ get_CRS = function(qu_a,qu_b){
   CRS_vars = names(qu_a)[1:2]
   for (d in names(items2dimensions)){
     old_names_a = paste("BHCONNERS_B",items2dimensions[[d]],sep = "")
-    new_names = paste(paste("CRS.teacher.",d,".item",sep = ""),items2dimensions[[d]],sep = "")
+    new_names = paste(paste("Conners.teacher.",d,".item",sep = ""),items2dimensions[[d]],sep = "")
     setnames(qu_a,old_names_a,new_names)
     CRS_vars = c(CRS_vars,new_names)
   }
   for (v in CRS_vars[-c(1,2)]) qu_b[[v]] = NA
   
   CRS = rbind(qu_a[,CRS_vars,with = F],qu_b[,CRS_vars,with = F])
+  
+  for (v in names(items2dimensions)) {
+    CRS[[paste("Conners.teacher.",v,".sum.SCORE",sep = "")]] = make_sum_scores(CRS[,grep(v,names(CRS)),with = F])
+  }
+  
+  return(CRS)
 }
 
 
