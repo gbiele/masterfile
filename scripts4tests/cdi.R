@@ -1,3 +1,5 @@
+qu_a = data.table(read_sav("savs/SBF.sav"))
+qu_b = data.table(read_sav("savs/ADHD13_SBF.sav"))
 
 
 
@@ -23,6 +25,7 @@ get_cdi = function(qu_a,qu_b,rater){
   
   cdibvars = c("PREG_ID_299","BARN_NR",names(qu_b)[grep(b_var,names(qu_b))])
   cdib = qu_b[,cdibvars,with = F]
+  for (v in cdibvars[-c(1,2)]) cdib[[v]] = cdib[[v]]-1
   
   cdi = rbind(cdia,cdib,use.names = F)
   
