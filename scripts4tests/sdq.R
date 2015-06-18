@@ -89,7 +89,7 @@ get_sdq = function(qu_a,qu_b,rater){
     tmp <- ifelse(tmp<3, rowMeans(dimdat, na.rm=TRUE), NA)
     tmp <- as.numeric(tmp) * 5
     tmp <- floor(0.5 + tmp)
-    eval(parse(text = paste("sdq$",base_name,"score.",d, "= tmp",sep = "")))
+    eval(parse(text = paste("sdq$",base_name,"SCORE.",d, "= tmp",sep = "")))
   }
   
   return(sdq)
