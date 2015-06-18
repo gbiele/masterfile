@@ -12,10 +12,11 @@ get_brief = function(qu_a,qu_b,rater){
     base_name = "BRIEF.teacher."
   }
   
+  for (v in briefbvars[-c(1,2)]) qu_b[[v]] = qu_b[[v]]-1
   
   briefa = qu_a[,briefavars,with = F]
-  briefb = qu_b[,briefbvars,with = F]-1
-  
+  briefb = qu_b[,briefbvars,with = F]
+
   brief = rbind(briefa,briefb,use.names = F)
   rm(briefa,briefb,briefavars,briefbvars)
   
@@ -24,7 +25,7 @@ get_brief = function(qu_a,qu_b,rater){
   brief_dims = data.table(read.csv2("intrument_docs//brief_items4dims.txt",sep = ","))
   
   for (d in unique(brief_dims$dimension)){
-    brief[[paste(base_name,d,sep = "score.")]] = rowSums(brief[,paste(base_name,brief_dims[dimension == d,item],sep = "item"),with = F])
+    brief[[paste(base_name,d,sep = "SCORE.")]] = rowSums(brief[,paste(base_name,brief_dims[dimension == d,item],sep = "item"),with = F])
   }
  
   return(brief)
