@@ -11,8 +11,20 @@
 ################ QUESTIONS ##############
 # what is with NA values?
 get_neuropsych = function() {
-  dt = read_sav("savs/NpY.sav")
-  dt = data.table(dt[,-c(27:29,32,33)])
+  dt = data.table(read_sav("savs/NpY.sav"))
+  #dt = data.table(dt[,-c(27:29,32,33)])
+  
+  ########### corrections Nepsy from Nina ####################
+  #Forståelse av instruksjoner: summere opp NY3_3 og NY3_4 = N3_5ny for å luke ut regnefeil.
+  #I tillegg er det flere kommentarer som kvalifiserer for å sette skårene til missing, men der testleder på undersøkelsesdagen allerede satte skårene til missing.
+  
+  #NY3_3+NY3_4=N3_5ny, men bare hvis ikke 3_4 er missing. Hvis den er missing blir sumskåren =NY3_3.
+  dt[,N3_5 := NY3_3 + NY3_4] # note: NY3_3 is only missing in cases where NY3_4 is also missing
+  #Skårer med følgende kommentarer settes til missing:
+  #"trett, tøyser, ikke valid", "Test ikke gjennomført. Barnet ville ikke. Ikke valid.".
+  invalid_scores = which(dt$NY3_6 == "trett, tøyser, ikke valid" | dt$NY3_6 == "Test ikke gjennomført. Barnet ville ikke. Ikke valid.")
+  dt[invalid_scores,N3_5 := NA]
+  
   tmp = data.table(read_sav("savs/Nepsy_Delscore.sav"))
   setnames(tmp,names(tmp)[1:2],names(dt)[1:2])
   dt = merge(dt,tmp,by = c("PREG_ID_299","BARN_NR"))
@@ -22,30 +34,30 @@ get_neuropsych = function() {
   vnames = names(dt)
   dt[,nepsy_understanding_sum1 := sum(.SD), by = c("PREG_ID_299","BARN_NR"), .SDcols = vnames[grep("NY2_1",vnames)]]
   dt[,nepsy_understanding_sum2 := sum(.SD), by = c("PREG_ID_299","BARN_NR"), .SDcols = vnames[grep("NY3_2",vnames)]]
-  dt[,nepsy_understanding_score := nepsy_understanding_sum1 + nepsy_understanding_sum2,by = c("PREG_ID_299","BARN_NR")]
+  dt[,nepsy_understanding.SCORE := nepsy_understanding_sum1 + nepsy_understanding_sum2,by = c("PREG_ID_299","BARN_NR")]
   
   # Visuospatial Processing Domain
-  setnames(dt,"NY1_1","NEPSY.VISPROC.DesignCopying")
+  setnames(dt,"NY1_1","NEPSY.VISPROC.DesignCopying.SCORE")
   # Attention and Executive Functioning
-  setnames(dt,"NY6_1","NEPSY.INHIB.Statue")
+  setnames(dt,"NY6_1","NEPSY.INHIB.Statue.SCORE")
   # Language
-  setnames(dt,"nepsy_understanding_score","NEPSY.LANG.ComprehInstr")
+  setnames(dt,"nepsy_understanding.SCORE","NEPSY.LANG.ComprehInstr.SCORE")
   setnames(dt,"NY4_2","NEPSY.LANG.PhonProc")
   # Visual Attention
-  setnames(dt,"NY5_2_3","NEPSY.VISATT.cats_score")
+  setnames(dt,"NY5_2_3","NEPSY.VISATT.cats.SCORE")
   setnames(dt,"NY5_2_4","NEPSY.VISATT.cats_time")
-  setnames(dt,"NY5_3_3","NEPSY.VISATT.bunniescats_score")
+  setnames(dt,"NY5_3_3","NEPSY.VISATT.bunniescats.SCORE")
   setnames(dt,"NY5_3_4","NEPSY.VISATT.bunniescats_time")
   
   #####################################################
   ############## Boston naming task ##################
   #####################################################
   bnt = data.table(read_sav("savs/BNT.sav"))
-  bnt$BNT.SCORE = rowSums(bnt[,names(bnt)[grep("BN1_",names(bnt))],with = F] < 5)
-  bnt[PREG_ID_299 == 50163, BNT.SCORE := NA] # Nina: slette BNT skåre til barnet der mor oversetter alle testinstruksjonene.
   bnt[,BNT.completed := is.na(BNBNT0)]
+  bnt$BNT.SCORE = rowSums(bnt[,names(bnt)[grep("BN1_",names(bnt))],with = F] < 5)
   setnames(bnt,names(bnt)[grep("BN1_",names(bnt))],paste("BNT.item",1:25,sep = ""))
   bnt = bnt[,c(1:2,grep("^BNT",names(bnt))),with = F]
+  
   dt = merge(dt,bnt,by = c("PREG_ID_299","BARN_NR"))
   rm(bnt)
   
@@ -54,7 +66,7 @@ get_neuropsych = function() {
   ################ COOKIE DELAY TASK ##################
   #####################################################
   cdt = data.table(read_sav("savs/CDT.sav"))
-  setnames(cdt,"CD1_2","CDT.sumscore")
+  setnames(cdt,"CD1_2","CDT.sum.SCORE")
   dt = merge(dt,cdt,by = c("PREG_ID_299","BARN_NR"))
   rm(cdt)
   
@@ -83,7 +95,7 @@ get_neuropsych = function() {
   setnames(stp,"SNURR1_2","STP.numerrorsempty")
   setnames(stp,"SB1_3","STP.numerrorsfull")
   setnames(stp,"SNURR1_4","STP.totalerrors")
-  setnames(stp,"SNURR1_5","STP.score")
+  setnames(stp,"SNURR1_5","STP.SCORE")
   setnames(stp,"SNURR1_8","STP.impulsopenings")
   dt = merge(dt,stp,by = c("PREG_ID_299","BARN_NR"))
   rm(stp)
