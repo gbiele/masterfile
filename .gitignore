@@ -5,5 +5,5 @@ spss_scripts
 savs
 intrument_docs
 *.Rdata
-*.Thumbs
+*.db
 *.png
