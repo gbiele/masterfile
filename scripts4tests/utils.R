@@ -17,7 +17,7 @@ plot_my_hists = function(D){
     if (is.numeric(d)) {
       nNA = sum(is.na(d))
       d = d[!is.na(d)]
-      if (mean(unique(d) %% 1) == 0) {
+      if (mean(unique(d) %% 1) == 0 & min(d)>=0) {
         par(mfrow = c(2,2))
         plot_nbinom(d,v)
         plot_norm(d,v)
