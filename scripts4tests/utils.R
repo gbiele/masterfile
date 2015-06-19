@@ -71,3 +71,17 @@ plot_delta_density = function(x,predicted_density,oberved_density){
   clr[delta_density > 0] = "green"
   plot(x,delta_density,"h",col = clr,lwd = 2,xlab = "",ylim = c(-.1,.1))
 }
+
+
+library(gplots)
+library(RColorBrewer)
+make_correlation_plot = function(D){
+  cm = cor(D,use = "pairwise.complete.obs")
+  png(filename = "heatmap.png",width = 35, height = 35, units = "cm", res = 600)
+  heatmap.2(cm,
+            breaks = seq(-1,1,length = 11),
+            trace = "n",
+            col = brewer.pal(n = 11,"PiYG")[-c(1)],
+            margins = c(12,12))
+  dev.off()
+}
