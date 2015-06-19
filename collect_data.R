@@ -97,4 +97,13 @@ MASTER_scores = MASTER_scores[-missing_more_than_40_sumscores,]
 save(MASTER_scores,file = "masterfile_scores.Rdata")
 
 
-#plot_my_hists(MASTER_scores)
+
+plot_my_hists(MASTER_scores)
+make_correlation_plot(MASTER_scores)
+
+## note: select a subset of variables, if you want to look only at those
+# e.g. 
+# attention_scores = names(MASTER_scores)[grep("att|Att|ATT",names(MASTER_scores))]
+# make_correlation_plot(MASTER_scores[,attention_scores,with = F],save_image = F)
+# for a large number of variables use save_image = T (this is also the default) to
+# save the image as heatmap.png, which can be inspeacted more easily
