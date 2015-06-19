@@ -32,21 +32,22 @@ get_neuropsych = function() {
   rm(tmp)
   
   vnames = names(dt)
-  dt[,nepsy_understanding_sum1 := sum(.SD), by = c("PREG_ID_299","BARN_NR"), .SDcols = vnames[grep("NY2_1",vnames)]]
-  dt[,nepsy_understanding_sum2 := sum(.SD), by = c("PREG_ID_299","BARN_NR"), .SDcols = vnames[grep("NY3_2",vnames)]]
-  dt[,nepsy_understanding.SCORE := nepsy_understanding_sum1 + nepsy_understanding_sum2,by = c("PREG_ID_299","BARN_NR")]
+  dt[,NEPSY.understanding_sum1 := sum(.SD), by = c("PREG_ID_299","BARN_NR"), .SDcols = vnames[grep("NY2_1",vnames)]]
+  dt[,NEPSY.understanding_sum2 := sum(.SD), by = c("PREG_ID_299","BARN_NR"), .SDcols = vnames[grep("NY3_2",vnames)]]
+  dt[,NEPSY.understanding.SCORE := NEPSY.understanding_sum1 + NEPSY.understanding_sum2,by = c("PREG_ID_299","BARN_NR")]
   
   # Visuospatial Processing Domain
   setnames(dt,"NY1_1","NEPSY.VISPROC.DesignCopying.SCORE")
   # Attention and Executive Functioning
   setnames(dt,"NY6_1","NEPSY.INHIB.Statue.SCORE")
   # Language
-  setnames(dt,"nepsy_understanding.SCORE","NEPSY.LANG.ComprehInstr.SCORE")
+  setnames(dt,"NEPSY.understanding.SCORE","NEPSY.LANG.ComprehInstr.SCORE")
   setnames(dt,"NY4_2","NEPSY.LANG.PhonProc")
   # Visual Attention
-  setnames(dt,"NY5_2_3","NEPSY.VISATT.cats.SCORE")
-  setnames(dt,"NY5_2_4","NEPSY.VISATT.cats_time")
-  setnames(dt,"NY5_3_3","NEPSY.VISATT.bunniescats.SCORE")
+  dt[,NEPSY.VISATT.cats.SCORE := as.numeric(dt$NY5_2_3)]
+  dt[,NEPSY.VISATT.cats_time := as.numeric(gsub("[a-z.]","",NY5_2_4))]
+  dt[,NEPSY.VISATT.bunniescats.SCORE := as.numeric(dt$NY5_3_3)]
+  dt[NEPSY.VISATT.bunniescats.SCORE > 45, NEPSY.VISATT.bunniescats.SCORE := NA]
   setnames(dt,"NY5_3_4","NEPSY.VISATT.bunniescats_time")
   
   #####################################################
