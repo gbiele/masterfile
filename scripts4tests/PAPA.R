@@ -13,13 +13,6 @@
 ## PAPA_K9.sav/PAPA_K10.sav Life Events?
 
 
-make_sum_scores = function(item_scores){
-  sNAs = apply(is.na(item_scores),1,sum)
-  incomplete.idx = sNAs > (dim(item_scores)[2]/2)
-  sum_scores = apply(item_scores,1,function(x) sum(x,na.rm = TRUE) + median(x,na.rm = TRUE) * sum(is.na(x)))
-  sum_scores[incomplete.idx] = NA
-  return(round(sum_scores))
-}
 
 get_PAPA = function(){
 
@@ -86,21 +79,21 @@ get_PAPA = function(){
   
   setnames(AD,old_namesi,new_namesi)
   
+  AD = AD[,c(names(AD)[1:2],new_names,new_namesi),with = F]
+  
   for(v in new_names) AD[[v]][which(AD[[v]] > 0)] = AD[[v]][which(AD[[v]] > 0)]-1
   
-  AD = AD[,c(names(AD)[1:2],new_names,new_names),with = F]
   AD$PAPA.ADHD.Hyperactivity.sum.SCORE = make_sum_scores(AD[,grep("ADHD.rating.Hyp",names(AD)),with = F])
   AD$PAPA.ADHD.Impulsivity.sum.SCORE = make_sum_scores(AD[,grep("ADHD.rating.Imp",names(AD)),with = F])
   AD$PAPA.ADHD.HypImp.sum.SCORE = make_sum_scores(AD[,c(grep("ADHD.rating.Imp",names(AD)),grep("ADHD.rating.Hyp",names(AD))),with = F])
   AD$PAPA.ADHD.Inattention.sum.SCORE = make_sum_scores(AD[,grep("ADHD.rating.ATT",names(AD)),with = F])
   AD$PAPA.ADHD.sum.SCORE = make_sum_scores(AD[,grep("ADHD.rating",names(AD)),with = F])
-
+  
   AD$PAPA.ADHD.Hyperactivity.symCOUNT = make_sum_scores(AD[,grep("ADHD.rating.Hyp",names(AD)),with = F]>0)
   AD$PAPA.ADHD.Impulsivity.symCOUNT = make_sum_scores(AD[,grep("ADHD.rating.Imp",names(AD)),with = F])
   AD$PAPA.ADHD.HypImp.symCOUNT = make_sum_scores(AD[,c(grep("ADHD.rating.Imp",names(AD)),grep("ADHD.rating.Hyp",names(AD))),with = F]>0)
   AD$PAPA.ADHD.Inattention.symCOUNT = make_sum_scores(AD[,grep("ADHD.rating.ATT",names(AD)),with = F]>0)
-  AD$PAPA.ADHD.symCOUNT = make_sum_scores(AD[,grep("ADHD.rating",names(AD)),with = F]>0)
-  
+  AD$PAPA.ADHD.symCOUNT = make_sum_scores(AD[,grep("ADHD.rating",names(AD)),with = F]>0)  
   
    ######################## Impairment score ########################
   ADHDdata = read_sav("savs/PAPA/PAPA_K3.sav")

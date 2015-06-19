@@ -31,8 +31,7 @@ get_cbq_eas = function(pqa,pqb){
   
   cbq_scales = unique(cbq_item_info$scale)
   for (s in cbq_scales) {
-    cbq[,x := rowMeans(cbq[,grep(s,names(cbq)),with = F])]
-    setnames(cbq,"x",paste("CBQ.parent.SCORE",s,sep = "."))
+    cbq[[paste("CBQ.parent.sum.SCORE",s,sep = ".")]] = make_sum_scores(cbq[,grep(s,names(cbq)),with = F])
   }
   
   
@@ -44,11 +43,10 @@ get_cbq_eas = function(pqa,pqb){
                     Sociability = c(3,9,12))
   
   setnames(cbq,paste("SBFCBQ",51:62,sep = ""),paste("EAS.parent.item",1:12,sep = ""))
-  cbq_scales = unique(cbq_item_info$scale)
   for (s in names(eas_scales)) {
-    w = eas_scales[[s]]  
-    cbq[,x := (as.matrix(cbq[,paste("EAS.parent.item",abs(w),sep = ""),with = F]) %*% sign(w))]
-    setnames(cbq,"x",paste("EAS.parent.SCORE",s,sep = "."))
+    w = eas_scales[[s]]
+    cbq[[paste("EAS.parent.sum.SCORE",s,sep = ".")]] = 
+      (as.matrix(cbq[,paste("EAS.parent.item",abs(w),sep = ""),with = F]) %*% sign(w))
   }
   
   return(cbq)
