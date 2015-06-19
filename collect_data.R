@@ -70,11 +70,11 @@ rm(kgqa,kgqb)
 ################# corrections #######################
 # GENERELT: slette barn med PREG_ID_299 = 50163 fra alle tester, grunnet usikkerhet rundt barnets norskkunnskaper (dette er inkludert i alle endelige syntakser). 
 # Mor oversetter nær sagt alle testinstruksjoner til serbisk, vi har ikke kontroll på hva hun sier.
-is50163 = which(MASTER$Age_in_days == 1215 & MASTER$PAPA.ADHD.sum.SCORE == 24)
+is50163 = which(MASTER$Age_in_days == 1215 & MASTER$PAPA.ADHD.sum.SCORE == 14)
 MASTER = MASTER[-is50163,]
 
 # Vær obs på sakene 50163 og 87831 når disse syntaksene kjøres. Ingen av disse sakene skal ha valid ABIQ!!
-is87831 = which(MASTER$Age_in_days == 1294 & MASTER$PAPA.ADHD.sum.SCORE == 6 & MASTER$PAPA.BH.ODD.sum.SCORE == 8)
+is87831 = which(MASTER$Age_in_days == 1294 & MASTER$PAPA.ADHD.sum.SCORE == 3 & MASTER$PAPA.BH.ODD.sum.SCORE == 4)
 
 MASTER[is87831, StBn.SCORE.ABIQ := NA]
 MASTER[is87831, StBn.SCORE.PercRank := NA]
@@ -88,7 +88,13 @@ MASTER[is87831,BNT.SCORE := NA]
 
 rm(is87831,is50163)
 
-
 save(MASTER,file = "masterfile.Rdata")
-MASTER_scores = MASTER[,grep("SCORE",names(MASTER)),with = F]
+
+MASTER_scores = MASTER[,grep("SCORE|COUNT",names(MASTER)),with = F]
+missing_more_than_40_sumscores =  which((apply(is.na(MASTER_scores),1,sum)>40))
+MASTER_scores = MASTER_scores[-missing_more_than_40_sumscores,]
+
 save(MASTER_scores,file = "masterfile_scores.Rdata")
+
+
+#plot_my_hists(MASTER_scores)
