@@ -86,7 +86,9 @@ get_PAPA = function(){
   
   setnames(AD,old_namesi,new_namesi)
   
-  AD = AD[,c(names(AD)[1:2],new_names,new_namesi),with = F]
+  for(v in new_names) AD[[v]][which(AD[[v]] > 0)] = AD[[v]][which(AD[[v]] > 0)]-1
+  
+  AD = AD[,c(names(AD)[1:2],new_names,new_names),with = F]
   AD$PAPA.ADHD.Hyperactivity.sum.SCORE = make_sum_scores(AD[,grep("ADHD.rating.Hyp",names(AD)),with = F])
   AD$PAPA.ADHD.Impulsivity.sum.SCORE = make_sum_scores(AD[,grep("ADHD.rating.Imp",names(AD)),with = F])
   AD$PAPA.ADHD.HypImp.sum.SCORE = make_sum_scores(AD[,c(grep("ADHD.rating.Imp",names(AD)),grep("ADHD.rating.Hyp",names(AD))),with = F])
@@ -218,6 +220,8 @@ get_PAPA = function(){
   new_names = paste("PAPA.BH.rating.",names(unlist(items2dims)),sep = "")
   setnames(BH,old_names,new_names)
   
+  for(v in new_names) BH[[v]][which(BH[[v]] > 0)] = BH[[v]][which(BH[[v]] > 0)]-1
+  
   BH = BH[,c(names(BH)[1:2],new_names),with = F]
   BH$PAPA.BH.ODD.sum.SCORE = make_sum_scores(BH[,grep("BH.rating.ODD",names(BH)),with = F])
   BH$PAPA.BH.CD.sum.SCORE = make_sum_scores(BH[,grep("BH.rating.CD",names(BH)),with = F])
@@ -240,6 +244,8 @@ get_PAPA = function(){
                 paste("PAPA.ANX.rating.AUTSYM",item2dimsAUTSYM,sep = ""))
   
   setnames(AX,old_names,new_names)
+  
+  for(v in new_names) AX[[v]][which(AX[[v]] > 0)] = AX[[v]][which(AX[[v]] > 0)]-1
   
   AX = AX[,c(names(AX)[1:2],new_names),with = F]
   AX$PAPA.ANX.PHOB.sum.SCORE = make_sum_scores(AX[,grep("ANX.rating.PHOB",names(AX)),with = F])
