@@ -1,0 +1,20 @@
+Teacher Checklist
+ADHD A
+ODD B
+CD C
+PeerConflict PCS
+SpecificPhobia E 46
+Obsessions E 47 
+Compulsions E 48
+Motortics E 49
+Vocaltics E 50
+GeneralizedAnxiety E 51,52,53
+SelectiveMutism E 54 
+SeparationAnxiety E 55 
+Major depressive disorder F
+Adjustmentdisorder F67
+Socialphobia G
+EliminationProblems I
+PTSD J
+AutismSpectrum M
+
