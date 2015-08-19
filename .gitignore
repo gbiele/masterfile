@@ -3,7 +3,7 @@
 .RData
 spss_scripts
 savs
-intrument_docs
+instrument_docs/pdfs/*
 *.Rdata
 *.db
 *.png
