@@ -22,7 +22,7 @@ get_cbq_eas = function(pqa,pqb){
   cbq = rbind(cbqa,cbqb,use.names = F)
   rm(cbqa,cbqb,cbqavars,cbqbvars)
   
-  cbq_item_info = fread("intrument_docs/cbq_items_and_scale.txt")
+  cbq_item_info = fread("instrument_docs/cbq_items_and_scale.txt")
   empathy_items = setnames(data.table(cbind(37:50,rep("Empathy",14))),c("V1","V2"),names(cbq_item_info))
   cbq_item_info = rbind(cbq_item_info,empathy_items)
   

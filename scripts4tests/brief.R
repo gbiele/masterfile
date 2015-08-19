@@ -22,7 +22,7 @@ get_brief = function(qu_a,qu_b,rater){
   
   setnames(brief,names(brief)[-c(1,2)],paste(base_name,1:63,sep = "item"))
   
-  brief_dims = data.table(read.csv2("intrument_docs//brief_items4dims.txt",sep = ","))
+  brief_dims = data.table(read.csv2("instrument_docs/brief_items4dims.txt",sep = ","))
   
   for (d in unique(brief_dims$dimension)){
     brief[[paste(base_name,d,sep = "SCORE.")]] = rowSums(brief[,paste(base_name,brief_dims[dimension == d,item],sep = "item"),with = F])
