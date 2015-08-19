@@ -81,8 +81,12 @@ get_StanfordBinet = function(){
                     95, 96, 98, 99, 99, 99.5, 99.7, rep(99.9, 4))
   
   StBdata[,ABIQ := mapvalues(NVIQ+VIQ,sum_NV_V_val,ABIQ_val,warn_missing = F)]
-  StBdata[,PercRank := mapvalues(NVIQ+VIQ,sum_NV_V_val,PercRank_val,warn_missing = F)]
+  StBdata[,ABIQ.PercRank := mapvalues(NVIQ+VIQ,sum_NV_V_val,PercRank_val,warn_missing = F)]
  
+  invalid_scores = c(grep("oversatt",StBdata$SB5_6),grep("Avbrøt",StBdata$SB5_6))
+  StBdata[invalid_scores, ABIQ := NA]
+  StBdata[invalid_scores, ABIQ.PercRank := NA]
+  
   ################################ Working memory (WM) index ################################
   # Based on sum NVWM and VWM.
   # From table SB-5 Examiner's Manual. Mean=100. 
