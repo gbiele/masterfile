@@ -5,6 +5,8 @@ spss_scripts
 savs
 instrument_docs/pdfs/*
 intrument_docs
+intrument_docs/*Instr*
+intrument_docs/pdfs/Instr*
 *.Rdata
 *.db
 *.png
