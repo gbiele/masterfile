@@ -18,8 +18,6 @@ get_StanfordBinet = function(){
   StBdata[is.na(SB3_3), SB3_3 := 0]
   non_valid_scores = which(StBdata$SB3_5 == "Ikke valid. Nr. 2 og 3 ikke administrert. Avbrøt også tidlig. Barnet vegret." |
                            StBdata$SB3_5 == "Serbisk, mor oversetter men nr 21,23 ikke oversettbar")
-  StBdata[non_valid_scores, SB3_5 := NA]
-
   
   #################### NVIQ, Non-verbal routing ##################
   StBdata[Age_in_months >= 37 & Age_in_months < 42, NVIQ := mapvalues(SB1_2,0:16,3:19,warn_missing = F)]
@@ -27,6 +25,7 @@ get_StanfordBinet = function(){
   
   #################### VIQ ##################
   StBdata[,SB3_4 := SB3_2 + SB3_3]
+  StBdata[non_valid_scores, SB3_4 := NA]
   StBdata[Age_in_months < 38              , VIQ := mapvalues(SB3_4,0:26,sort(c(1:19,1,2,5,8,12,15,18,18)),warn_missing = F)]
   StBdata[Age_in_months >= 38 & Age_in_months < 40, VIQ := mapvalues(SB3_4,0:26,c(1,1,1,2,2,3,4,5,5,6,7,8,8,9,10,11,11,12,13,14,14,15,16,17,17,18,19),warn_missing = F)]
   StBdata[Age_in_months >= 40 & Age_in_months < 42, VIQ := mapvalues(SB3_4,0:27,c(1,1,1,2,2,3,4,5,5,6,7,7,8,9,10,10,11,12,12,13,14,15,15,16,17,17,18,19),warn_missing = F)]
@@ -51,6 +50,7 @@ get_StanfordBinet = function(){
   StBdata[Age_in_months >= 44 & Age_in_months < 46, VWMS := mapvalues(SB7_5,0:16,c(1,2,4:12,14:19),warn_missing = F)]
   StBdata[Age_in_months >= 46 & Age_in_months < 48, VWMS := mapvalues(SB7_5,0:17,c(2:19),warn_missing = F)]
   
+  StBdata[StBdata$SB3_5 == "Ikke valid. Nr. 2 og 3 ikke administrert. Avbrøt også tidlig. Barnet vegret.",VWMS := NA]
   
   #################### VOS Fluid Reasoning ####################
   StBdata[Age_in_months >= 37 & Age_in_months < 40, VWMS := mapvalues(SB6_5,0:11,c(3,5,7,9,10,12:14,16:19),warn_missing = F)]
