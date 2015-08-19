@@ -54,10 +54,18 @@ get_neuropsych = function() {
   ############## Boston naming task ##################
   #####################################################
   bnt = data.table(read_sav("savs/BNT.sav"))
+  SDcols = names(bnt)[grep("BN1_",names(bnt))]
+  
   bnt[,BNT.completed := is.na(BNBNT0)]
-  bnt$BNT.SCORE = rowSums(bnt[,names(bnt)[grep("BN1_",names(bnt))],with = F] < 5)
-  setnames(bnt,names(bnt)[grep("BN1_",names(bnt))],paste("BNT.item",1:25,sep = ""))
-  bnt = bnt[,c(1:2,grep("^BNT",names(bnt))),with = F]
+  bnt[BN2_1 == "Ikke tatt" | BN2_1 == "3 , men avbrutt" , BNT.completed := F]
+  
+  bnt[BNT.completed == T,BNT.SCORE := sum(.SD<5,na.rm = T),by = list(PREG_ID_299,BARN_NR),.SDcols = SDcols]
+  bnt[,BNT.missings := sum(is.na(.SD)),by = list(PREG_ID_299,BARN_NR),.SDcols = SDcols]
+  bnt[,BNT.errors := sum(.SD == 5, na.rm = T),by = list(PREG_ID_299,BARN_NR),.SDcols = SDcols]
+  
+  bnt[BNT.missings == 25, BNT.completed := F]
+  bnt[BNT.errors < 5 & BNT.SCORE < 10,BNT.completed := F]
+  bnt[BNT.completed != T,BNT.SCORE := NA]
   
   dt = merge(dt,bnt,by = c("PREG_ID_299","BARN_NR"))
   rm(bnt)
