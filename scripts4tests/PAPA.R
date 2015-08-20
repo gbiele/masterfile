@@ -197,7 +197,10 @@ get_PAPA = function(){
   AD$BARN_NR = as.numeric(AD$BARN_NR)
   PAPA = merge(PAPA,AD,by = c("PREG_ID_299","BARN_NR"))
    
-  ################################ BEHAVIOR ######################################
+  #######################################################################
+  ############################### BH: ODD ###############################
+  #######################################################################
+  
   BH = data.table(read_sav("savs/PAPA/PAPA_K4.sav"))
   #BH$K44_14_1 = 2*(BH$K44_14_1 > = 2 | BH$K44_15_1 >= 2) #(Collaps "erter" and "mobber" into variable K44_14).
   #BH$K44_19_1 = 2*(BH$K44_19_1 > = 2 | BH$K44_20_1 >= 2) #(Collaps "sloss" and "angrep" into variable K44_19).
@@ -256,17 +259,17 @@ get_PAPA = function(){
 
   
   SDcols = paste("K44",c(3,4,6,8,9,10,11,12),"1F",sep = "_")
-  BH[,PAPA.BH.ODD.SYMPTNUM := sum(.SD > 0,na.rm = T),by = c("PREG_ID_299", "BARN_NR"), .SDcols = SDcols]
+  BH[,PAPA.BH.ODD.SYMPTCOUNT := sum(.SD > 0,na.rm = T),by = c("PREG_ID_299", "BARN_NR"), .SDcols = SDcols]
 
   BH[, PAPA.BH.ODD.GROUP := 5]
-  BH[PAPA.BH.ODD.SYMPTNUM >= 4 & PAPA.BH.ODD.IMPAIR == 1, PAPA.BH.ODD.GROUP := 1]
+  BH[PAPA.BH.ODD.SYMPTCOUNT >= 4 & PAPA.BH.ODD.IMPAIR == 1, PAPA.BH.ODD.GROUP := 1]
   BH[PAPA.BH.ODD.GROUP > 1 & 
-       ((PAPA.BH.ODD.SYMPTNUM > 4 & PAPA.BH.ODD.IMPAIR == 0) |
-       (PAPA.BH.ODD.SYMPTNUM %in% 1:3 & PAPA.BH.ODD.IMPAIR == 1)), PAPA.BH.ODD.GROUP := 2]
-  BH[PAPA.BH.ODD.GROUP > 2 & PAPA.BH.ODD.SYMPTNUM >= 4 & is.na(PAPA.BH.ODD.IMPAIR), PAPA.BH.ODD.GROUP := 3]
+       ((PAPA.BH.ODD.SYMPTCOUNT > 4 & PAPA.BH.ODD.IMPAIR == 0) |
+       (PAPA.BH.ODD.SYMPTCOUNT %in% 1:3 & PAPA.BH.ODD.IMPAIR == 1)), PAPA.BH.ODD.GROUP := 2]
+  BH[PAPA.BH.ODD.GROUP > 2 & PAPA.BH.ODD.SYMPTCOUNT >= 4 & is.na(PAPA.BH.ODD.IMPAIR), PAPA.BH.ODD.GROUP := 3]
   BH[PAPA.BH.ODD.GROUP > 3 & 
-       (PAPA.BH.ODD.SYMPTNUM <  4 & (PAPA.BH.ODD.IMPAIR == 0 | is.na(PAPA.BH.ODD.IMPAIR))) | 
-       PAPA.BH.ODD.SYMPTNUM == 0, PAPA.BH.ODD.GROUP := 4]
+       (PAPA.BH.ODD.SYMPTCOUNT <  4 & (PAPA.BH.ODD.IMPAIR == 0 | is.na(PAPA.BH.ODD.IMPAIR))) | 
+       PAPA.BH.ODD.SYMPTCOUNT == 0, PAPA.BH.ODD.GROUP := 4]
   BH[PAPA.BH.ODD.GROUP == 5, PAPA.BH.ODD.GROUP := NA]
   
   BH[,PAPA.BH.ODD.SUBGROUPS := factor(PAPA.BH.ODD.GROUP,labels = c('ODD_clin','ODD_sub', 'ODD_imp_missing', 'Ikke_ODD'))]
@@ -284,6 +287,51 @@ get_PAPA = function(){
   BH$PAPA.BH.ODD.sum.SCORE = make_sum_scores(BH[,grep("BH.rating.ODD",names(BH)),with = F])
   BH$PAPA.BH.CD.sum.SCORE = make_sum_scores(BH[,grep("BH.rating.CD",names(BH)),with = F])
   
+  ######################################################################
+  ############################### BH: CD ###############################
+  ######################################################################
+  
+  # *(Slår sammen "erter" og "mobber" i variabel K44_14).
+  BH[K44_14_1 >= 2 | K44_15_1 >= 2, K44_14 := 2]
+  # *(Slår sammen "sloss" og "angrep" i variabel K44_19).
+  BH[K44_19_1 >= 2 | K44_20_1 >= 2, K44_19 := 2]
+  
+  BH[,PAPA.BH.CD.SYMPTCOUNT := sum(.SD,na.rm = T),by = c("PREG_ID_299", "BARN_NR"),
+     .SDcols = c("K44_13_1", "K44_16_1", "K44_17_1", "K44_18_1", "K44_21_1", "K44_22_1", "K44_14")]
+  BH[,PAPA.BH.CD.SYMPT.MISSING := sum(is.na(.SD),na.rm = T),by = c("PREG_ID_299", "BARN_NR"),
+     .SDcols = c("K44_13_1", "K44_16_1", "K44_17_1", "K44_18_1", "K44_21_1", "K44_22_1", "K44_14")]
+  BH[PAPA.BH.CD.SYMPT.MISSING > 3, PAPA.BH.CD.SYMPTCOUNT := NA]
+  
+  cd.imp.cols = paste("K44_23B",1:6,sep = "_") 
+  BH[,PAPA.BH.CD.IMPAIR.MISSING := sum(.SD,na.rm = T),by = c("PREG_ID_299", "BARN_NR"),.SDcols = cd.imp.cols]
+  BH[,PAPA.BH.CD.IMPAIRweak := sum(.SD == 1,na.rm = T),by = c("PREG_ID_299", "BARN_NR"),.SDcols = cd.imp.cols]
+  BH[,PAPA.BH.CD.IMPAIRstrong := sum(.SD > 1,na.rm = T),by = c("PREG_ID_299", "BARN_NR"),.SDcols = cd.imp.cols]
+ 
+  BH[,PAPA.BH.CD.IMPAIR := 0]
+  BH[PAPA.BH.CD.IMPAIR.MISSING >= 6, PAPA.BH.CD.IMPAIR := NA]
+  BH[PAPA.BH.CD.IMPAIR.MISSING < 6 & 
+       (PAPA.BH.CD.IMPAIRweak >= 2 | PAPA.BH.CD.IMPAIRstrong > 0) , PAPA.BH.CD.IMPAIR := 1]
+  BH[,PAPA.BH.CD.IMPAIR.CAT := factor(PAPA.BH.CD.IMPAIR,labels = c("absent","present"))]
+  
+  BH[,PAPA.BH.CD.IMPAIR.SCORE := sum(.SD,na.rm = T),by = c("PREG_ID_299", "BARN_NR"),.SDcols = cd.imp.cols]
+ 
+  BH[,PAPA.BH.CD.GROUP := 4]
+  BH[PAPA.BH.CD.SYMPTCOUNT >= 3 & PAPA.BH.CD.IMPAIR == 1,PAPA.BH.CD.GROUP := 1]
+  BH[PAPA.BH.CD.GROUP > 1 & 
+       (PAPA.BH.CD.SYMPTCOUNT >= 3 & PAPA.BH.CD.IMPAIR == 0) | 
+       (PAPA.BH.CD.SYMPTCOUNT %in% 1:2 & PAPA.BH.CD.IMPAIR == 1),
+     PAPA.BH.CD.GROUP := 2]
+  BH[PAPA.BH.CD.GROUP > 2 & PAPA.BH.CD.SYMPTCOUNT >= 3 & is.na(PAPA.BH.CD.IMPAIR), PAPA.BH.CD.GROUP := 3]
+  BH[is.na(PAPA.BH.CD.SYMPTCOUNT) & is.na(PAPA.BH.CD.IMPAIR), PAPA.BH.CD.GROUP := NA]
+  BH[,PAPA.BH.CD.SUBGROUPS := factor(PAPA.BH.CD.GROUP, labels = c("CDclinical","CDsubclinical","CPmissimp","noCD"))]
+ 
+  
+  BH[,PAPA.BH.DBD.GROUP := 4]
+  BH[PAPA.BH.ODD.GROUP == 1 | PAPA.BH.CD.GROUP == 1, PAPA.BH.DBD.GROUP := 1]
+  BH[PAPA.BH.DBD.GROUP > 1 & PAPA.BH.ODD.GROUP == 2 | PAPA.BH.CD.GROUP == 2, PAPA.BH.DBD.GROUP := 2]
+  BH[,PAPA.BH.DBD.SUBGROUPS := factor(PAPA.BH.DBD.GROUP, labels = c("DBDclinical","DBDsubclinical","noDBD"))]
+  
+  
   
   BH$PREG_ID_299 = as.numeric(BH$PREG_ID_299)
   BH$BARN_NR = as.numeric(BH$BARN_NR)
@@ -291,7 +339,9 @@ get_PAPA = function(){
   BH = BH[,c(names(BH)[1:2],new_names),with = F]
   PAPA = merge(PAPA,BH,by = c("PREG_ID_299","BARN_NR"))
   
-  ################################ ANXIETY ######################################
+  ####################################################################
+  ########################### ANXIETY ################################
+  ####################################################################
   AX = data.table(read_sav("savs/PAPA/PAPA_K5.sav"))
 
     items2dims = list(PHOB = 2:8,
