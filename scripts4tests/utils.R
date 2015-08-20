@@ -8,19 +8,35 @@ make_sum_scores = function(item_scores){
 }
 
 
+
 library(fitdistrplus)
 
 plot_my_hists = function(D){
   if (is(D,"data.table")) D = data.frame(D)
   for (v in colnames(D)) {
     d = D[,v]
+    if (mean(quantile(d,c(.01,.99),na.rm = T)) < 
+        median(d,na.rm = T)) {
+      d = abs(d-max(d,na.rm = T))
+      warning(paste("Variable",v,"reflected"),call = F)}
     if (is.numeric(d)) {
       nNA = sum(is.na(d))
       d = d[!is.na(d)]
-      if (mean(unique(d) %% 1) == 0 & min(d)>=0) {
-        par(mfrow = c(2,2))
+      if (mean(unique(d) %% 1) == 0 & min(d)==0) {
+        par(mfrow = c(3,2))
         plot_nbinom(d,v)
+        plot_weibull(d,v)
+        plot_gamma(d,v)
+      } else if (mean(unique(d) %% 1) == 0 & min(d)>0) {
+        par(mfrow = c(3,2))
+        plot_nbinom(d,v)
+        plot_weibull(d,v)
         plot_norm(d,v)
+      } else if (min(d)>0) {
+        par(mfrow = c(3,2))
+        plot_norm(d,v)
+        plot_weibull(d,v)
+        plot_gamma(d,v)
       } else {
         par(mfrow = c(1,2))
         plot_norm(d,v)
@@ -60,6 +76,40 @@ plot_norm = function(d,vname){
   predicted_density = predicted_density/sum(predicted_density)*sum(h$density)
   ttext = paste("log likelihood norm:", round(f_norm$loglik))
   hist(d,breaks = vals,xlab = vname,main = ttext,ylim = c(0,max(h$density,predicted_density)),freq = F)
+  lines(h$mids,predicted_density,'l',col = "blue")
+  
+  plot_delta_density(h$mids,predicted_density,h$density)
+}
+
+plot_gamma = function(d,vname){
+  d = d+.1
+  f_gamma = fitdist(d,"gamma")
+  max_val = max(max(d),qgamma(.999,shape = f_gamma$estimate["shape"], rate = f_gamma$estimate["rate"]))
+  min_val = min(min(d),qgamma(.001,shape = f_gamma$estimate["shape"], rate = f_gamma$estimate["rate"]))
+  
+  h = hist(d,plot = F,breaks = seq(min_val-.5,max_val+.5,length = 15))
+  
+  predicted_density = dgamma(h$mids,shape = f_gamma$estimate["shape"],rate = f_gamma$estimate["rate"])
+  predicted_density = predicted_density/sum(predicted_density)*sum(h$density)
+  ttext = paste("log likelihood gamma:", round(f_gamma$loglik))
+  hist(d,breaks = h$breaks,xlab = vname,main = ttext,ylim = c(0,max(h$density,predicted_density)),freq = F)
+  lines(h$mids,predicted_density,'l',col = "blue")
+  
+  plot_delta_density(h$mids,predicted_density,h$density)
+}
+
+plot_weibull = function(d,vname){
+  d = d+.1
+  f_weibull = fitdist(d,"weibull")
+  max_val = max(max(d),qweibull(.999,shape = f_weibull$estimate["shape"], scale = f_weibull$estimate["scale"]))
+  min_val = min(min(d),qweibull(.001,shape = f_weibull$estimate["shape"], scale = f_weibull$estimate["scale"]))
+  
+  h = hist(d,plot = F,breaks = seq(min_val-.5,max_val+.5,length = 15))
+  
+  predicted_density = dweibull(h$mids,shape = f_weibull$estimate["shape"],scale = f_weibull$estimate["scale"])
+  predicted_density = predicted_density/sum(predicted_density)*sum(h$density)
+  ttext = paste("log likelihood weibull:", round(f_weibull$loglik))
+  hist(d,breaks = h$breaks,xlab = vname,main = ttext,ylim = c(0,max(h$density,predicted_density)),freq = F)
   lines(h$mids,predicted_density,'l',col = "blue")
   
   plot_delta_density(h$mids,predicted_density,h$density)
