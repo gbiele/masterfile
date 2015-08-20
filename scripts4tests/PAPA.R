@@ -152,10 +152,11 @@ get_PAPA = function(){
   AD[,PAPA.ADHD.subtype := factor(ADHDclin,labels = c('ADHD-IA','ADHD-H', 'ADHD-C', 'No_clinADHD'))]
   
   ######################## ADHD subthreshold without impairment ########################
+ 
   AD[ADHDclin >3 & PAPA.ADHD.Inattention.symCOUNT >=6 & PAPA.ADHD.HypImp.symCOUNT  <6, ADHDsub_noImp := 1]
   AD[ADHDclin >3 & PAPA.ADHD.Inattention.symCOUNT  <6 & PAPA.ADHD.HypImp.symCOUNT >=6, ADHDsub_noImp := 2]
   AD[ADHDclin >3 & PAPA.ADHD.Inattention.symCOUNT >=6 & PAPA.ADHD.HypImp.symCOUNT >=6, ADHDsub_noImp := 3]
-  AD[ADHDclin >3 & PAPA.ADHD.Inattention.symCOUNT  <6 & PAPA.ADHD.HypImp.symCOUNT  <6, ADHDsub_noImp := 4]
+  AD[ADHDclin >3 & PAPA.ADHD.Inattention.symCOUNT  <6 & PAPA.ADHD.HypImp.symCOUNT  >6, ADHDsub_noImp := 4]
   AD[is.na(ADHDsub_noImp), ADHDsub_noImp := 5]
 
   AD[,PAPA.ADHD.subthresh_imp_types := factor(ADHDsub_noImp,labels = c('subimpADHD_IA','subimpADHD_H', 'subimpADHD_C', 'NoADHD', "clinADHD"))]
@@ -206,8 +207,70 @@ get_PAPA = function(){
   BH$K44_19_1[BH$K44_19_1<2] = 0
   BH$K44_13_1[BH$K44_13_1 == 9] = NA # 9 was for "snakker ikke" in a question about lying
   
-  items2dims = list(ODD = c(3,4,6,8,9,10,11,12),
-                    CD = c(13,14,16,17,18,19,21,22))
+  
+  # symptom duration
+  freq_vars = sort(c(paste("K44",c(3,4,6,9,12),"2",sep = "_"),paste("K44",c(10,11),"6",sep = "_"),"K44_8_4"))
+  for (v in freq_vars) {
+    y = BH[[v]]
+    y = char2num(y)
+    y[y>90] = 90
+    y[y<1] = NA
+    BH[[v]] = y}
+  
+  # symptom present
+  ## Symptom til stede defineres som skåre 2 + høy frekvens.
+  BH[K44_3_1 > 1 & K44_3_2 >= 90,K44_3_1F := K44_3_1]
+  BH[K44_4_1 > 1 & K44_4_2 >= 48,K44_4_1F := K44_4_1]
+  BH[K44_6_1 > 1 & K44_6_2 >= 85,K44_6_1F := K44_6_1]
+  BH[K44_8_1 > 1 & K44_8_4 >= 44,K44_8_1F := K44_8_1]
+  BH[K44_9_1 > 1 & K44_9_2 >= 1 ,K44_9_1F := K44_9_1]
+  BH[K44_10_1 > 1 & K44_10_6 >= 1,K44_10_1F := K44_10_1]
+  BH[K44_11_1 > 1 & K44_11_6 >= 21 ,K44_11_1F := K44_11_1]
+  BH[K44_12_1 > 1 & K44_12_2 >= 1,K44_12_1F := K44_12_1]
+  
+ 
+  # * Her telles antall ODD-symptomer med hyppighet tatt i betraktning.
+  SDcols = names(BH)[intersect(grep("^K44",names(BH)),grep("1F$",names(BH)))]
+  BH[,PAPA.BH.ODD.SYMPTwfreq := sum(.SD > 1,na.rm = T),by = c("PREG_ID_299", "BARN_NR"),.SDcols = SDcols]
+  BH[,PAPA.BH.ODD.SYMPTwfreq.MISSING := sum(is.na(.SD)),by = c("PREG_ID_299", "BARN_NR"),.SDcols = SDcols]
+  
+  # * Her telles antall ODD-symptomer uavhengig av hyppighet av forekomst.
+  SDcols =  gsub("_2|_6|_4","_1",freq_vars)
+  BH[,PAPA.BH.ODD.SYMPTwofreq := sum(.SD > 1,na.rm = T),by = c("PREG_ID_299", "BARN_NR"),.SDcols = SDcols]
+  BH[,PAPA.BH.ODD.SYMPTwofreq.MISSING := sum(is.na(.SD)),by = c("PREG_ID_299", "BARN_NR"),.SDcols = SDcols]
+  
+ # impairment   
+  impair_cols = paste("K44_23A",1:6,sep = "_")
+  BH[,PAPA.BH.ODD.IMPAIR.MISSING := sum(is.na(.SD)),by = c("PREG_ID_299", "BARN_NR"), .SDcols = impair_cols]
+  BH[,PAPA.BH.ODD.IMPAIR.WEAK := sum(.SD == 1,na.rm = T),by = c("PREG_ID_299", "BARN_NR"), .SDcols = impair_cols]
+  BH[,PAPA.BH.ODD.IMPAIR.STRONG := sum(.SD > 1,na.rm = T),by = c("PREG_ID_299", "BARN_NR"), .SDcols = impair_cols]
+  
+  BH[, PAPA.BH.ODD.IMPAIR := 0]
+  BH[(PAPA.BH.ODD.IMPAIR.MISSING < 6 & PAPA.BH.ODD.IMPAIR.WEAK > 2) | PAPA.BH.ODD.IMPAIR.STRONG > 0, PAPA.BH.ODD.IMPAIR := 1]
+  BH[PAPA.BH.ODD.IMPAIR.MISSING >= 6, PAPA.BH.ODD.IMPAIR := NA]
+
+  SDcols = paste("K44_23A",1:6,sep = "_")
+  BH[,PAPA.BH.ODD.IMPAIR.SCORE := sum(.SD,na.rm = T),by = c("PREG_ID_299", "BARN_NR"),.SDcols = SDcols]
+  BH[,PAPA.BH.ODD.IMPAIR.SCORE.MISSING := sum(is.na(.SD)),by = c("PREG_ID_299", "BARN_NR"),.SDcols = SDcols]
+  BH[PAPA.BH.ODD.IMPAIR.SCORE.MISSING > 2, PAPA.BH.ODD.IMPAIR.SCORE := NA]
+
+  
+  SDcols = paste("K44",c(3,4,6,8,9,10,11,12),"1F",sep = "_")
+  BH[,PAPA.BH.ODD.SYMPTNUM := sum(.SD > 0,na.rm = T),by = c("PREG_ID_299", "BARN_NR"), .SDcols = SDcols]
+
+  BH[, PAPA.BH.ODD.GROUP := 5]
+  BH[PAPA.BH.ODD.SYMPTNUM >= 4 & PAPA.BH.ODD.IMPAIR == 1, PAPA.BH.ODD.GROUP := 1]
+  BH[PAPA.BH.ODD.GROUP > 1 & 
+       ((PAPA.BH.ODD.SYMPTNUM > 4 & PAPA.BH.ODD.IMPAIR == 0) |
+       (PAPA.BH.ODD.SYMPTNUM %in% 1:3 & PAPA.BH.ODD.IMPAIR == 1)), PAPA.BH.ODD.GROUP := 2]
+  BH[PAPA.BH.ODD.GROUP > 2 & PAPA.BH.ODD.SYMPTNUM >= 4 & is.na(PAPA.BH.ODD.IMPAIR), PAPA.BH.ODD.GROUP := 3]
+  BH[PAPA.BH.ODD.GROUP > 3 & 
+       (PAPA.BH.ODD.SYMPTNUM <  4 & (PAPA.BH.ODD.IMPAIR == 0 | is.na(PAPA.BH.ODD.IMPAIR))) | 
+       PAPA.BH.ODD.SYMPTNUM == 0, PAPA.BH.ODD.GROUP := 4]
+  BH[PAPA.BH.ODD.GROUP == 5, PAPA.BH.ODD.GROUP := NA]
+  
+  BH[,PAPA.BH.ODD.SUBGROUPS := factor(PAPA.BH.ODD.GROUP,labels = c('ODD_clin','ODD_sub', 'ODD_imp_missing', 'Ikke_ODD'))]
+
   
   old_names = paste(paste("K44_",unlist(items2dims),sep = ""),"_1",sep = "")
   new_names = paste("PAPA.BH.rating.",names(unlist(items2dims)),sep = "")
@@ -215,13 +278,19 @@ get_PAPA = function(){
   
   for(v in new_names) BH[[v]][which(BH[[v]] > 0)] = BH[[v]][which(BH[[v]] > 0)]-1
   
-  BH = BH[,c(names(BH)[1:2],new_names),with = F]
+  items2dims = list(ODD = c(3,4,6,8,9,10,11,12),
+                    CD = c(13,14,16,17,18,19,21,22))
+  
   BH$PAPA.BH.ODD.sum.SCORE = make_sum_scores(BH[,grep("BH.rating.ODD",names(BH)),with = F])
   BH$PAPA.BH.CD.sum.SCORE = make_sum_scores(BH[,grep("BH.rating.CD",names(BH)),with = F])
   
+  
   BH$PREG_ID_299 = as.numeric(BH$PREG_ID_299)
   BH$BARN_NR = as.numeric(BH$BARN_NR)
+  
+  BH = BH[,c(names(BH)[1:2],new_names),with = F]
   PAPA = merge(PAPA,BH,by = c("PREG_ID_299","BARN_NR"))
+  
   ################################ ANXIETY ######################################
   AX = data.table(read_sav("savs/PAPA/PAPA_K5.sav"))
 
