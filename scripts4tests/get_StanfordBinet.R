@@ -111,7 +111,7 @@ get_StanfordBinet = function(){
   new_item_names = gsub("SB","StBn.Item",old_item_names)
   setnames(StBdata,old_item_names,new_item_names)
   
-  old_names = c("NVIQ","VIQ","NVWMS","VWMS","ABIQ","PercRank","WMindex" )
+  old_names = c("NVIQ","VIQ","NVWMS","VWMS","ABIQ","ABIQ.PercRank","WMindex" )
   new_names = paste("StBn.SCORE.",old_names,sep = "")
   setnames(StBdata,old_names,new_names)
   

@@ -1,4 +1,3 @@
-
 # from the instrument documentation:
 # CBQ: We have used the 36 questions from CBQ-VSF (Very Short Form). These are
 # translated by Anne-Mari Torgersen. In addition we have the empathy questions from the
@@ -48,6 +47,7 @@ get_cbq_eas = function(pqa,pqb){
     cbq[[paste("EAS.parent.sum.SCORE",s,sep = ".")]] = 
       (as.matrix(cbq[,paste("EAS.parent.item",abs(w),sep = ""),with = F]) %*% sign(w))
   }
-  
+  cbq$EAS.parent.sum.SCORE.Shyness = cbq$EAS.parent.sum.SCORE.Shyness - min(cbq$EAS.parent.sum.SCORE.Shyness,na.rm = T)
+  print("set minimum value of EAS.parent.sum.SCORE.Shyness to 0")
   return(cbq)
 }

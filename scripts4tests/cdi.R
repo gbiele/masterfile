@@ -30,6 +30,11 @@ get_cdi = function(qu_a,qu_b,rater){
   cdi[[paste(base_name,"sum.SCORE",sep =".")]] = round(rowSums(cdi[,paste(base_name,1:50,sep = ".item"),with = F],na.rm = T))
   cdi[[paste(base_name,"mean.SCORE",sep =".")]] = rowMeans(cdi[,paste(base_name,1:50,sep = ".item"),with = F],na.rm = T)
   cdi[[paste(base_name,"missings",sep =".")]] = rowSums(is.na(cdi[,paste(base_name,1:50,sep = ".item"),with = F]))
+  cdi[[paste(base_name,"sum.SCORE",sep =".")]][cdi[[paste(base_name,"missings",sep =".")]] > 16] = NA
+  cdi[[paste(base_name,"mean.SCORE",sep =".")]][cdi[[paste(base_name,"missings",sep =".")]] > 16] = NA
+  if (sum(cdi[[paste(base_name,"missings",sep =".")]] > 0)) {
+    print(paste("set",paste(base_name,"sum.SCORE",sep =".")," to NA for cases with more than 16 missings"))
+  }
   return(cdi)
 }
 

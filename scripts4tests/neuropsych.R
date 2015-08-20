@@ -22,7 +22,9 @@ get_neuropsych = function() {
   dt[,N3_5 := NY3_3 + NY3_4] # note: NY3_3 is only missing in cases where NY3_4 is also missing
   #Skårer med følgende kommentarer settes til missing:
   #"trett, tøyser, ikke valid", "Test ikke gjennomført. Barnet ville ikke. Ikke valid.".
-  invalid_scores = which(dt$NY3_6 == "trett, tøyser, ikke valid" | dt$NY3_6 == "Test ikke gjennomført. Barnet ville ikke. Ikke valid.")
+  invalid_scores = c(which(dt$NY3_6 == "trett, tøyser, ikke valid" |
+                           dt$NY3_6 == "Test ikke gjennomført. Barnet ville ikke. Ikke valid."),
+                     grep("serbisk",dt[,NY1_2]))
   dt[invalid_scores,N3_5 := NA]
   
   tmp = data.table(read_sav("savs/Nepsy_Delscore.sav"))
@@ -45,6 +47,8 @@ get_neuropsych = function() {
   setnames(dt,"NY4_2","NEPSY.LANG.PhonProc")
   # Visual Attention
   dt[,NEPSY.VISATT.cats.SCORE := as.numeric(dt$NY5_2_3)]
+  dt[NEPSY.VISATT.cats.SCORE > 20, NEPSY.VISATT.cats.SCORE:=20]
+  print("2 NEPSY.VISATT.cats.SCORE values larger 20 set to 20")
   dt[,NEPSY.VISATT.cats_time := as.numeric(gsub("[a-z.]","",NY5_2_4))]
   dt[,NEPSY.VISATT.bunniescats.SCORE := as.numeric(dt$NY5_3_3)]
   dt[NEPSY.VISATT.bunniescats.SCORE > 45, NEPSY.VISATT.bunniescats.SCORE := NA]
