@@ -234,9 +234,8 @@ get_PAPA = function(){
  
   # * Her telles antall ODD-symptomer med hyppighet tatt i betraktning.
   SDcols = names(BH)[intersect(grep("^K44",names(BH)),grep("1F$",names(BH)))]
-  BH[,PAPA.BH.ODD.SYMPTwfreq := sum(.SD > 1,na.rm = T),by = c("PREG_ID_299", "BARN_NR"),.SDcols = SDcols]
-  BH[,PAPA.BH.ODD.SYMPTwfreq.MISSING := sum(is.na(.SD)),by = c("PREG_ID_299", "BARN_NR"),.SDcols = SDcols]
-  
+  BH[,PAPA.BH.ODD.SYMPTCOUNT := sum(.SD > 1,na.rm = T),by = c("PREG_ID_299", "BARN_NR"),.SDcols = SDcols]
+
   # * Her telles antall ODD-symptomer uavhengig av hyppighet av forekomst.
   SDcols =  gsub("_2|_6|_4","_1",freq_vars)
   BH[,PAPA.BH.ODD.SYMPTwofreq := sum(.SD > 1,na.rm = T),by = c("PREG_ID_299", "BARN_NR"),.SDcols = SDcols]
@@ -272,9 +271,6 @@ get_PAPA = function(){
        PAPA.BH.ODD.SYMPTCOUNT == 0, PAPA.BH.ODD.GROUP := 4]
   BH[PAPA.BH.ODD.GROUP == 5, PAPA.BH.ODD.GROUP := NA]
   
-  BH[,PAPA.BH.ODD.SUBGROUPS := factor(PAPA.BH.ODD.GROUP,labels = c('ODD_clin','ODD_sub', 'ODD_imp_missing', 'Ikke_ODD'))]
-
-  
   old_names = paste(paste("K44_",unlist(items2dims),sep = ""),"_1",sep = "")
   new_names = paste("PAPA.BH.rating.",names(unlist(items2dims)),sep = "")
   setnames(BH,old_names,new_names)
@@ -296,7 +292,7 @@ get_PAPA = function(){
   # *(Slår sammen "sloss" og "angrep" i variabel K44_19).
   BH[K44_19_1 >= 2 | K44_20_1 >= 2, K44_19 := 2]
   
-  BH[,PAPA.BH.CD.SYMPTCOUNT := sum(.SD,na.rm = T),by = c("PREG_ID_299", "BARN_NR"),
+  BH[,PAPA.BH.CD.SYMPTCOUNT := sum(.SD > 1,na.rm = T),by = c("PREG_ID_299", "BARN_NR"),
      .SDcols = c("K44_13_1", "K44_16_1", "K44_17_1", "K44_18_1", "K44_21_1", "K44_22_1", "K44_14")]
   BH[,PAPA.BH.CD.SYMPT.MISSING := sum(is.na(.SD),na.rm = T),by = c("PREG_ID_299", "BARN_NR"),
      .SDcols = c("K44_13_1", "K44_16_1", "K44_17_1", "K44_18_1", "K44_21_1", "K44_22_1", "K44_14")]
@@ -323,7 +319,6 @@ get_PAPA = function(){
      PAPA.BH.CD.GROUP := 2]
   BH[PAPA.BH.CD.GROUP > 2 & PAPA.BH.CD.SYMPTCOUNT >= 3 & is.na(PAPA.BH.CD.IMPAIR), PAPA.BH.CD.GROUP := 3]
   BH[is.na(PAPA.BH.CD.SYMPTCOUNT) & is.na(PAPA.BH.CD.IMPAIR), PAPA.BH.CD.GROUP := NA]
-  BH[,PAPA.BH.CD.SUBGROUPS := factor(PAPA.BH.CD.GROUP, labels = c("CDclinical","CDsubclinical","CPmissimp","noCD"))]
  
   
   BH[,PAPA.BH.DBD.GROUP := 4]
@@ -331,7 +326,8 @@ get_PAPA = function(){
   BH[PAPA.BH.DBD.GROUP > 1 & PAPA.BH.ODD.GROUP == 2 | PAPA.BH.CD.GROUP == 2, PAPA.BH.DBD.GROUP := 2]
   BH[,PAPA.BH.DBD.SUBGROUPS := factor(PAPA.BH.DBD.GROUP, labels = c("DBDclinical","DBDsubclinical","noDBD"))]
   
-  
+  BH[,PAPA.BH.CD.GROUP := factor(PAPA.BH.CD.GROUP, labels = c("CD_clinical","CDs_ubclinical","CP_missimp","no_CD"))]
+  BH[,PAPA.BH.ODD.GROUP := factor(PAPA.BH.ODD.GROUP,labels = c('ODD_clin','ODD_sub', 'ODD_imp_missing', 'Ikke_ODD'))]
   
   BH$PREG_ID_299 = as.numeric(BH$PREG_ID_299)
   BH$BARN_NR = as.numeric(BH$BARN_NR)
@@ -343,8 +339,119 @@ get_PAPA = function(){
   ########################### ANXIETY ################################
   ####################################################################
   AX = data.table(read_sav("savs/PAPA/PAPA_K5.sav"))
+  
+  ########################### PHOBIA ################################
+  ax_cols = paste("K55",2:8,"1",sep = "_")
+  AX[,PAPA.PHOB.SYMPTCOUNT := sum(.SD > 1,na.rm = T),by = c("PREG_ID_299", "BARN_NR"), .SDcols = ax_cols]
+  
+  ax_imp_cols = paste("K55_26A",1:6,sep = "_")
+  AX[,PAPA.PHOB.IMPAIR.MISSING := sum(is.na(.SD)),by = c("PREG_ID_299", "BARN_NR"), .SDcols = ax_imp_cols]
+  AX[,PAPA.PHOB.IMPAIRweak := sum(.SD == 1,na.rm = T),by = c("PREG_ID_299", "BARN_NR"), .SDcols = ax_imp_cols]
+  AX[,PAPA.PHOB.IMPAIRstrong := sum(.SD > 1,na.rm = T),by = c("PREG_ID_299", "BARN_NR"), .SDcols = ax_imp_cols]
+ 
+  AX[,PAPA.PHOB.IMPAIR := 0]
+  AX[PAPA.PHOB.IMPAIR.MISSING >= 6, PAPA.PHOB.IMPAIR := NA]
+  AX[PAPA.PHOB.IMPAIRweak > 2 | PAPA.PHOB.IMPAIRstrong > 2, PAPA.PHOB.IMPAIR := 1]
+  AX[,PAPA.PHOB.IMPAIR.CAT := factor(PAPA.PHOB.IMPAIR,labels = c("absent","present"))]
+  AX[,PAPA.PHOB.IMPAIR.SCORE := sum(.SD,na.rm = T),by = c("PREG_ID_299", "BARN_NR"), .SDcols = ax_imp_cols]
+  
+  AX[,PAPA.PHOB.GROUP := 4]
+  AX[PAPA.PHOB.SYMPTCOUNT > 1 & PAPA.PHOB.IMPAIR == 1, PAPA.PHOB.GROUP := 1]
+  AX[PAPA.PHOB.GROUP > 1 & PAPA.PHOB.SYMPTCOUNT > 1 & PAPA.PHOB.IMPAIR == 0, PAPA.PHOB.GROUP := 2]
+  AX[PAPA.PHOB.GROUP > 2 & PAPA.PHOB.SYMPTCOUNT > 1 & is.na(PAPA.PHOB.IMPAIR), PAPA.PHOB.GROUP := 3]
+  AX[PAPA.PHOB.GROUP > 3 & PAPA.PHOB.SYMPTCOUNT < 1 , PAPA.PHOB.GROUP := 4]
+  AX[,PAPA.PHOB.GROUP := factor(PAPA.PHOB.GROUP,labels = c("Phobia_clinical","Phobia_subclinical","Phobia_noimp","no_Phobia"))]
 
-    items2dims = list(PHOB = 2:8,
+  ########################### SOC ANX ################################
+  ax_cols = paste("K55",9:11,"1",sep = "_")
+  AX[,PAPA.SOAX.SYMPTCOUNT := sum(.SD > 1,na.rm = T),by = c("PREG_ID_299", "BARN_NR"), .SDcols = ax_cols]
+  
+  ax_imp_cols = paste("K55_26B",1:6,sep = "_")
+  AX[,PAPA.SOAX.IMPAIR.MISSING := sum(is.na(.SD)),by = c("PREG_ID_299", "BARN_NR"), .SDcols = ax_imp_cols]
+  AX[,PAPA.SOAX.IMPAIRweak := sum(.SD == 1,na.rm = T),by = c("PREG_ID_299", "BARN_NR"), .SDcols = ax_imp_cols]
+  AX[,PAPA.SOAX.IMPAIRstrong := sum(.SD > 1,na.rm = T),by = c("PREG_ID_299", "BARN_NR"), .SDcols = ax_imp_cols]
+  
+  AX[,PAPA.SOAX.IMPAIR := 0]
+  AX[PAPA.SOAX.IMPAIR.MISSING >= 6, PAPA.SOAX.IMPAIR := NA]
+  AX[PAPA.SOAX.IMPAIR.MISSING < 6 & (PAPA.SOAX.IMPAIRweak >= 2 | PAPA.SOAX.IMPAIRstrong > 0) , PAPA.SOAX.IMPAIR := 1]
+  AX[,PAPA.SOAX.IMPAIR.CAT := factor(PAPA.SOAX.IMPAIR,labels = c("absent","present"))]
+  AX[,PAPA.SOAX.IMPAIR.SCORE := sum(.SD,na.rm = T),by = c("PREG_ID_299", "BARN_NR"), .SDcols = ax_imp_cols]
+  
+  AX[,PAPA.SOAX.GROUP := 5]
+  AX[K55_9_1 > 1 & PAPA.SOAX.IMPAIR.CAT == "present", PAPA.SOAX.GROUP := 1]
+  AX[PAPA.SOAX.GROUP > 1 & (
+      (K55_9_1 > 1 & PAPA.SOAX.IMPAIR.CAT == "absent") |
+      (PAPA.SOAX.SYMPTCOUNT >= 1 & PAPA.SOAX.IMPAIR.CAT == "absent")
+      ) , PAPA.SOAX.GROUP := 2]
+  AX[PAPA.SOAX.GROUP > 2 & PAPA.SOAX.SYMPTCOUNT >= 1 & is.na(PAPA.SOAX.IMPAIR), PAPA.SOAX.GROUP := 3]
+  AX[PAPA.SOAX.GROUP > 3 & PAPA.SOAX.SYMPTCOUNT < 1, PAPA.SOAX.GROUP := 4]
+  
+  AX[,PAPA.SOAX.GROUP := factor(PAPA.SOAX.GROUP,labels = c("SocAnx_clinical","SocAnx_subclinical","SocAnx_noimp","no_Phobia"))]
+  
+  ########################### SEP ANX ################################
+  ax_cols = paste("K55",c(13,14,16:19),"1",sep = "_")
+  AX[,PAPA.SEPAX.SYMPTCOUNT := sum(.SD > 1,na.rm = T),by = c("PREG_ID_299", "BARN_NR"), .SDcols = ax_cols]
+
+  ax_imp_cols = paste("K55_26C",1:6,sep = "_")
+  AX[,PAPA.SEPAX.IMPAIR.MISSING := sum(is.na(.SD)),by = c("PREG_ID_299", "BARN_NR"), .SDcols = ax_imp_cols]
+  AX[,PAPA.SEPAX.IMPAIRweak := sum(.SD == 1,na.rm = T),by = c("PREG_ID_299", "BARN_NR"), .SDcols = ax_imp_cols]
+  AX[,PAPA.SEPAX.IMPAIRstrong := sum(.SD > 1,na.rm = T),by = c("PREG_ID_299", "BARN_NR"), .SDcols = ax_imp_cols]
+  
+  AX[,PAPA.SEPAX.IMPAIR := 0]
+  AX[PAPA.SEPAX.IMPAIR.MISSING >= 6, PAPA.SEPAX.IMPAIR := NA]
+  AX[PAPA.SEPAX.IMPAIR.MISSING < 6 & (PAPA.SEPAX.IMPAIRweak >= 2 | PAPA.SEPAX.IMPAIRstrong > 0) , PAPA.SEPAX.IMPAIR := 1]
+  AX[,PAPA.SEPAX.IMPAIR.CAT := factor(PAPA.SEPAX.IMPAIR,labels = c("absent","present"))]
+  AX[,PAPA.SEPAX.IMPAIR.SCORE := sum(.SD,na.rm = T),by = c("PREG_ID_299", "BARN_NR"), .SDcols = ax_imp_cols]
+  
+  AX[,PAPA.SEPAX.GROUP := factor(rep(NA,nrow(AX)),levels = 1:4,labels = c("SEPAX_clinical","SEPAX_subclinical","SEPAX_noimp","no_SEPAX"))]
+  AX[PAPA.SEPAX.SYMPTCOUNT > 3 & PAPA.SEPAX.IMPAIR.CAT == "present", PAPA.SEPAX.GROUP := "SEPAX_clinical"]
+  AX[is.na(PAPA.SEPAX.GROUP) & (PAPA.SEPAX.SYMPTCOUNT > 3 & PAPA.SEPAX.IMPAIR.CAT == "absent" ) |
+      (PAPA.SEPAX.SYMPTCOUNT %in% 1:2 & is.na(PAPA.SEPAX.IMPAIR)), PAPA.SEPAX.GROUP := "SEPAX_subclinical"]
+  AX[is.na(PAPA.SEPAX.GROUP) & PAPA.SEPAX.SYMPTCOUNT > 3 & is.na(PAPA.SEPAX.IMPAIR), PAPA.SEPAX.GROUP := "SEPAX_noimp"]
+  AX[is.na(PAPA.SEPAX.GROUP), PAPA.SEPAX.GROUP := "no_SEPAX"]
+  
+  ########################### GEN ANX ################################
+  
+  AX[,PAPA.GENAX.SYMPT := 0]
+  AX[K55_21_16 == 2, K55_21_16 := 1]
+  AX[K55_20_10 == 2 & (K55_21_16 == 1 | K55_22_1 == 2 | K55_23_1 == 2 | K55_24_1 == 2 | K55_25_1 == 2),
+     PAPA.GENAX.SYMPT := 1]
+  
+  
+  ax_imp_cols = paste("K55_26D",1:6,sep = "_")
+  AX[,PAPA.GENAX.IMPAIR.MISSING := sum(is.na(.SD)),by = c("PREG_ID_299", "BARN_NR"), .SDcols = ax_imp_cols]
+  AX[,PAPA.GENAX.IMPAIRweak := sum(.SD == 1,na.rm = T),by = c("PREG_ID_299", "BARN_NR"), .SDcols = ax_imp_cols]
+  AX[,PAPA.GENAX.IMPAIRstrong := sum(.SD > 1,na.rm = T),by = c("PREG_ID_299", "BARN_NR"), .SDcols = ax_imp_cols]
+  
+  AX[,PAPA.GENAX.IMPAIR := 0]
+  AX[PAPA.GENAX.IMPAIR.MISSING >= 6, PAPA.GENAX.IMPAIR := NA]
+  AX[PAPA.GENAX.IMPAIR.MISSING < 6 & (PAPA.GENAX.IMPAIRweak >= 2 | PAPA.GENAX.IMPAIRstrong > 0) , PAPA.GENAX.IMPAIR := 1]
+  AX[,PAPA.GENAX.IMPAIR.CAT := factor(PAPA.GENAX.IMPAIR,labels = c("absent","present"))]
+  AX[,PAPA.GENAX.IMPAIR.SCORE := sum(.SD,na.rm = T),by = c("PREG_ID_299", "BARN_NR"), .SDcols = ax_imp_cols]
+  
+  AX[,PAPA.GENAX.GROUP := factor(rep(NA,nrow(AX)),levels = 1:4,labels = c("GENAX_clinical","GENAX_subclinical","GENAX_noimp","no_GENAX"))]
+  AX[PAPA.GENAX.SYMPT == 1 & PAPA.GENAX.IMPAIR.CAT == "present", PAPA.GENAX.GROUP := "GENAX_clinical"]
+  AX[is.na(PAPA.GENAX.GROUP) & PAPA.GENAX.SYMPT == 1 & PAPA.GENAX.IMPAIR.CAT == "absent", PAPA.GENAX.GROUP := "GENAX_subclinical"]
+  AX[is.na(PAPA.GENAX.GROUP) & PAPA.GENAX.SYMPT == 1 & is.na(PAPA.GENAX.IMPAIR.CAT), PAPA.GENAX.GROUP := "GENAX_noimp"]
+  AX[is.na(PAPA.GENAX.GROUP) & PAPA.GENAX.SYMPT == 0 , PAPA.GENAX.GROUP := "no_GENAX"]
+  
+  
+  ########################### ANX GROUP ################################
+  
+  
+  COMPUTE ANX_Group = 4.
+  IF ((Phobia_Group EQ 1) OR (SocAnx_Group EQ 1) OR (SepAnx_Group EQ 1) OR (GenAnx_group EQ 1)) ANX_Group = 1.
+  IF (ANX_Group GT 1) AND ((Phobia_Group EQ 2) OR (SocAnx_Group EQ 2)  OR (SepAnx_Group EQ 2) OR (GenAnx_Group EQ 2)) ANX_Group = 2.
+  *IF (ANX_Group GT 2) AND ((Phobia_Group EQ 3) OR (SocAnx_Group EQ 3) OR (SepAnx_Group EQ 3) OR (GenAnx_Group EQ 3)) Anx_Group = 3.
+  VARIABLE LABELS ANX_Group 'Anxiety Groups'.
+  VALUE LABELS ANX_Group
+  1 'ANXclin'
+  2 'ANXsub'
+  3 'ANX_imp_missing'
+  4 'No_ANX'.
+  EXECUTE .
+  
+  items2dims = list(PHOB = 2:8,
                     SOC = 9:11,
                     SEP = c(13:14,16:19),
                     GEN = 22:25)
