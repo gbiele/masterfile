@@ -1,12 +1,34 @@
-make_sum_scores = function(item_scores){
-  sNAs = apply(is.na(item_scores),1,sum)
-  incomplete.idx = sNAs > (dim(item_scores)[2]/2)
-  sum_scores = apply(item_scores,1,function(x) sum(x,na.rm = TRUE) + median(x,na.rm = TRUE) * sum(is.na(x)))
-  sum_scores = round(sum_scores)
-  sum_scores[incomplete.idx] = NA
-  return(round(sum_scores))
+make_sum_scores = function(DT,items,ss_var){
+  DT[,sNAs := sum(is.na(.SD)),by = 1:nrow(DT),.SDcols = items]
+  DT[,sum_score := round(mean(as.numeric(.SD),na.rm = T)*length(items)),by = 1:nrow(DT),.SDcols = items]
+  DT[sNAs >= (length(items)/2) , sum_score := NA,]
+  setnames(DT,"sum_score",ss_var)
+  return(DT)
 }
 
+char2num = function(x){
+  if (class(x) != "numeric") {
+    tmp = gsub("[a-z]|[A-Z]|[[:punct:]]"," ",x)
+    options(warn = -1)
+    x = as.numeric(tmp)
+    options(warn = 0)
+    chars = which(is.na(x) & tmp!= "")
+    if(length(chars) > 0){
+      for (v in chars){
+        num_val = withCallingHandlers({
+          val = as.numeric(strsplit(strsplit(tmp[v]," ")[[1]]," ")[[1]])
+          val
+        }, warning=function(w) {
+          message("Warning: ", conditionMessage(w))
+          message("sting was x: ", x)
+          invokeRestart("muffleWarning")
+        })
+        x[v] = mean(num_val)
+      }
+    }
+  }
+  return(x)
+}
 
 
 library(fitdistrplus)
