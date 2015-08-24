@@ -29,12 +29,12 @@ get_PAPA = function(){
                 "leaves_bed","wakes_at_night","time_to_fall_asleep","difficulties_sleeping",
                 "self_sleeper_day","self_sleeper_evening","restless_sleep","not_rested_after_sleep",
                 "Hypersomnia","sleeps_during_day","nightmares","somnabulism")
-  new_names = paste("PAPA.sleep.",new_names,sep = "")
+  new_names = paste("SLEEP.",new_names,sep = "")
   setnames(SL,old_names,new_names)
   
   SL = SL[,c(names(SL)[1:2],new_names),with = F]
 
-  d = SL$PAPA.sleep.hours_per_night
+  d = SL$SLEEP.hours_per_night
   d = gsub("[ a-z]","",d)
   d = gsub(",",".",d)
   d[d == "??"] = NA
@@ -44,159 +44,109 @@ get_PAPA = function(){
   for(k in  grep("-",d))  d[k] = mean(as.numeric(unlist(strsplit(d[k],"-"))))
   
   d = as.numeric(d)
-  SL$PAPA.sleep.hours_per_night = d
+  SL$SLEEP.hours_per_night = d
   
-  t = SL$PAPA.sleep.time_to_fall_asleep
+  t = SL$SLEEP.time_to_fall_asleep
   t = gsub("[ a-z]","",t)
   t = gsub(",",".",t)
   for(k in  grep("-",t))  t[k] = mean(as.numeric(unlist(strsplit(t[k],"-"))))
   t = as.numeric(t)
-  t = SL$PAPA.sleep.time_to_fall_asleep
-  SL$PAPA.sleep.time_to_fall_asleep = t
+  t = SL$SLEEP.time_to_fall_asleep
+  SL$SLEEP.time_to_fall_asleep = t
   
-  PAPA = SL
-  
+   rm(d,k,old_names,new_names,t)
   ################################ ADHD #########################################
   AD = data.table(read_sav("savs/PAPA/PAPA_K3.sav"))
   
-  AD[is.na(AD$K33_10_2), K33_10_2 := 0]
-  #AD$K33_10_1 = 2*(AD$K33_10_1 >= 2 | AD$K33_10_2 >= 2) # from SPSS syntax file "Diagnosegrupper PAPA_konkl juni2012"
-  AD$K33_10_1 = as.numeric(cut(AD$K33_10_2 + AD$K33_10_1,breaks = c(-1,1,3.5,6.5))) # modified version that preserves variance
-  AD$K33_10_1[AD$K33_10_1 < 2] = 0
+  #*(Collaps "selvstendig" and "voksenstyrt" activity into variable K33_10).
+  AD[K33_10_1 >= 2 | K33_10_2 >= 2, K33_10 := 2 ]
   
-  items2dims = list(Hyp = c(1,3,4,5,7,8),
-                    Imp = c(21,22,23),
-                    ATT = c(10:18))
-  old_names = paste(paste("K33_",unlist(items2dims),sep = ""),"_1",sep = "")
-  new_names = paste("PAPA.ADHD.rating.",names(unlist(items2dims)),sep = "")
-  setnames(AD,old_names,new_names)
-  old_namesi = paste(paste("K33_",unlist(items2dims),sep = ""),"_2",sep = "")
-  new_namesi = paste("PAPA.ADHD.intensity.",names(unlist(items2dims)),sep = "")
-  old_namesi = gsub("K33_1_2","K33_1_3",old_namesi)
-  old_namesi = gsub("K33_3_2","K33_3_3",old_namesi)
-  old_namesi = gsub("K33_10_2","K33_10_4",old_namesi)
-  old_namesi = gsub("K33_22_2","K33_22_3",old_namesi)
+  hyp_cols = paste("K33",c(1,3:5,7,8),"1",sep = "_")
+  AD[,ADHD.HYP.SYMPTOM.COUNT := sum(.SD > 1,na.rm = T),by = 1:nrow(AD),.SDcols = hyp_cols]
+  imp_cols = paste("K33",c(21:23),"1",sep = "_")
+  AD[,ADHD.IMP.SYMPTOM.COUNT := sum(.SD > 1,na.rm = T),by = 1:nrow(AD),.SDcols = imp_cols]
+  att_cols = c("K33_10",paste("K33",c(11:18),"1",sep = "_"))
+  AD[,ADHD.ATT.SYMPTOM.COUNT := sum(.SD > 1,na.rm = T),by = 1:nrow(AD),.SDcols = att_cols]
+  AD[,ADHD.HYPIMP.SYMPTOM.COUNT :=  ADHD.HYP.SYMPTOM.COUNT + ADHD.IMP.SYMPTOM.COUNT]
+  AD[,ADHD.SYMPTOM.COUNT :=  ADHD.HYP.SYMPTOM.COUNT + ADHD.IMP.SYMPTOM.COUNT + ADHD.ATT.SYMPTOM.COUNT]
   
-  setnames(AD,old_namesi,new_namesi)
+  ######################## Impairment score ########################
+  imp_cols = paste("K33_28",1:6,sep = "_")
+  AD[,ADHD.IMPAIR.MISSING := sum(.SD,na.rm = T),by = 1:nrow(AD),.SDcols = imp_cols]
+  AD[,ADHD.IMPAIRweak := sum(.SD == 1,na.rm = T),by = 1:nrow(AD),.SDcols = imp_cols]
+  AD[,ADHD.IMPAIRstrong := sum(.SD > 1,na.rm = T),by = 1:nrow(AD),.SDcols = imp_cols]
   
-  AD = AD[,c(names(AD)[1:2],new_names,new_namesi),with = F]
+  AD[,ADHD.IMPAIR := 0]
+  AD[ADHD.IMPAIR.MISSING >= 6, ADHD.IMPAIR := NA]
+  AD[ADHD.IMPAIR.MISSING < 6 & 
+       (ADHD.IMPAIRweak >= 2 | ADHD.IMPAIRstrong > 0) , ADHD.IMPAIR := 1]
+  AD[,ADHD.IMPAIR.CAT := factor(ADHD.IMPAIR,labels = c("absent","present"))]
   
-  for(v in new_names) AD[[v]][which(AD[[v]] > 0)] = AD[[v]][which(AD[[v]] > 0)]-1
+  AD[,ADHD.IMPAIR.SCORE := sum(.SD,na.rm = T),by = 1:nrow(AD),.SDcols = imp_cols]
   
-  AD$PAPA.ADHD.Hyperactivity.sum.SCORE = make_sum_scores(AD[,grep("ADHD.rating.Hyp",names(AD)),with = F])
-  AD$PAPA.ADHD.Impulsivity.sum.SCORE = make_sum_scores(AD[,grep("ADHD.rating.Imp",names(AD)),with = F])
-  AD$PAPA.ADHD.HypImp.sum.SCORE = make_sum_scores(AD[,c(grep("ADHD.rating.Imp",names(AD)),grep("ADHD.rating.Hyp",names(AD))),with = F])
-  AD$PAPA.ADHD.Inattention.sum.SCORE = make_sum_scores(AD[,grep("ADHD.rating.ATT",names(AD)),with = F])
-  AD$PAPA.ADHD.sum.SCORE = make_sum_scores(AD[,grep("ADHD.rating",names(AD)),with = F])
-  
-  AD$PAPA.ADHD.Hyperactivity.symCOUNT = make_sum_scores(AD[,grep("ADHD.rating.Hyp",names(AD)),with = F]>0)
-  AD$PAPA.ADHD.Impulsivity.symCOUNT = make_sum_scores(AD[,grep("ADHD.rating.Imp",names(AD)),with = F])
-  AD$PAPA.ADHD.HypImp.symCOUNT = make_sum_scores(AD[,c(grep("ADHD.rating.Imp",names(AD)),grep("ADHD.rating.Hyp",names(AD))),with = F]>0)
-  AD$PAPA.ADHD.Inattention.symCOUNT = make_sum_scores(AD[,grep("ADHD.rating.ATT",names(AD)),with = F]>0)
-  AD$PAPA.ADHD.symCOUNT = make_sum_scores(AD[,grep("ADHD.rating",names(AD)),with = F]>0)  
-  
-   ######################## Impairment score ########################
-  ADHDdata = read_sav("savs/PAPA/PAPA_K3.sav")
-  impairVars = c("K33_28_1", "K33_28_2", "K33_28_3", "K33_28_4", "K33_28_5", "K33_28_6")
-  missing_impair <- c()
-  for(i in 1:nrow(ADHDdata)){
-    missing_impair[i] <- length(which(is.na(ADHDdata[i,c(impairVars)])))
-  }
-  litt_impair <-c()
-  for(i in 1:nrow(ADHDdata)){
-    litt_impair[i] <- length(which(ADHDdata[i,c(impairVars)]==1))
-  }
-  mye_impair <- c()
-  for(i in 1:nrow(ADHDdata)){
-    mye_impair[i] <- length(which(ADHDdata[i,c(impairVars)]>1))
-  }
-  
-  # Impairment score: 0= no, 1= yes, missing='NA' (SPSS syntax: missing=9)
-  Impair_ADHD_PAPA <- rep(0,nrow(ADHDdata))
-  Impair_ADHD_PAPA = ifelse(missing_impair>=6, Impair_ADHD_PAPA <- NA, 
-                            ifelse(missing_impair<6 & (litt_impair>=2 | mye_impair >0), Impair_ADHD_PAPA <- 1, 
-                                   Impair_ADHD_PAPA <- 0))
-  
-  ### NB. Ikke lik som SPSS-syntaksen (flere NA's her...)
-  # Skal NA telles som null der resten av observasjonene ikke er missing?
-  imprmt_scoreADHD = rowSums(ADHDdata[,c(impairVars)], na.rm=F)
-  
-  AD$Impair_ADHD_PAPA = Impair_ADHD_PAPA
-  AD$imprmt_scoreADHD = imprmt_scoreADHD
-  
-  ######################## Duration of symptoms ########################
-  symptAgeVars = c("K33_2_5", "K33_6_5", "K33_9_4", "K33_19_4", "K33_25_2")
-  
-  Alder_urolig = as.numeric(gsub("mnd|\\?","",ADHDdata$K33_2_5))
-  Alder_ifarta = as.numeric(gsub("[a-z]|å","",ADHDdata$K33_6_5))
-  
-  ADHDdata$K33_9_4[ADHDdata$K33_9_4 == "18-24"] = "21"
-  Alder_brakelek = as.numeric(gsub("[a-z]|å","",ADHDdata$K33_9_4))
-
-  ADHDdata$K33_9_4[ADHDdata$K33_9_4 == "24-30"] = "27"
-  Alder_konsvansker = as.numeric(gsub("[a-z]|å","",ADHDdata$K33_19_4))
-  
-  Alder_imp <- ADHDdata$K33_25_2 <- as.numeric(as.character(ADHDdata$K33_25_2))
-
-  duration_ADHDsympt <- ifelse(Alder_urolig<36 | Alder_ifarta<36 | Alder_brakelek<36 | 
-                                 Alder_konsvansker<36 | Alder_imp<36, 1, 0)
-  
-  AD$duration_ADHDsympt = duration_ADHDsympt
-  ######################## ADHD clinical level ########################
-  AD[PAPA.ADHD.Inattention.symCOUNT >=6  & PAPA.ADHD.HypImp.symCOUNT  <6 & Impair_ADHD_PAPA == 1, ADHDclin := 1]
-  AD[PAPA.ADHD.Inattention.symCOUNT  <6  & PAPA.ADHD.HypImp.symCOUNT >=6 & Impair_ADHD_PAPA == 1, ADHDclin := 2]
-  AD[PAPA.ADHD.Inattention.symCOUNT >=6  & PAPA.ADHD.HypImp.symCOUNT >=6 & Impair_ADHD_PAPA == 1, ADHDclin := 3]
-  AD[PAPA.ADHD.Inattention.symCOUNT  <6  & PAPA.ADHD.HypImp.symCOUNT  <6 & Impair_ADHD_PAPA == 0, ADHDclin := 4]
-  AD[is.na(ADHDclin), ADHDclin:= 4]
-  
-  AD[,PAPA.ADHD.subtype := factor(ADHDclin,labels = c('ADHD-IA','ADHD-H', 'ADHD-C', 'No_clinADHD'))]
+  ######################## ADHD sub groups ########################
+  my_labels = c("ADHD_IA" = 1,"ADHD_H" = 2,"ADHD_C" = 3,"no_ADHD" = 4)
+  AD[ADHD.IMPAIR.CAT == "present" & ADHD.ATT.SYMPTOM.COUNT >= 6 & ADHD.HYPIMP.SYMPTOM.COUNT < 6, ADHD.SUBGROUP := 1]
+  AD[ADHD.IMPAIR.CAT == "present" & ADHD.ATT.SYMPTOM.COUNT < 6 & ADHD.HYPIMP.SYMPTOM.COUNT >= 6, ADHD.SUBGROUP := 2]
+  AD[ADHD.IMPAIR.CAT == "present" & ADHD.ATT.SYMPTOM.COUNT >= 6 & ADHD.HYPIMP.SYMPTOM.COUNT >= 6, ADHD.SUBGROUP := 3]
+  AD[ADHD.IMPAIR.CAT == "absent" | (ADHD.ATT.SYMPTOM.COUNT < 6 & ADHD.HYPIMP.SYMPTOM.COUNT < 6), ADHD.SUBGROUP := 4]
+  AD[,ADHD.SUBGROUP := labelled(ADHD.SUBGROUP,labels = my_labels)]
   
   ######################## ADHD subthreshold without impairment ########################
- 
-  AD[ADHDclin >3 & PAPA.ADHD.Inattention.symCOUNT >=6 & PAPA.ADHD.HypImp.symCOUNT  <6, ADHDsub_noImp := 1]
-  AD[ADHDclin >3 & PAPA.ADHD.Inattention.symCOUNT  <6 & PAPA.ADHD.HypImp.symCOUNT >=6, ADHDsub_noImp := 2]
-  AD[ADHDclin >3 & PAPA.ADHD.Inattention.symCOUNT >=6 & PAPA.ADHD.HypImp.symCOUNT >=6, ADHDsub_noImp := 3]
-  AD[ADHDclin >3 & PAPA.ADHD.Inattention.symCOUNT  <6 & PAPA.ADHD.HypImp.symCOUNT  >6, ADHDsub_noImp := 4]
-  AD[is.na(ADHDsub_noImp), ADHDsub_noImp := 5]
-
-  AD[,PAPA.ADHD.subthresh_imp_types := factor(ADHDsub_noImp,labels = c('subimpADHD_IA','subimpADHD_H', 'subimpADHD_C', 'NoADHD', "clinADHD"))]
+  my_labels = c("ADHD_subthr_woi_IA" = 1,"ADHD_subthr_woi_H" = 2,"ADHD_subthr_woi_C" = 3,"no_ADHD_subthr_woi" = 4)
+  AD[ADHD.SUBGROUP == 4 & ADHD.ATT.SYMPTOM.COUNT >= 6 & ADHD.HYPIMP.SYMPTOM.COUNT < 6, ADHD.SUBGROUPsubthr_woi := 1]
+  AD[ADHD.SUBGROUP == 4 & ADHD.ATT.SYMPTOM.COUNT < 6 & ADHD.HYPIMP.SYMPTOM.COUNT >= 6, ADHD.SUBGROUPsubthr_woi := 2]
+  AD[ADHD.SUBGROUP == 4 & ADHD.ATT.SYMPTOM.COUNT >= 6 & ADHD.HYPIMP.SYMPTOM.COUNT >= 6, ADHD.SUBGROUPsubthr_woi := 3]
+  AD[ADHD.SUBGROUP == 4 & ADHD.ATT.SYMPTOM.COUNT < 6 & ADHD.HYPIMP.SYMPTOM.COUNT < 6, ADHD.SUBGROUPsubthr_woi := 4]
+  AD[,ADHD.SUBGROUPsubthr_woi := labelled(ADHD.SUBGROUPsubthr_woi,labels = my_labels)]
   
-
   ######################## ADHD subthreshold with impairment ########################
-  AD[ADHDclin >3 & PAPA.ADHD.Inattention.symCOUNT %in% 3:5 & PAPA.ADHD.HypImp.symCOUNT <3 & Impair_ADHD_PAPA == 1, ADHDsub_wImp := 1]
-  AD[ADHDclin >3 & PAPA.ADHD.Inattention.symCOUNT <3 & PAPA.ADHD.HypImp.symCOUNT %in% 3:5 & Impair_ADHD_PAPA == 1, ADHDsub_wImp := 2]
-  AD[ADHDclin >3 & PAPA.ADHD.Inattention.symCOUNT %in% 3:5 & PAPA.ADHD.HypImp.symCOUNT %in% 3:5 & Impair_ADHD_PAPA == 1, ADHDsub_wImp := 3]
-  AD[ADHDclin >3 & PAPA.ADHD.Inattention.symCOUNT <3 & PAPA.ADHD.HypImp.symCOUNT <3, ADHDsub_wImp := 4]
-  AD[is.na(ADHDsub_wImp), ADHDsub_wImp := 5]
-  
-  AD[,PAPA.ADHD.subthresh_no_imp_types := factor(ADHDsub_wImp,labels = c('subnoimpADHD_IA','subnoimpADHD_H', 'subnoimpADHD_C', 'NoADHD', "clinADHD"))]
-
+  my_labels = c("ADHD_subthr_wi_IA" = 1,"ADHD_subthr_wi_H" = 2,"ADHD_subthr_wi_C" = 3,"no_ADHD_subthr_wi" = 4)
+  AD[ADHD.SUBGROUP == 4 & ADHD.ATT.SYMPTOM.COUNT %in% 3:5 & ADHD.HYPIMP.SYMPTOM.COUNT < 3 & ADHD.IMPAIR.CAT == "present", ADHD.SUBGROUPsubthr_wi := 1]
+  AD[ADHD.SUBGROUP == 4 & ADHD.ATT.SYMPTOM.COUNT < 3 & ADHD.HYPIMP.SYMPTOM.COUNT %in% 3:5 & ADHD.IMPAIR.CAT == "present", ADHD.SUBGROUPsubthr_wi := 2]
+  AD[ADHD.SUBGROUP == 4 & ADHD.ATT.SYMPTOM.COUNT %in% 3:5 & ADHD.HYPIMP.SYMPTOM.COUNT %in% 3:5 & ADHD.IMPAIR.CAT == "present", ADHD.SUBGROUPsubthr_wi := 3]
+  AD[ADHD.SUBGROUP == 4 & ADHD.ATT.SYMPTOM.COUNT < 3 & ADHD.HYPIMP.SYMPTOM.COUNT < 3, ADHD.SUBGROUPsubthr_wi := 4]
+  AD[,ADHD.SUBGROUPsubthr_wi := labelled(ADHD.SUBGROUPsubthr_wi,labels = my_labels)]
   
   ######################## Combined variable for subthreshold ADHD ########################
-  AD[ADHDsub_noImp==1 | ADHDsub_wImp==1, ADHDsubthr := 1]
-  AD[ADHDsub_noImp==2 | ADHDsub_wImp==2, ADHDsubthr := 2]
-  AD[ADHDsub_noImp==3 | ADHDsub_wImp==3, ADHDsubthr := 3]
-  AD[is.na(ADHDsub_noImp), ADHDsubthr := 4]
+  my_labels = c("ADHD_subthr_IA" = 1,"ADHD_subthr_H" = 2,"ADHD_subthr_C" = 3,"no_ADHD_subthr" = 4)
+  AD[ADHD.SUBGROUPsubthr_woi == 1 | ADHD.SUBGROUPsubthr_wi == 1, ADHD.SUBGROUPsubthr := 1]
+  AD[is.na(ADHD.SUBGROUPsubthr) & ADHD.SUBGROUPsubthr_woi == 2 | ADHD.SUBGROUPsubthr_wi == 2, ADHD.SUBGROUPsubthr := 2]
+  AD[is.na(ADHD.SUBGROUPsubthr) & ADHD.SUBGROUPsubthr_woi == 3 | ADHD.SUBGROUPsubthr_wi == 3, ADHD.SUBGROUPsubthr := 3]
+  AD[is.na(ADHD.SUBGROUPsubthr) , ADHD.SUBGROUPsubthr := 4]
+  AD[,ADHD.SUBGROUPsubthr := labelled(ADHD.SUBGROUPsubthr,labels = my_labels)]
   
-  AD[ADHDclin==3, ADHD_Group := 1]
-  AD[ADHDclin==2, ADHD_Group := 2]
-  AD[ADHDclin==1, ADHD_Group := 3]
-  AD[ADHDsubthr==3, ADHD_Group := 4]
-  AD[ADHDsubthr==2, ADHD_Group := 5]
-  AD[ADHDsubthr==1, ADHD_Group := 6]
-  AD[is.na(ADHD_Group), ADHD_Group := 7]
+  my_labels = c("ADHD_c_clin" = 1,"ADHD_H_clin" = 2,"ADHD_IA_clin" = 3,"ADHD_C_subclin" = 4,"ADHD_H_subclin" = 5,"ADHD_IA_subclin" = 6,"no_ADHD" = 7)
+  AD[ADHD.SUBGROUP < 4, ADHD.GROUP := abs(ADHD.SUBGROUP-4)]
+  AD[ADHD.SUBGROUP > 3 & ADHD.SUBGROUPsubthr < 4, ADHD.GROUP := abs(ADHD.SUBGROUPsubthr-4)+3]
+  AD[is.na(ADHD.GROUP), ADHD.GROUP := 7]
+  AD[,ADHD.GROUP := labelled(ADHD.GROUP,labels = my_labels)]
   
-  AD[,PAPA.ADHD.Group := factor(ADHD_Group,labels=c('ADHD-C_clin','ADHD-H_clin', 'ADHD-IA_clin', 
-                                                   'ADHD-C_sub', 'ADHD-H_sub', 'ADHD-IA_sub', 'No_ADHD'))]
+  ############################ ADHD CATEGORY #############################
+  AD[ADHD.GROUP <= 3 ,ADHD.CATEGORY := 1]
+  AD[ADHD.GROUP %in% 4:6 ,ADHD.CATEGORY := 2]
+  AD[is.na(ADHD.CATEGORY) ,ADHD.CATEGORY := 3]
+  my_labels = c("ADHD_clin" = 1, "ADHD_subclin" = 2, "no_ADHD" = 3)
+  AD[,ADHD.CATEGORY := labelled(ADHD.CATEGORY,labels = my_labels)]
   
-  setnames(AD,c("imprmt_scoreADHD","duration_ADHDsympt"),c("PAPA.ADHD.impairement.SCORE","PAPA.ADHD.symptom.dur"))
+  ############################ ADHD sum scores #############################
+  items2dims = list(HYP = c(1,3,4,5,7,8),
+                    IMP = c(21,22,23),
+                    ATT = c(10:18))
+  old_names = paste(paste("K33_",unlist(items2dims),sep = ""),"_1",sep = "")
+  new_names = paste("ADHD.SYMPTOM.SCORE.",names(unlist(items2dims)),sep = "")
+  setnames(AD,old_names,new_names)
+  AD = make_sum_scores(AD,names(AD)[grep("SYMPTOM.SCORE.HYP",names(AD))],"ADHD.SYMPTOM.SCORE.HYP")
+  AD = make_sum_scores(AD,names(AD)[grep("SYMPTOM.SCORE.IMP",names(AD))],"ADHD.SYMPTOM.SCORE.IMP")
+  AD = make_sum_scores(AD,names(AD)[grep("SYMPTOM.SCORE.ATT",names(AD))],"ADHD.SYMPTOM.SCORE.ATT")
+  SDcols = c("ADHD.SYMPTOM.SCORE.HYP" , "ADHD.SYMPTOM.SCORE.IMP" , "ADHD.SYMPTOM.SCORE.ATT")
+  AD[,ADHD.SYMPTOM.SCORE := sum(.SD),by = 1:nrow(AD),.SDcols = SDcols]
   
-  AD = AD[,c(1:2,grep("PAPA.ADHD",names(AD))),with = F]
-
-  AD$PREG_ID_299 = as.numeric(AD$PREG_ID_299)
-  AD$BARN_NR = as.numeric(AD$BARN_NR)
-  PAPA = merge(PAPA,AD,by = c("PREG_ID_299","BARN_NR"))
-   
+  AD[,PREG_ID_299 := as.numeric(PREG_ID_299)]
+  AD[,BARN_NR := as.numeric(BARN_NR)]
+  
+  rm(att_cols,hyp_cols,imp_cols,items2dims,new_names,old_names)
+  
   #######################################################################
   ############################### BH: ODD ###############################
   #######################################################################
@@ -213,12 +163,14 @@ get_PAPA = function(){
   
   # symptom duration
   freq_vars = sort(c(paste("K44",c(3,4,6,9,12),"2",sep = "_"),paste("K44",c(10,11),"6",sep = "_"),"K44_8_4"))
-  for (v in freq_vars) {
-    y = BH[[v]]
-    y = char2num(y)
-    y[y>90] = 90
-    y[y<1] = NA
-    BH[[v]] = y}
+  for (v in freq_vars){
+    BH[,tmp := char2num(get(v)),by = 1:nrow(BH)]
+    BH[tmp > 90,tmp := 90]
+    BH[tmp < 1,tmp := NA]
+    eval(parse(text=paste0("BH[,",v,":=NULL]")))
+    setnames(BH,"tmp",v)
+  }
+  
   
   # symptom present
   ## Symptom til stede defineres som skåre 2 + høy frekvens.
@@ -234,54 +186,47 @@ get_PAPA = function(){
  
   # * Her telles antall ODD-symptomer med hyppighet tatt i betraktning.
   SDcols = names(BH)[intersect(grep("^K44",names(BH)),grep("1F$",names(BH)))]
-  BH[,PAPA.BH.ODD.SYMPTCOUNT := sum(.SD > 1,na.rm = T),by = c("PREG_ID_299", "BARN_NR"),.SDcols = SDcols]
+  BH[,BH.ODD.SYMPTOM.COUNT := sum(.SD > 1,na.rm = T),by = 1:nrow(BH),.SDcols = SDcols]
 
   # * Her telles antall ODD-symptomer uavhengig av hyppighet av forekomst.
   SDcols =  gsub("_2|_6|_4","_1",freq_vars)
-  BH[,PAPA.BH.ODD.SYMPTwofreq := sum(.SD > 1,na.rm = T),by = c("PREG_ID_299", "BARN_NR"),.SDcols = SDcols]
-  BH[,PAPA.BH.ODD.SYMPTwofreq.MISSING := sum(is.na(.SD)),by = c("PREG_ID_299", "BARN_NR"),.SDcols = SDcols]
+  BH[,BH.ODD.SYMPTwofreq := sum(.SD > 1,na.rm = T),by = 1:nrow(BH),.SDcols = SDcols]
+  BH[,BH.ODD.SYMPTwofreq.MISSING := sum(is.na(.SD)),by = 1:nrow(BH),.SDcols = SDcols]
   
  # impairment   
   impair_cols = paste("K44_23A",1:6,sep = "_")
-  BH[,PAPA.BH.ODD.IMPAIR.MISSING := sum(is.na(.SD)),by = c("PREG_ID_299", "BARN_NR"), .SDcols = impair_cols]
-  BH[,PAPA.BH.ODD.IMPAIR.WEAK := sum(.SD == 1,na.rm = T),by = c("PREG_ID_299", "BARN_NR"), .SDcols = impair_cols]
-  BH[,PAPA.BH.ODD.IMPAIR.STRONG := sum(.SD > 1,na.rm = T),by = c("PREG_ID_299", "BARN_NR"), .SDcols = impair_cols]
+  BH[,BH.ODD.IMPAIR.MISSING := sum(is.na(.SD)),by = 1:nrow(BH), .SDcols = impair_cols]
+  BH[,BH.ODD.IMPAIR.WEAK := sum(.SD == 1,na.rm = T),by = 1:nrow(BH), .SDcols = impair_cols]
+  BH[,BH.ODD.IMPAIR.STRONG := sum(.SD > 1,na.rm = T),by = 1:nrow(BH), .SDcols = impair_cols]
   
-  BH[, PAPA.BH.ODD.IMPAIR := 0]
-  BH[(PAPA.BH.ODD.IMPAIR.MISSING < 6 & PAPA.BH.ODD.IMPAIR.WEAK > 2) | PAPA.BH.ODD.IMPAIR.STRONG > 0, PAPA.BH.ODD.IMPAIR := 1]
-  BH[PAPA.BH.ODD.IMPAIR.MISSING >= 6, PAPA.BH.ODD.IMPAIR := NA]
+  BH[, BH.ODD.IMPAIR := 0]
+  BH[(BH.ODD.IMPAIR.MISSING < 6 & BH.ODD.IMPAIR.WEAK > 2) | BH.ODD.IMPAIR.STRONG > 0, BH.ODD.IMPAIR := 1]
+  BH[BH.ODD.IMPAIR.MISSING >= 6, BH.ODD.IMPAIR := NA]
 
   SDcols = paste("K44_23A",1:6,sep = "_")
-  BH[,PAPA.BH.ODD.IMPAIR.SCORE := sum(.SD,na.rm = T),by = c("PREG_ID_299", "BARN_NR"),.SDcols = SDcols]
-  BH[,PAPA.BH.ODD.IMPAIR.SCORE.MISSING := sum(is.na(.SD)),by = c("PREG_ID_299", "BARN_NR"),.SDcols = SDcols]
-  BH[PAPA.BH.ODD.IMPAIR.SCORE.MISSING > 2, PAPA.BH.ODD.IMPAIR.SCORE := NA]
+  BH[,BH.ODD.IMPAIR.SCORE := sum(.SD,na.rm = T),by = 1:nrow(BH),.SDcols = SDcols]
+  BH[,BH.ODD.IMPAIR.SCORE.MISSING := sum(is.na(.SD)),by = 1:nrow(BH),.SDcols = SDcols]
+  BH[BH.ODD.IMPAIR.SCORE.MISSING > 2, BH.ODD.IMPAIR.SCORE := NA]
 
   
   SDcols = paste("K44",c(3,4,6,8,9,10,11,12),"1F",sep = "_")
-  BH[,PAPA.BH.ODD.SYMPTCOUNT := sum(.SD > 0,na.rm = T),by = c("PREG_ID_299", "BARN_NR"), .SDcols = SDcols]
+  BH[,BH.ODD.SYMPTOM.COUNT := sum(.SD > 0,na.rm = T),by = 1:nrow(BH), .SDcols = SDcols]
 
-  BH[, PAPA.BH.ODD.GROUP := 5]
-  BH[PAPA.BH.ODD.SYMPTCOUNT >= 4 & PAPA.BH.ODD.IMPAIR == 1, PAPA.BH.ODD.GROUP := 1]
-  BH[PAPA.BH.ODD.GROUP > 1 & 
-       ((PAPA.BH.ODD.SYMPTCOUNT > 4 & PAPA.BH.ODD.IMPAIR == 0) |
-       (PAPA.BH.ODD.SYMPTCOUNT %in% 1:3 & PAPA.BH.ODD.IMPAIR == 1)), PAPA.BH.ODD.GROUP := 2]
-  BH[PAPA.BH.ODD.GROUP > 2 & PAPA.BH.ODD.SYMPTCOUNT >= 4 & is.na(PAPA.BH.ODD.IMPAIR), PAPA.BH.ODD.GROUP := 3]
-  BH[PAPA.BH.ODD.GROUP > 3 & 
-       (PAPA.BH.ODD.SYMPTCOUNT <  4 & (PAPA.BH.ODD.IMPAIR == 0 | is.na(PAPA.BH.ODD.IMPAIR))) | 
-       PAPA.BH.ODD.SYMPTCOUNT == 0, PAPA.BH.ODD.GROUP := 4]
-  BH[PAPA.BH.ODD.GROUP == 5, PAPA.BH.ODD.GROUP := NA]
+  BH[, BH.ODD.GROUP := 5]
+  BH[BH.ODD.SYMPTOM.COUNT >= 4 & BH.ODD.IMPAIR == 1, BH.ODD.GROUP := 1]
+  BH[BH.ODD.GROUP > 1 & 
+       ((BH.ODD.SYMPTOM.COUNT > 4 & BH.ODD.IMPAIR == 0) |
+       (BH.ODD.SYMPTOM.COUNT %in% 1:3 & BH.ODD.IMPAIR == 1)), BH.ODD.GROUP := 2]
+  BH[BH.ODD.GROUP > 2 & BH.ODD.SYMPTOM.COUNT >= 4 & is.na(BH.ODD.IMPAIR), BH.ODD.GROUP := 3]
+  BH[BH.ODD.GROUP > 3 & 
+       (BH.ODD.SYMPTOM.COUNT <  4 & (BH.ODD.IMPAIR == 0 | is.na(BH.ODD.IMPAIR))) | 
+       BH.ODD.SYMPTOM.COUNT == 0, BH.ODD.GROUP := 4]
+  BH[BH.ODD.GROUP == 5, BH.ODD.GROUP := NA]
   
-  old_names = paste(paste("K44_",unlist(items2dims),sep = ""),"_1",sep = "")
-  new_names = paste("PAPA.BH.rating.",names(unlist(items2dims)),sep = "")
-  setnames(BH,old_names,new_names)
+  my_labels = c("ODD_clin" = 1, "ODD_subclin" = 2, "ODD_missimp" = 3, "no_ODD" = 4)
+  BH[,BH.ODD.GROUP := labelled(BH.ODD.GROUP,labels = my_labels)]
   
-  for(v in new_names) BH[[v]][which(BH[[v]] > 0)] = BH[[v]][which(BH[[v]] > 0)]-1
-  
-  items2dims = list(ODD = c(3,4,6,8,9,10,11,12),
-                    CD = c(13,14,16,17,18,19,21,22))
-  
-  BH$PAPA.BH.ODD.sum.SCORE = make_sum_scores(BH[,grep("BH.rating.ODD",names(BH)),with = F])
-  BH$PAPA.BH.CD.sum.SCORE = make_sum_scores(BH[,grep("BH.rating.CD",names(BH)),with = F])
+  rm(freq_vars,impair_cols,SDcols,v)
   
   ######################################################################
   ############################### BH: CD ###############################
@@ -292,49 +237,69 @@ get_PAPA = function(){
   # *(Slår sammen "sloss" og "angrep" i variabel K44_19).
   BH[K44_19_1 >= 2 | K44_20_1 >= 2, K44_19 := 2]
   
-  BH[,PAPA.BH.CD.SYMPTCOUNT := sum(.SD > 1,na.rm = T),by = c("PREG_ID_299", "BARN_NR"),
+  BH[,BH.CD.SYMPTOM.COUNT := sum(.SD > 1,na.rm = T),by = 1:nrow(BH),
      .SDcols = c("K44_13_1", "K44_16_1", "K44_17_1", "K44_18_1", "K44_21_1", "K44_22_1", "K44_14")]
-  BH[,PAPA.BH.CD.SYMPT.MISSING := sum(is.na(.SD),na.rm = T),by = c("PREG_ID_299", "BARN_NR"),
+  BH[,BH.CD.SYMPT.MISSING := sum(is.na(.SD),na.rm = T),by = 1:nrow(BH),
      .SDcols = c("K44_13_1", "K44_16_1", "K44_17_1", "K44_18_1", "K44_21_1", "K44_22_1", "K44_14")]
-  BH[PAPA.BH.CD.SYMPT.MISSING > 3, PAPA.BH.CD.SYMPTCOUNT := NA]
+  BH[BH.CD.SYMPT.MISSING > 3, BH.CD.SYMPTOM.COUNT := NA]
   
   cd.imp.cols = paste("K44_23B",1:6,sep = "_") 
-  BH[,PAPA.BH.CD.IMPAIR.MISSING := sum(.SD,na.rm = T),by = c("PREG_ID_299", "BARN_NR"),.SDcols = cd.imp.cols]
-  BH[,PAPA.BH.CD.IMPAIRweak := sum(.SD == 1,na.rm = T),by = c("PREG_ID_299", "BARN_NR"),.SDcols = cd.imp.cols]
-  BH[,PAPA.BH.CD.IMPAIRstrong := sum(.SD > 1,na.rm = T),by = c("PREG_ID_299", "BARN_NR"),.SDcols = cd.imp.cols]
+  BH[,BH.CD.IMPAIR.MISSING := sum(.SD,na.rm = T),by = 1:nrow(BH),.SDcols = cd.imp.cols]
+  BH[,BH.CD.IMPAIRweak := sum(.SD == 1,na.rm = T),by = 1:nrow(BH),.SDcols = cd.imp.cols]
+  BH[,BH.CD.IMPAIRstrong := sum(.SD > 1,na.rm = T),by = 1:nrow(BH),.SDcols = cd.imp.cols]
  
-  BH[,PAPA.BH.CD.IMPAIR := 0]
-  BH[PAPA.BH.CD.IMPAIR.MISSING >= 6, PAPA.BH.CD.IMPAIR := NA]
-  BH[PAPA.BH.CD.IMPAIR.MISSING < 6 & 
-       (PAPA.BH.CD.IMPAIRweak >= 2 | PAPA.BH.CD.IMPAIRstrong > 0) , PAPA.BH.CD.IMPAIR := 1]
-  BH[,PAPA.BH.CD.IMPAIR.CAT := factor(PAPA.BH.CD.IMPAIR,labels = c("absent","present"))]
+  BH[,BH.CD.IMPAIR := 0]
+  BH[BH.CD.IMPAIR.MISSING >= 6, BH.CD.IMPAIR := NA]
+  BH[BH.CD.IMPAIR.MISSING < 6 & 
+       (BH.CD.IMPAIRweak >= 2 | BH.CD.IMPAIRstrong > 0) , BH.CD.IMPAIR := 1]
+  BH[,BH.CD.IMPAIR.CAT := factor(BH.CD.IMPAIR,labels = c("absent","present"))]
   
-  BH[,PAPA.BH.CD.IMPAIR.SCORE := sum(.SD,na.rm = T),by = c("PREG_ID_299", "BARN_NR"),.SDcols = cd.imp.cols]
+  BH[,BH.CD.IMPAIR.SCORE := sum(.SD,na.rm = T),by = 1:nrow(BH),.SDcols = cd.imp.cols]
  
-  BH[,PAPA.BH.CD.GROUP := 4]
-  BH[PAPA.BH.CD.SYMPTCOUNT >= 3 & PAPA.BH.CD.IMPAIR == 1,PAPA.BH.CD.GROUP := 1]
-  BH[PAPA.BH.CD.GROUP > 1 & 
-       (PAPA.BH.CD.SYMPTCOUNT >= 3 & PAPA.BH.CD.IMPAIR == 0) | 
-       (PAPA.BH.CD.SYMPTCOUNT %in% 1:2 & PAPA.BH.CD.IMPAIR == 1),
-     PAPA.BH.CD.GROUP := 2]
-  BH[PAPA.BH.CD.GROUP > 2 & PAPA.BH.CD.SYMPTCOUNT >= 3 & is.na(PAPA.BH.CD.IMPAIR), PAPA.BH.CD.GROUP := 3]
-  BH[is.na(PAPA.BH.CD.SYMPTCOUNT) & is.na(PAPA.BH.CD.IMPAIR), PAPA.BH.CD.GROUP := NA]
+  BH[,BH.CD.GROUP := 4]
+  BH[BH.CD.SYMPTOM.COUNT >= 3 & BH.CD.IMPAIR == 1,BH.CD.GROUP := 1]
+  BH[BH.CD.GROUP > 1 & 
+       (BH.CD.SYMPTOM.COUNT >= 3 & BH.CD.IMPAIR == 0) | 
+       (BH.CD.SYMPTOM.COUNT %in% 1:2 & BH.CD.IMPAIR == 1),
+     BH.CD.GROUP := 2]
+  BH[BH.CD.GROUP > 2 & BH.CD.SYMPTOM.COUNT >= 3 & is.na(BH.CD.IMPAIR), BH.CD.GROUP := 3]
+  BH[is.na(BH.CD.SYMPTOM.COUNT) & is.na(BH.CD.IMPAIR), BH.CD.GROUP := NA]
  
+  my_labels = c("CD_clin" = 1, "CD_subclin" = 2, "CD_missimp" = 3, "no_CD" = 4)
+  BH[,BH.CD.GROUP := labelled(BH.CD.GROUP,labels = my_labels)]
   
-  BH[,PAPA.BH.DBD.GROUP := 4]
-  BH[PAPA.BH.ODD.GROUP == 1 | PAPA.BH.CD.GROUP == 1, PAPA.BH.DBD.GROUP := 1]
-  BH[PAPA.BH.DBD.GROUP > 1 & PAPA.BH.ODD.GROUP == 2 | PAPA.BH.CD.GROUP == 2, PAPA.BH.DBD.GROUP := 2]
-  BH[,PAPA.BH.DBD.SUBGROUPS := factor(PAPA.BH.DBD.GROUP, labels = c("DBDclinical","DBDsubclinical","noDBD"))]
   
-  BH[,PAPA.BH.CD.GROUP := factor(PAPA.BH.CD.GROUP, labels = c("CD_clinical","CDs_ubclinical","CP_missimp","no_CD"))]
-  BH[,PAPA.BH.ODD.GROUP := factor(PAPA.BH.ODD.GROUP,labels = c('ODD_clin','ODD_sub', 'ODD_imp_missing', 'Ikke_ODD'))]
+  rm(cd.imp.cols)
+  
+  
+  BH[,BH.DBD.GROUP := 4]
+  BH[BH.ODD.GROUP == 1 | BH.CD.GROUP == 1, BH.DBD.GROUP := 1]
+  BH[BH.DBD.GROUP > 1 & (BH.ODD.GROUP == 2 | BH.CD.GROUP == 2), BH.DBD.GROUP := 2]
+  BH[BH.DBD.GROUP > 2 & (BH.ODD.GROUP == 3 | BH.CD.GROUP == 3), BH.DBD.GROUP := 3]
+  
+  my_labels = c("DBD_clin" = 1, "DBD_subclin" = 2, "DBD_missimp" = 3, "no_DBD" = 4)
+  BH[,BH.DBD.GROUP := labelled(BH.DBD.GROUP,labels = my_labels)]
+  
   
   BH$PREG_ID_299 = as.numeric(BH$PREG_ID_299)
   BH$BARN_NR = as.numeric(BH$BARN_NR)
   
-  BH = BH[,c(names(BH)[1:2],new_names),with = F]
-  PAPA = merge(PAPA,BH,by = c("PREG_ID_299","BARN_NR"))
+  items2dims = list(ODD = c(3,4,6,8,9,10,11,12),
+                    CD = c(13,14,16,17,18,19,21,22))
   
+  old_names = paste(paste("K44_",unlist(items2dims),sep = ""),"_1",sep = "")
+  new_names = paste("BH.rating.",names(unlist(items2dims)),sep = "")
+  setnames(BH,old_names,new_names)
+  for(v in new_names) {
+    eval(parse(text = 
+                 paste0("BH[",v," > 0, ",v," := ",v,"-1,by = list(PREG_ID_299,BARN_NR)]")
+               ))
+  } 
+  
+  BH = make_sum_scores(BH,names(BH)[grep("BH.rating.ODD",names(BH))],"BH.ODD.sum.SCORE")
+  BH = make_sum_scores(BH,names(BH)[grep("BH.rating.CD",names(BH))],"BH.CD.sum.SCORE")
+  
+
   ####################################################################
   ########################### ANXIETY ################################
   ####################################################################
@@ -342,139 +307,206 @@ get_PAPA = function(){
   
   ########################### PHOBIA ################################
   ax_cols = paste("K55",2:8,"1",sep = "_")
-  AX[,PAPA.PHOB.SYMPTCOUNT := sum(.SD > 1,na.rm = T),by = c("PREG_ID_299", "BARN_NR"), .SDcols = ax_cols]
+  AX[,PHOB.SYMPTOM.COUNT := sum(.SD > 1,na.rm = T),by = 1:nrow(AX), .SDcols = ax_cols]
   
   ax_imp_cols = paste("K55_26A",1:6,sep = "_")
-  AX[,PAPA.PHOB.IMPAIR.MISSING := sum(is.na(.SD)),by = c("PREG_ID_299", "BARN_NR"), .SDcols = ax_imp_cols]
-  AX[,PAPA.PHOB.IMPAIRweak := sum(.SD == 1,na.rm = T),by = c("PREG_ID_299", "BARN_NR"), .SDcols = ax_imp_cols]
-  AX[,PAPA.PHOB.IMPAIRstrong := sum(.SD > 1,na.rm = T),by = c("PREG_ID_299", "BARN_NR"), .SDcols = ax_imp_cols]
+  AX[,PHOB.IMPAIR.MISSING := sum(is.na(.SD)),by = 1:nrow(AX), .SDcols = ax_imp_cols]
+  AX[,PHOB.IMPAIRweak := sum(.SD == 1,na.rm = T),by = 1:nrow(AX), .SDcols = ax_imp_cols]
+  AX[,PHOB.IMPAIRstrong := sum(.SD > 1,na.rm = T),by = 1:nrow(AX), .SDcols = ax_imp_cols]
  
-  AX[,PAPA.PHOB.IMPAIR := 0]
-  AX[PAPA.PHOB.IMPAIR.MISSING >= 6, PAPA.PHOB.IMPAIR := NA]
-  AX[PAPA.PHOB.IMPAIRweak > 2 | PAPA.PHOB.IMPAIRstrong > 2, PAPA.PHOB.IMPAIR := 1]
-  AX[,PAPA.PHOB.IMPAIR.CAT := factor(PAPA.PHOB.IMPAIR,labels = c("absent","present"))]
-  AX[,PAPA.PHOB.IMPAIR.SCORE := sum(.SD,na.rm = T),by = c("PREG_ID_299", "BARN_NR"), .SDcols = ax_imp_cols]
+  AX[,PHOB.IMPAIR := 0]
+  AX[PHOB.IMPAIR.MISSING >= 6, PHOB.IMPAIR := NA]
+  AX[PHOB.IMPAIRweak > 2 | PHOB.IMPAIRstrong > 2, PHOB.IMPAIR := 1]
+  AX[,PHOB.IMPAIR.CAT := factor(PHOB.IMPAIR,labels = c("absent","present"))]
+  AX[,PHOB.IMPAIR.SCORE := sum(.SD,na.rm = T),by = 1:nrow(AX), .SDcols = ax_imp_cols]
   
-  AX[,PAPA.PHOB.GROUP := 4]
-  AX[PAPA.PHOB.SYMPTCOUNT > 1 & PAPA.PHOB.IMPAIR == 1, PAPA.PHOB.GROUP := 1]
-  AX[PAPA.PHOB.GROUP > 1 & PAPA.PHOB.SYMPTCOUNT > 1 & PAPA.PHOB.IMPAIR == 0, PAPA.PHOB.GROUP := 2]
-  AX[PAPA.PHOB.GROUP > 2 & PAPA.PHOB.SYMPTCOUNT > 1 & is.na(PAPA.PHOB.IMPAIR), PAPA.PHOB.GROUP := 3]
-  AX[PAPA.PHOB.GROUP > 3 & PAPA.PHOB.SYMPTCOUNT < 1 , PAPA.PHOB.GROUP := 4]
-  AX[,PAPA.PHOB.GROUP := factor(PAPA.PHOB.GROUP,labels = c("Phobia_clinical","Phobia_subclinical","Phobia_noimp","no_Phobia"))]
+  AX[,PHOB.GROUP := 4]
+  AX[PHOB.SYMPTOM.COUNT > 1 & PHOB.IMPAIR == 1, PHOB.GROUP := 1]
+  AX[PHOB.GROUP > 1 & PHOB.SYMPTOM.COUNT > 1 & PHOB.IMPAIR == 0, PHOB.GROUP := 2]
+  AX[PHOB.GROUP > 2 & PHOB.SYMPTOM.COUNT > 1 & is.na(PHOB.IMPAIR), PHOB.GROUP := 3]
+  AX[PHOB.GROUP > 3 & PHOB.SYMPTOM.COUNT < 1 , PHOB.GROUP := 4]
+  my_labels = c("Phobia_clinical" = 1,"Phobia_subclinical" = 2,"Phobia_noimp" = 3,"no_Phobia" = 4)
+  AX[,PHOB.GROUP := labelled(PHOB.GROUP,labels = my_labels)]
 
   ########################### SOC ANX ################################
   ax_cols = paste("K55",9:11,"1",sep = "_")
-  AX[,PAPA.SOAX.SYMPTCOUNT := sum(.SD > 1,na.rm = T),by = c("PREG_ID_299", "BARN_NR"), .SDcols = ax_cols]
+  AX[,SOAX.SYMPTOM.COUNT := sum(.SD > 1,na.rm = T),by = 1:nrow(AX), .SDcols = ax_cols]
   
   ax_imp_cols = paste("K55_26B",1:6,sep = "_")
-  AX[,PAPA.SOAX.IMPAIR.MISSING := sum(is.na(.SD)),by = c("PREG_ID_299", "BARN_NR"), .SDcols = ax_imp_cols]
-  AX[,PAPA.SOAX.IMPAIRweak := sum(.SD == 1,na.rm = T),by = c("PREG_ID_299", "BARN_NR"), .SDcols = ax_imp_cols]
-  AX[,PAPA.SOAX.IMPAIRstrong := sum(.SD > 1,na.rm = T),by = c("PREG_ID_299", "BARN_NR"), .SDcols = ax_imp_cols]
+  AX[,SOAX.IMPAIR.MISSING := sum(is.na(.SD)),by = 1:nrow(AX), .SDcols = ax_imp_cols]
+  AX[,SOAX.IMPAIRweak := sum(.SD == 1,na.rm = T),by = 1:nrow(AX), .SDcols = ax_imp_cols]
+  AX[,SOAX.IMPAIRstrong := sum(.SD > 1,na.rm = T),by = 1:nrow(AX), .SDcols = ax_imp_cols]
   
-  AX[,PAPA.SOAX.IMPAIR := 0]
-  AX[PAPA.SOAX.IMPAIR.MISSING >= 6, PAPA.SOAX.IMPAIR := NA]
-  AX[PAPA.SOAX.IMPAIR.MISSING < 6 & (PAPA.SOAX.IMPAIRweak >= 2 | PAPA.SOAX.IMPAIRstrong > 0) , PAPA.SOAX.IMPAIR := 1]
-  AX[,PAPA.SOAX.IMPAIR.CAT := factor(PAPA.SOAX.IMPAIR,labels = c("absent","present"))]
-  AX[,PAPA.SOAX.IMPAIR.SCORE := sum(.SD,na.rm = T),by = c("PREG_ID_299", "BARN_NR"), .SDcols = ax_imp_cols]
+  AX[,SOAX.IMPAIR := 0]
+  AX[SOAX.IMPAIR.MISSING >= 6, SOAX.IMPAIR := NA]
+  AX[SOAX.IMPAIR.MISSING < 6 & (SOAX.IMPAIRweak >= 2 | SOAX.IMPAIRstrong > 0) , SOAX.IMPAIR := 1]
+  AX[,SOAX.IMPAIR.CAT := factor(SOAX.IMPAIR,labels = c("absent","present"))]
+  AX[,SOAX.IMPAIR.SCORE := sum(.SD,na.rm = T),by = 1:nrow(AX), .SDcols = ax_imp_cols]
   
-  AX[,PAPA.SOAX.GROUP := 5]
-  AX[K55_9_1 > 1 & PAPA.SOAX.IMPAIR.CAT == "present", PAPA.SOAX.GROUP := 1]
-  AX[PAPA.SOAX.GROUP > 1 & (
-      (K55_9_1 > 1 & PAPA.SOAX.IMPAIR.CAT == "absent") |
-      (PAPA.SOAX.SYMPTCOUNT >= 1 & PAPA.SOAX.IMPAIR.CAT == "absent")
-      ) , PAPA.SOAX.GROUP := 2]
-  AX[PAPA.SOAX.GROUP > 2 & PAPA.SOAX.SYMPTCOUNT >= 1 & is.na(PAPA.SOAX.IMPAIR), PAPA.SOAX.GROUP := 3]
-  AX[PAPA.SOAX.GROUP > 3 & PAPA.SOAX.SYMPTCOUNT < 1, PAPA.SOAX.GROUP := 4]
-  
-  AX[,PAPA.SOAX.GROUP := factor(PAPA.SOAX.GROUP,labels = c("SocAnx_clinical","SocAnx_subclinical","SocAnx_noimp","no_Phobia"))]
+  AX[,SOAX.GROUP := 4]
+  AX[K55_9_1 > 1 & SOAX.IMPAIR.CAT == "present", SOAX.GROUP := 1]
+  AX[SOAX.GROUP > 1 & (
+      (K55_9_1 > 1 & SOAX.IMPAIR.CAT == "absent") |
+      (SOAX.SYMPTOM.COUNT >= 1 & SOAX.IMPAIR.CAT == "absent")
+      ) , SOAX.GROUP := 2]
+  AX[SOAX.GROUP > 2 & SOAX.SYMPTOM.COUNT >= 1 & is.na(SOAX.IMPAIR), SOAX.GROUP := 3]
+  AX[SOAX.GROUP > 3 & SOAX.SYMPTOM.COUNT < 1, SOAX.GROUP := 4]
+  my_labels = c("SocAnx_clinical" = 1,"SocAnx_subclinical" = 2,"SocAnx_noimp" = 3,"no_Phobia" = 4)
+  AX[,SOAX.GROUP := labelled(SOAX.GROUP, labels =  my_labels)]
   
   ########################### SEP ANX ################################
   ax_cols = paste("K55",c(13,14,16:19),"1",sep = "_")
-  AX[,PAPA.SEPAX.SYMPTCOUNT := sum(.SD > 1,na.rm = T),by = c("PREG_ID_299", "BARN_NR"), .SDcols = ax_cols]
+  AX[,SEPAX.SYMPTOM.COUNT := sum(.SD > 1,na.rm = T),by = 1:nrow(AX), .SDcols = ax_cols]
 
   ax_imp_cols = paste("K55_26C",1:6,sep = "_")
-  AX[,PAPA.SEPAX.IMPAIR.MISSING := sum(is.na(.SD)),by = c("PREG_ID_299", "BARN_NR"), .SDcols = ax_imp_cols]
-  AX[,PAPA.SEPAX.IMPAIRweak := sum(.SD == 1,na.rm = T),by = c("PREG_ID_299", "BARN_NR"), .SDcols = ax_imp_cols]
-  AX[,PAPA.SEPAX.IMPAIRstrong := sum(.SD > 1,na.rm = T),by = c("PREG_ID_299", "BARN_NR"), .SDcols = ax_imp_cols]
+  AX[,SEPAX.IMPAIR.MISSING := sum(is.na(.SD)),by = 1:nrow(AX), .SDcols = ax_imp_cols]
+  AX[,SEPAX.IMPAIRweak := sum(.SD == 1,na.rm = T),by = 1:nrow(AX), .SDcols = ax_imp_cols]
+  AX[,SEPAX.IMPAIRstrong := sum(.SD > 1,na.rm = T),by = 1:nrow(AX), .SDcols = ax_imp_cols]
   
-  AX[,PAPA.SEPAX.IMPAIR := 0]
-  AX[PAPA.SEPAX.IMPAIR.MISSING >= 6, PAPA.SEPAX.IMPAIR := NA]
-  AX[PAPA.SEPAX.IMPAIR.MISSING < 6 & (PAPA.SEPAX.IMPAIRweak >= 2 | PAPA.SEPAX.IMPAIRstrong > 0) , PAPA.SEPAX.IMPAIR := 1]
-  AX[,PAPA.SEPAX.IMPAIR.CAT := factor(PAPA.SEPAX.IMPAIR,labels = c("absent","present"))]
-  AX[,PAPA.SEPAX.IMPAIR.SCORE := sum(.SD,na.rm = T),by = c("PREG_ID_299", "BARN_NR"), .SDcols = ax_imp_cols]
+  AX[,SEPAX.IMPAIR := 0]
+  AX[SEPAX.IMPAIR.MISSING >= 6, SEPAX.IMPAIR := NA]
+  AX[SEPAX.IMPAIR.MISSING < 6 & (SEPAX.IMPAIRweak >= 2 | SEPAX.IMPAIRstrong > 0) , SEPAX.IMPAIR := 1]
+  AX[,SEPAX.IMPAIR.CAT := factor(SEPAX.IMPAIR,labels = c("absent","present"))]
+  AX[,SEPAX.IMPAIR.SCORE := sum(.SD,na.rm = T),by = 1:nrow(AX), .SDcols = ax_imp_cols]
   
-  AX[,PAPA.SEPAX.GROUP := factor(rep(NA,nrow(AX)),levels = 1:4,labels = c("SEPAX_clinical","SEPAX_subclinical","SEPAX_noimp","no_SEPAX"))]
-  AX[PAPA.SEPAX.SYMPTCOUNT > 3 & PAPA.SEPAX.IMPAIR.CAT == "present", PAPA.SEPAX.GROUP := "SEPAX_clinical"]
-  AX[is.na(PAPA.SEPAX.GROUP) & (PAPA.SEPAX.SYMPTCOUNT > 3 & PAPA.SEPAX.IMPAIR.CAT == "absent" ) |
-      (PAPA.SEPAX.SYMPTCOUNT %in% 1:2 & is.na(PAPA.SEPAX.IMPAIR)), PAPA.SEPAX.GROUP := "SEPAX_subclinical"]
-  AX[is.na(PAPA.SEPAX.GROUP) & PAPA.SEPAX.SYMPTCOUNT > 3 & is.na(PAPA.SEPAX.IMPAIR), PAPA.SEPAX.GROUP := "SEPAX_noimp"]
-  AX[is.na(PAPA.SEPAX.GROUP), PAPA.SEPAX.GROUP := "no_SEPAX"]
+  my_labels = c("SEPAX_clinical" = 1,"SEPAX_subclinical" = 2,"SEPAX_noimp" = 3,"no_SEPAX" = 4)
+  AX[SEPAX.SYMPTOM.COUNT > 3 & SEPAX.IMPAIR.CAT == "present", SEPAX.GROUP := 1]
+  AX[is.na(SEPAX.GROUP) & (SEPAX.SYMPTOM.COUNT > 3 & SEPAX.IMPAIR.CAT == "absent" ) |
+      (SEPAX.SYMPTOM.COUNT %in% 1:2 & is.na(SEPAX.IMPAIR)), SEPAX.GROUP := 2]
+  AX[is.na(SEPAX.GROUP) & SEPAX.SYMPTOM.COUNT > 3 & is.na(SEPAX.IMPAIR), SEPAX.GROUP := 3]
+  AX[is.na(SEPAX.GROUP), SEPAX.GROUP := 4]
+  AX[,SEPAX.GROUP := labelled(SEPAX.GROUP,labels = my_labels)]
   
   ########################### GEN ANX ################################
   
-  AX[,PAPA.GENAX.SYMPT := 0]
+  AX[,GENAX.SYMPT := 0]
   AX[K55_21_16 == 2, K55_21_16 := 1]
   AX[K55_20_10 == 2 & (K55_21_16 == 1 | K55_22_1 == 2 | K55_23_1 == 2 | K55_24_1 == 2 | K55_25_1 == 2),
-     PAPA.GENAX.SYMPT := 1]
+     GENAX.SYMPT := 1]
   
   
   ax_imp_cols = paste("K55_26D",1:6,sep = "_")
-  AX[,PAPA.GENAX.IMPAIR.MISSING := sum(is.na(.SD)),by = c("PREG_ID_299", "BARN_NR"), .SDcols = ax_imp_cols]
-  AX[,PAPA.GENAX.IMPAIRweak := sum(.SD == 1,na.rm = T),by = c("PREG_ID_299", "BARN_NR"), .SDcols = ax_imp_cols]
-  AX[,PAPA.GENAX.IMPAIRstrong := sum(.SD > 1,na.rm = T),by = c("PREG_ID_299", "BARN_NR"), .SDcols = ax_imp_cols]
+  AX[,GENAX.IMPAIR.MISSING := sum(is.na(.SD)),by = 1:nrow(AX), .SDcols = ax_imp_cols]
+  AX[,GENAX.IMPAIRweak := sum(.SD == 1,na.rm = T),by = 1:nrow(AX), .SDcols = ax_imp_cols]
+  AX[,GENAX.IMPAIRstrong := sum(.SD > 1,na.rm = T),by = 1:nrow(AX), .SDcols = ax_imp_cols]
   
-  AX[,PAPA.GENAX.IMPAIR := 0]
-  AX[PAPA.GENAX.IMPAIR.MISSING >= 6, PAPA.GENAX.IMPAIR := NA]
-  AX[PAPA.GENAX.IMPAIR.MISSING < 6 & (PAPA.GENAX.IMPAIRweak >= 2 | PAPA.GENAX.IMPAIRstrong > 0) , PAPA.GENAX.IMPAIR := 1]
-  AX[,PAPA.GENAX.IMPAIR.CAT := factor(PAPA.GENAX.IMPAIR,labels = c("absent","present"))]
-  AX[,PAPA.GENAX.IMPAIR.SCORE := sum(.SD,na.rm = T),by = c("PREG_ID_299", "BARN_NR"), .SDcols = ax_imp_cols]
+  AX[,GENAX.IMPAIR := 0]
+  AX[GENAX.IMPAIR.MISSING >= 6, GENAX.IMPAIR := NA]
+  AX[GENAX.IMPAIR.MISSING < 6 & (GENAX.IMPAIRweak >= 2 | GENAX.IMPAIRstrong > 0) , GENAX.IMPAIR := 1]
+  AX[,GENAX.IMPAIR.CAT := factor(GENAX.IMPAIR,labels = c("absent","present"))]
+  AX[,GENAX.IMPAIR.SCORE := sum(.SD,na.rm = T),by = 1:nrow(AX), .SDcols = ax_imp_cols]
   
-  AX[,PAPA.GENAX.GROUP := factor(rep(NA,nrow(AX)),levels = 1:4,labels = c("GENAX_clinical","GENAX_subclinical","GENAX_noimp","no_GENAX"))]
-  AX[PAPA.GENAX.SYMPT == 1 & PAPA.GENAX.IMPAIR.CAT == "present", PAPA.GENAX.GROUP := "GENAX_clinical"]
-  AX[is.na(PAPA.GENAX.GROUP) & PAPA.GENAX.SYMPT == 1 & PAPA.GENAX.IMPAIR.CAT == "absent", PAPA.GENAX.GROUP := "GENAX_subclinical"]
-  AX[is.na(PAPA.GENAX.GROUP) & PAPA.GENAX.SYMPT == 1 & is.na(PAPA.GENAX.IMPAIR.CAT), PAPA.GENAX.GROUP := "GENAX_noimp"]
-  AX[is.na(PAPA.GENAX.GROUP) & PAPA.GENAX.SYMPT == 0 , PAPA.GENAX.GROUP := "no_GENAX"]
-  
+  my_la = c("GENAX_clinical" = 1,"GENAX_subclinical" = 2,"GENAX_noimp" = 3,"no_GENAX" = 4)
+  AX[GENAX.SYMPT == 1 & GENAX.IMPAIR.CAT == "present", GENAX.GROUP := 1]
+  AX[is.na(GENAX.GROUP) & GENAX.SYMPT == 1 & GENAX.IMPAIR.CAT == "absent", GENAX.GROUP := 2]
+  AX[is.na(GENAX.GROUP) & GENAX.SYMPT == 1 & is.na(GENAX.IMPAIR.CAT), GENAX.GROUP := 3]
+  AX[is.na(GENAX.GROUP) & GENAX.SYMPT == 0 , GENAX.GROUP := 4]
+  AX[,GENAX.GROUP := labelled(GENAX.GROUP,labels = my_labels)]
   
   ########################### ANX GROUP ################################
+  SDcols = paste(c("PHOB","SOAX","SEPAX","GENAX"),"GROUP",sep = ".")
+  AX[,ANX.GROUP := min(.SD,na.rm = T),by = 1:nrow(AX),.SDcols = SDcols]
+  my_labels = c("ANX_clinical" = 1,"ANX_subclin" = 2,"ANX_missimp" = 3,"no_ANX" = 4)
+  AX[,ANX.GROUP := labelled(ANX.GROUP,labels = my_labels)]
   
-  
-  COMPUTE ANX_Group = 4.
-  IF ((Phobia_Group EQ 1) OR (SocAnx_Group EQ 1) OR (SepAnx_Group EQ 1) OR (GenAnx_group EQ 1)) ANX_Group = 1.
-  IF (ANX_Group GT 1) AND ((Phobia_Group EQ 2) OR (SocAnx_Group EQ 2)  OR (SepAnx_Group EQ 2) OR (GenAnx_Group EQ 2)) ANX_Group = 2.
-  *IF (ANX_Group GT 2) AND ((Phobia_Group EQ 3) OR (SocAnx_Group EQ 3) OR (SepAnx_Group EQ 3) OR (GenAnx_Group EQ 3)) Anx_Group = 3.
-  VARIABLE LABELS ANX_Group 'Anxiety Groups'.
-  VALUE LABELS ANX_Group
-  1 'ANXclin'
-  2 'ANXsub'
-  3 'ANX_imp_missing'
-  4 'No_ANX'.
-  EXECUTE .
+ 
+  ########################### ANX sumscores ################################
   
   items2dims = list(PHOB = 2:8,
-                    SOC = 9:11,
-                    SEP = c(13:14,16:19),
-                    GEN = 22:25)
+                    SOAX = 9:11,
+                    SEPAX = c(13:14,16:19),
+                    GENAX = 22:25)
   item2dimsAUTSYM = 16 # ANXIOUS AUTONOMIC SYMPTOMS 
   
   old_names = c(paste(paste("K55_",unlist(items2dims),sep = ""),"_1",sep = ""),
                 paste("K55_21_",item2dimsAUTSYM,sep = ""))
-  new_names = c(paste("PAPA.ANX.rating.",names(unlist(items2dims)),sep = ""),
-                paste("PAPA.ANX.rating.AUTSYM",item2dimsAUTSYM,sep = ""))
+  new_names = c(paste("ANX.rating.",names(unlist(items2dims)),sep = ""),
+                paste("ANX.rating.AUTSYM",item2dimsAUTSYM,sep = ""))
   
   setnames(AX,old_names,new_names)
   
-  for(v in new_names) AX[[v]][which(AX[[v]] > 0)] = AX[[v]][which(AX[[v]] > 0)]-1
+  for(v in new_names) {
+    eval(parse(text = 
+                 paste0("AX[",v," > 0, ",v," := ",v,"-1,by = list(PREG_ID_299,BARN_NR)]")
+    ))
+  } 
   
-  AX = AX[,c(names(AX)[1:2],new_names),with = F]
-  AX$PAPA.ANX.PHOB.sum.SCORE = make_sum_scores(AX[,grep("ANX.rating.PHOB",names(AX)),with = F])
-  AX$PAPA.ANX.SOC.sum.SCORE = make_sum_scores(AX[,grep("ANX.rating.SOC",names(AX)),with = F])
-  AX$PAPA.ANX.SEP.sum.SCORE = make_sum_scores(AX[,grep("ANX.rating.SEP",names(AX)),with = F])
-  AX$PAPA.ANX.GEN.sum.SCORE = make_sum_scores(AX[,grep("ANX.rating.GEN",names(AX)),with = F])
-
+  AX = make_sum_scores(AX,names(AX)[grep("ANX.rating.PHOB",names(AX))],"ANX.rating.PHOB")
+  AX = make_sum_scores(AX,names(AX)[grep("ANX.rating.SOAX",names(AX))],"ANX.rating.SOAX")
+  AX = make_sum_scores(AX,names(AX)[grep("ANX.rating.SEPAX",names(AX))],"ANX.rating.SEPAX")
+  AX = make_sum_scores(AX,names(AX)[grep("ANX.rating.GENAX",names(AX))],"ANX.rating.GENAX")
+  
   AX$PREG_ID_299 = as.numeric(AX$PREG_ID_299)
   AX$BARN_NR = as.numeric(AX$BARN_NR)
+  
   PAPA = merge(PAPA,AX,by = c("PREG_ID_299","BARN_NR"))
+  
+  ######################### konklusions ###################
+  KK = data.table(read_sav("savs/PAPA/ADHD_KONKL.sav"))
+  
+  KK[, LANG.GROUP := 4]
+  for (v in 3:1)  KK[KU2_1_1 == v | KU2_1_2 == v | KU2_2_1 == v, LANG.GROUP := v]
+  my_labels = c( "LANG_DEV_PROBL_clin" = 1, "LANG_DEV_PROBL_subclin" = 2, "LANG_DEV_PROBL_lackinfo" = 3, "no_LANG_DEV_PROBL" = 4)
+  KK[,LANG.GROUP := labelled(LANG.GROUP, labels = my_labels)]
+  
+  
+  KK[, OTHER.GROUP := 4]
+  for (v in 3:1) KK[KU4_1_1==v | KU6_1_1==v | KU6_1_2==v | KU6_3_1==v | KU6_3_2==v | KU6_3_3==v | KU7_1_1==v | KU7_1_2==v, OTHER.GROUP := v]
+  my_labels = c( "OTHER_DISORDER_clin" = 1, "OTHER_DISORDER_subclin" = 2, "OTHER_DISORDER_lackinfo" = 3, "no_OTHER_DISORDER" = 4)
+  KK[,OTHER.GROUP := labelled(OTHER.GROUP, labels = my_labels)]
+  
+  KK[, SLEEP.GROUP := 4]
+  KK[KU7_3_7==2 | KU7_3_1==2 | KU7_3_2==2 | KU7_3_3==2 | KU7_3_8==2 | KU7_3_4==2 | KU7_3_6==2, SLEEP.GROUP := 2]
+  KK[KU7_3_7==3 | KU7_3_1==3 | KU7_3_2==3 | KU7_3_3==3 | KU7_3_8==3 | KU7_3_4==3 | KU7_3_6==3, SLEEP.GROUP := 1]
+  my_labels = c("SLEEP_REG_PROBL_wimp" = 1, "SLEEP_REG_PROBL_woimp" = 2, "no_SLEEP_REG_PROBL" = 4)
+  KK[,SLEEP.GROUP := labelled(SLEEP.GROUP, labels = my_labels)]
+  
+  
+  KK[, EMO.GROUP := 4]
+  KK[KU8_1_1==2 | KU8_1_2==2 | KU8_1_3==2 | KU8_1_4==2 | KU8_1_5==2 | KU8_1_6==2, EMO.GROUP := 2]
+  KK[KU8_1_1==3 | KU8_1_2==3 | KU8_1_3==3 | KU8_1_4==3 | KU8_1_5==3 | KU8_1_6==3, EMO.GROUP := 1]
+  my_labels = c("EMOT_DYSREG_wimp" = 1, "EMOT_DYSREG_woimp" = 2, "EMOT_DYSREG_PROBL" = 4)
+  KK[,EMO.GROUP := labelled(EMO.GROUP, labels = my_labels)]
+  
+  KK[, XOTHER.GROUP := 2]
+  KK[OTHER.GROUP < 3 | SLEEP.GROUP < 3 | EMO.GROUP < 3,XOTHER.GROUP := 1]
+  KK[,XOTHER.GROUP := labelled(XOTHER.GROUP, labels = c("Yes" = 1, "No" = 2))]
+  
+  
+  ############################# merge and ADHD COMORBIDITIES ##############################
+  
+  PAPA = merge(AD[,names(AD)[c(1:2,grep("^ADHD",names(AD)))],with = F],
+               BH[,names(BH)[c(1:2,grep("^BH",names(BH)))],with = F],
+               by = c("PREG_ID_299","BARN_NR"))
+  PAPA = merge(PAPA,
+               AX[,names(AX)[c(1:2,grep("^ANX",names(AX)))],with = F],
+               by = c("PREG_ID_299","BARN_NR"))
+  PAPA = merge(PAPA,
+               SL[,names(SL)[c(1:2,grep("^SLEEP",names(SL)))],with = F],
+               by = c("PREG_ID_299","BARN_NR"))
+  
+  PAPA = merge(PAPA,
+               KK[,names(KK)[c(1:2,grep("GROUP$",names(KK)))],with = F],
+               by = c("PREG_ID_299","BARN_NR"))
+  
+  PAPA[,PAPA.DIAG.GROUP := 4]
+  PAPA[ADHD.CATEGORY <= 2 & BH.DBD.GROUP == 4 & ANX.GROUP == 4, PAPA.DIAG.GROUP := 1]
+  PAPA[PAPA.DIAG.GROUP > 1 & ADHD.CATEGORY <= 2 & (BH.DBD.GROUP < 4 | ANX.GROUP < 4), PAPA.DIAG.GROUP := 2]
+  PAPA[PAPA.DIAG.GROUP > 2 & ADHD.CATEGORY == 3 & (BH.DBD.GROUP < 4 | ANX.GROUP < 4), PAPA.DIAG.GROUP := 3]
+  PAPA[PAPA.DIAG.GROUP > 3 & ADHD.CATEGORY == 3 & BH.DBD.GROUP == 4 & ANX.GROUP == 4, PAPA.DIAG.GROUP := 4]
+  my_labels = c("ADHD_only" = 1, "ADHD_w_COMROB" = 2, "OTHER_only" = 3, "no_Diagnosis" = 4)
+  PAPA[,PAPA.DIAG.GROUP := labelled(PAPA.DIAG.GROUP,labels = my_labels)]
+ 
+    
+  PAPA[,PAPA.DIAG.GROUP2 := 4]
+  PAPA[ADHD.CATEGORY <= 2 & XOTHER.GROUP == 2, PAPA.DIAG.GROUP2 := 1]
+  PAPA[ADHD.CATEGORY <= 2 & BH.DBD.GROUP <  3 & ANX.GROUP <  3 & LANG.GROUP < 3 & XOTHER.GROUP == 1 & PAPA.DIAG.GROUP2 > 1, PAPA.DIAG.GROUP2 := 2]
+  PAPA[ADHD.CATEGORY > 2 & BH.DBD.GROUP <  3 & ANX.GROUP <  3 & LANG.GROUP < 3 & XOTHER.GROUP == 1 & PAPA.DIAG.GROUP2 > 2, PAPA.DIAG.GROUP2 := 3]
+  PAPA[ADHD.CATEGORY > 2 & BH.DBD.GROUP ==  3 & ANX.GROUP ==  3 & LANG.GROUP > 3 & XOTHER.GROUP == 2 & PAPA.DIAG.GROUP2 > 3, PAPA.DIAG.GROUP2 := 3]
+  PAPA[,PAPA.DIAG.GROUP2 := labelled(PAPA.DIAG.GROUP2,labels = my_labels)]
+  
+  
+  IF (ADHDkategori LE 2) AND (((DBD_Group EQ 4) AND (ANX_Group EQ 4) AND (K_LDgrp GE 3) AND (Andreprob EQ 2)) OR (Andreprob EQ 2)) Grupper = 1.
   
   return(PAPA)
 }
