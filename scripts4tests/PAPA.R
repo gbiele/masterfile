@@ -522,11 +522,11 @@ get_PAPA = function(){
   # - PP = PAPA (Preschool Age Psychiatric Assessment Interview)
   # - SY = symptom
   
-  attributes(PAPA$ADHD.SC) = list(label = "PAPA: Total number of present ADHD SYMs")
-  attributes(PAPA$ADHD.AT.SC) = list(label = "PAPA: Number of present inattentiveness SYMs")
-  attributes(PAPA$ADHD.HY.SC) = list(label = "PAPA: Number of present hyperactivity SYMs")
-  attributes(PAPA$ADHD.IM.SC) = list(label = "PAPA: Number of present impulsivity SYMs")
-  attributes(PAPA$ADHD.HI.SC) = list(label = "PAPA: Number of present hyperactivity & impulsiveness SYMs")
+  attributes(PAPA$ADHD.SC) = list(label = "PAPA: Total number of present ADHD SYMPTOMs")
+  attributes(PAPA$ADHD.AT.SC) = list(label = "PAPA: Number of present inattentiveness SYMPTOMs")
+  attributes(PAPA$ADHD.HY.SC) = list(label = "PAPA: Number of present hyperactivity SYMPTOMs")
+  attributes(PAPA$ADHD.IM.SC) = list(label = "PAPA: Number of present impulsivity SYMPTOMs")
+  attributes(PAPA$ADHD.HI.SC) = list(label = "PAPA: Number of present hyperactivity & impulsiveness SYMPTOMs")
   
   setnames(PAPA,names(PAPA)[-(1:2)],paste0("PP.",names(PAPA)[-(1:2)]))
   
