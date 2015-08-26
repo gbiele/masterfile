@@ -483,13 +483,13 @@ get_PAPA = function(){
   PAPA = merge(PAPA, SL, by = c("PREG_ID_299","BARN_NR"))
   PAPA = merge(PAPA, KK, by = c("PREG_ID_299","BARN_NR"))
   
-  PAPA[,PP.DIAG.GR := 4]
-  PAPA[ADHD.CAT <= 2 & BH.DBD.GR == 4 & ANX.GR == 4, PP.DIAG.GR := 1]
-  PAPA[PP.DIAG.GR > 1 & ADHD.CAT <= 2 & (BH.DBD.GR < 4 | ANX.GR < 4), PP.DIAG.GR := 2]
-  PAPA[PP.DIAG.GR > 2 & ADHD.CAT == 3 & (BH.DBD.GR < 4 | ANX.GR < 4), PP.DIAG.GR := 3]
-  PAPA[PP.DIAG.GR > 3 & ADHD.CAT == 3 & BH.DBD.GR == 4 & ANX.GR == 4, PP.DIAG.GR := 4]
+  PAPA[,DIAG.GR := 4]
+  PAPA[ADHD.CAT <= 2 & DBD.GR == 4 & ANX.GR == 4, DIAG.GR := 1]
+  PAPA[DIAG.GR > 1 & ADHD.CAT <= 2 & (DBD.GR < 4 | ANX.GR < 4), DIAG.GR := 2]
+  PAPA[DIAG.GR > 2 & ADHD.CAT == 3 & (DBD.GR < 4 | ANX.GR < 4), DIAG.GR := 3]
+  PAPA[DIAG.GR > 3 & ADHD.CAT == 3 & DBD.GR == 4 & ANX.GR == 4, DIAG.GR := 4]
   my_labels = c("ADHD_only" = 1, "ADHD_w_COMROB" = 2, "OTHER_only" = 3, "no_Diagnosis" = 4)
-  PAPA[,PP.DIAG.GR := labelled(PP.DIAG.GR,labels = my_labels)]
+  PAPA[,DIAG.GR := labelled(DIAG.GR,labels = my_labels)]
   
   
   ############################### Add labels to variable names ############################
@@ -522,13 +522,14 @@ get_PAPA = function(){
   # - PP = PAPA (Preschool Age Psychiatric Assessment Interview)
   # - SY = symptom
   
-  attributes(AD$ADHD.SC) = list(label = "PAPA: Total number of present ADHD SYMs")
-  attributes(AD$ADHD.AT.SC) = list(label = "PAPA: Number of present inattentiveness SYMs")
-  attributes(AD$ADHD.HY.SC) = list(label = "PAPA: Number of present hyperactivity SYMs")
-  attributes(AD$ADHD.IM.SC) = list(label = "PAPA: Number of present impulsivity SYMs")
-  attributes(AD$ADHD.HI.SC) = list(label = "PAPA: Number of present hyperactivity & impulsiveness SYMs")
+  attributes(PAPA$ADHD.SC) = list(label = "PAPA: Total number of present ADHD SYMs")
+  attributes(PAPA$ADHD.AT.SC) = list(label = "PAPA: Number of present inattentiveness SYMs")
+  attributes(PAPA$ADHD.HY.SC) = list(label = "PAPA: Number of present hyperactivity SYMs")
+  attributes(PAPA$ADHD.IM.SC) = list(label = "PAPA: Number of present impulsivity SYMs")
+  attributes(PAPA$ADHD.HI.SC) = list(label = "PAPA: Number of present hyperactivity & impulsiveness SYMs")
   
-
+  setnames(PAPA,names(PAPA)[-(1:2)],paste0("PP.",names(PAPA)[-(1:2)]))
+  
   return(PAPA)
 }
 
