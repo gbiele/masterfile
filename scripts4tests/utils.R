@@ -2,6 +2,7 @@ make_sum_scores = function(DT,items,ss_var){
   DT[,sNAs := sum(is.na(.SD)),by = 1:nrow(DT),.SDcols = items]
   DT[,sum_score := round(mean(as.numeric(.SD),na.rm = T)*length(items)),by = 1:nrow(DT),.SDcols = items]
   DT[sNAs >= (length(items)/2) , sum_score := NA,]
+  DT = DT[,-which(names(DT) == "sNAs"),with = F]
   setnames(DT,"sum_score",ss_var)
   return(DT)
 }
