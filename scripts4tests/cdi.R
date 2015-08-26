@@ -23,18 +23,21 @@ get_cdi = function(qu_a,qu_b,rater){
   cdib = qu_b[,cdibvars,with = F]
   for (v in cdibvars[-c(1,2)]) cdib[[v]] = cdib[[v]]-1
   
-  cdi = rbind(cdia,cdib,use.names = F)
-  
-  setnames(cdi,names(cdi)[-c(1,2)], paste(base_name,c(1:50,".pronounciation",".understood"),sep = ".item"))
-  
-  cdi[[paste(base_name,"sum.SCORE",sep =".")]] = round(rowSums(cdi[,paste(base_name,1:50,sep = ".item"),with = F],na.rm = T))
-  cdi[[paste(base_name,"mean.SCORE",sep =".")]] = rowMeans(cdi[,paste(base_name,1:50,sep = ".item"),with = F],na.rm = T)
-  cdi[[paste(base_name,"missings",sep =".")]] = rowSums(is.na(cdi[,paste(base_name,1:50,sep = ".item"),with = F]))
-  cdi[[paste(base_name,"sum.SCORE",sep =".")]][cdi[[paste(base_name,"missings",sep =".")]] > 16] = NA
-  cdi[[paste(base_name,"mean.SCORE",sep =".")]][cdi[[paste(base_name,"missings",sep =".")]] > 16] = NA
-  if (sum(cdi[[paste(base_name,"missings",sep =".")]] > 0)) {
-    print(paste("set",paste(base_name,"sum.SCORE",sep =".")," to NA for cases with more than 16 missings"))
+  varlabels = c()
+  for (k in 3:length(cdiavars)) {
+    varlabels = sub("^ ","",c(varlabels,strsplit(attributes(cdia[[cdiavars[k]]])$label,";")[[1]][2]))
+    eval(parse(text = paste("cdia[,",cdiavars[k]," := labelled(",cdiavars[k],",labels = c(No = 0, Yes = 1))]")))
+    eval(parse(text = paste("cdib[,",cdibvars[k]," := labelled(",cdibvars[k],",labels = c(No = 0, Yes = 1))]")))
   }
+  
+  cdi = rbindlist(list(cdia,cdib),use.names = F)
+  
+  setnames(cdi,names(cdi)[-c(1,2)], paste("CDIlang.PA",c(1:50,"pronounciation","understood"),sep = "."))
+  
+  cdi = make_sum_scores(cdi,names(cdi)[grep("PA[0-9]",names(cdi))],"CDIlang.PA.SS")
+ 
+  for (k in 3:length(cdiavars)) attributes(cdi[[k]])$label = varlabels[k]
+  
   return(cdi)
 }
 
@@ -48,12 +51,20 @@ get_cdi_kg = function(kgqa,kgqb){
   cdib = kgqb[,cdibvars,with = F]
   cdib = cbind(cdib[,1:2,with = F],cdib[,3:54,with = F] - 1)
   
+  varlabels = c()
+  for (k in 3:length(cdiavars)) {
+    varlabels = sub(" . ","",c(varlabels,strsplit(attributes(cdia[[cdiavars[k]]])$label,";")[[1]][3]))
+    eval(parse(text = paste("cdia[,",cdiavars[k]," := labelled(",cdiavars[k],",labels = c(No = 0, Yes = 1))]")))
+    eval(parse(text = paste("cdib[,",cdibvars[k]," := labelled(",cdibvars[k],",labels = c(No = 0, Yes = 1))]")))
+  }
+  
   cdi = rbind(cdia,cdib,use.names = F)
   
-  setnames(cdi,names(cdi)[-c(1,2)], paste("CDIlang.teacher.item",c(1:50,"pronounciation","understood"),sep = "."))
+  setnames(cdi,names(cdi)[-c(1,2)], paste("CDIlang.TE",c(1:50,"pronounciation","understood"),sep = "."))
   
-  cdi$CDIlang.teacher.SCORE.sum = round(rowSums(cdi[,paste("CDIlang.teacher.item",1:50,sep = "."),with = F],na.rm = T))
-  cdi$CDIlang.teacher.SCORE.mean = rowMeans(cdi[,paste("CDIlang.teacher.item",1:50,sep = "."),with = F],na.rm = T)
-  cdi$CDIlang.teacher.missings = rowSums(is.na(cdi[,paste("CDIlang.teacher.item",1:50,sep = "."),with = F]))
+  cdi = make_sum_scores(cdi,names(cdi)[grep("TE[0-9]",names(cdi))],"CDIlang.TE.SS")
+  
+  for (k in 3:length(cdiavars)) attributes(cdi[[k]])$label = varlabels[k]
+  
   return(cdi)
 }
