@@ -11,7 +11,7 @@
 ################ QUESTIONS ##############
 # what is with NA values?
 get_neuropsych = function() {
-  dt = data.table(read_sav("savs/NpY.sav"))
+  dt = data.table(read_sav("F:/Forskningsprosjekter/PDB 299 - ADHD-studien Prescho_/Forskningsfiler/GUBI/GuidoData/masterfile/savs/NpY.sav"))
   #dt = data.table(dt[,-c(27:29,32,33)])
   
   ########### corrections Nepsy from Nina ####################
@@ -27,7 +27,7 @@ get_neuropsych = function() {
                      grep("serbisk",dt[,NY1_2]))
   dt[invalid_scores,N3_5 := NA]
   
-  tmp = data.table(read_sav("savs/Nepsy_Delscore.sav"))
+  tmp = data.table(read_sav("F:/Forskningsprosjekter/PDB 299 - ADHD-studien Prescho_/Forskningsfiler/GUBI/GuidoData/masterfile/savs/Nepsy_Delscore.sav"))
   setnames(tmp,names(tmp)[1:2],names(dt)[1:2])
   dt = merge(dt,tmp,by = c("PREG_ID_299","BARN_NR"))
   setnames(dt,names(dt),gsub("ny","NY",names(dt)))
@@ -57,7 +57,7 @@ get_neuropsych = function() {
   #####################################################
   ############## Boston naming task ##################
   #####################################################
-  bnt = data.table(read_sav("savs/BNT.sav"))
+  bnt = data.table(read_sav("F:/Forskningsprosjekter/PDB 299 - ADHD-studien Prescho_/Forskningsfiler/GUBI/GuidoData/masterfile/savs/BNT.sav"))
   SDcols = names(bnt)[grep("BN1_",names(bnt))]
   
   bnt[,BNT.completed := is.na(BNBNT0)]
@@ -78,7 +78,7 @@ get_neuropsych = function() {
   #####################################################
   ################ COOKIE DELAY TASK ##################
   #####################################################
-  cdt = data.table(read_sav("savs/CDT.sav"))
+  cdt = data.table(read_sav("F:/Forskningsprosjekter/PDB 299 - ADHD-studien Prescho_/Forskningsfiler/GUBI/GuidoData/masterfile/savs/CDT.sav"))
   setnames(cdt,"CD1_2","CDT.sum.SCORE")
   dt = merge(dt,cdt,by = c("PREG_ID_299","BARN_NR"))
   rm(cdt)
@@ -86,7 +86,7 @@ get_neuropsych = function() {
   #####################################################
   ############# TRUCK REVERSAL LEARNING ###############
   #####################################################
-  trl = data.table(read_sav("savs/TRLT.sav"))
+  trl = data.table(read_sav("F:/Forskningsprosjekter/PDB 299 - ADHD-studien Prescho_/Forskningsfiler/GUBI/GuidoData/masterfile/savs/TRLT.sav"))
   setnames(trl,"TR1_2_1","TRLT.A.learned")
   setnames(trl,"TR1_3","TRLT.A.numbererrors")
   setnames(trl,"TR1_4","TRLT.A.trials2crit")
@@ -103,7 +103,7 @@ get_neuropsych = function() {
   # https://paperpile.com/view/49565dba-6695-029a-ac69-7e1d9bd95028
   # Hughes & ENsor 2005
   
-  stp = data.table(read_sav("savs/SnurrB.sav"))
+  stp = data.table(read_sav("F:/Forskningsprosjekter/PDB 299 - ADHD-studien Prescho_/Forskningsfiler/GUBI/GuidoData/masterfile/savs/SnurrB.sav"))
   setnames(stp,"SNURR1_1","STP.trials2crit")
   setnames(stp,"SNURR1_2","STP.numerrorsempty")
   setnames(stp,"SB1_3","STP.numerrorsfull")
@@ -120,7 +120,7 @@ get_neuropsych = function() {
   # http://www.si-instruments.com/supplier/files/download/lafayette-current-version-grooved-pegboard-test-32025-lafayette-32025-grooved-pegboard-test-manual-pdf.html
   # psychomotoric spees
   
-  gpt = data.table(read_sav("savs/Pegs.sav"))
+  gpt = data.table(read_sav("F:/Forskningsprosjekter/PDB 299 - ADHD-studien Prescho_/Forskningsfiler/GUBI/GuidoData/masterfile/savs/Pegs.sav"))
   gpt[,GP1 := factor(GP1,labels = c("right","left"))]
   setnames(gpt,"GP1","GPT.dominanthand")
   setnames(gpt,"GP2_1","GPT.dominant.seconds")
