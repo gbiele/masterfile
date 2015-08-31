@@ -1,20 +1,20 @@
 get_sdq = function(qu_a,qu_b,rater){
   
-  if (rater == "parent") {
+  if (rater == "PA") {
     sdqavars = c("PREG_ID_299","BARN_NR",names(qu_a)[grep("SBFSDQ",names(qu_a))])
     sdqavars = setdiff(sdqavars,c("SBFSDQ26","SBFSDQ28","SBFSDQ34"))
     sdqbvars = c("PREG_ID_299","BARN_NR",names(qu_b)[grep("C_31",names(qu_b))])
     sdqbvars = setdiff(sdqbvars,c("C_31_5","C_3111","C_3112"))
-    base_name = "SDQ.parent." 
+    base_name = "SDQ.PA." 
     sbase = "SBFSDQ"
     impact = c("distres","imphome","impfrie","impclas","impleis")
     sdq_sav_stub = "C_31"
-  } else if (rater == "teacher") {
+  } else if (rater == "TE") {
     sdqavars = c("PREG_ID_299","BARN_NR",names(qu_a)[grep("BHSDQ",names(qu_a))])
     sdqavars = setdiff(sdqavars,c("BHSDQ26","BHSDQ28","BHSDQ34"))
     sdqbvars = c("PREG_ID_299","BARN_NR",names(qu_b)[grep("B__5",names(qu_b))])
     sdqbvars = setdiff(sdqbvars,c("B__5_5","B__511","B__512"))
-    base_name = "SDQ.teacher." 
+    base_name = "SDQ.TE." 
     sbase = "BHSDQ_B"
     impact = c("distres","impfrie","impclas")
     sdq_sav_stub = "B__5"
@@ -22,75 +22,77 @@ get_sdq = function(qu_a,qu_b,rater){
   
   ################# SDQ #######################
   # scoring: http://www.sdqinfo.org/c9.html
-  
 
-  sdqa = qu_a[,sdqavars,with = F]
-  
+  sdq_dims = list(emotion = c("somatic", "worries", "unhappy", "clingy", "afraid"),
+                  conduct = c("tantrum", "q.obeys", "fights", "lies", "steals"),
+                  hyper   = c("restles", "fidgety", "distrac", "q.reflect", "qattends"),
+                  peer    = c("loner", "q.friend", "q.popular", "bullied", "oldbest"),
+                  prosoc  = c("consid", "shares", "caring", "kind", "helpout"),
+                  impact  = c("distres","imphome","impfrie","impclas","impleis"))
   items = c("consid", "restles","somatic","shares","tantrum","loner",
             "obeys","worries","caring","fidgety","friend","fights",
             "unhappy","popular","distrac","clingy","kind","lies",
             "bullied","helpout","reflect","steals","oldbest","afraid",
             "attends")
-  for (i in 1:length(items)) setnames(sdqa,paste(sbase,i,sep = ""), paste(base_name,items[i],sep = "item.p"))
   
-  setnames(sdqa,paste(sbase,27,sep = ""),"pebddiff")
-  for (i in 1:length(impact)) {
-    setnames(sdqa,paste(sbase,i+28,sep = ""),paste(base_name,impact[i],sep = "item.p"))
-    vn = paste(base_name,impact[i],sep = "item.p")
-    vnq = paste(base_name,impact[i],sep = "item.q")
-    x = as.numeric((sdqa[[vn]]-1) * (sdqa[[vn]] > 1))
-    sdqa = eval(parse(text = paste("sdqa[,",vnq,":= x]")))
+  refelcted_vars = unlist(sdq_dims)[grep("^q.",unlist(sdq_dims))]
+  #rename variables sdqa
+  sdqa = qu_a[,sdqavars,with = F]
+  setnames(sdqa,paste0(sbase,1:25), paste0(base_name,items))
+  setnames(sdqa,paste0(sbase,27),"ebddiff")
+  setnames(sdqa,paste0(sbase,1:length(impact)+28),paste(base_name,impact,sep = "IPT."))
+  
+  # reflect variables sdqa
+  for (v in refelcted_vars){
+    vn = paste0(base_name,gsub("q.","",v))
+    vnq = paste0(base_name,v)
+    sdqa[[vnq]] = recode(sdqa[[vn]], "0=2; 1=1; 2=0; else=NA")
   }
   
-  
-  for (v in c("obeys","reflect","attends","friend","popular")){
-    vn = paste(base_name,v,sep = "item.p")
-    vnq = paste(base_name,v,sep = "item.q")
-    sdqa = eval(parse(text = paste("sdqa[,",vnq,":= abs(",vn,"-2)]")))
-  }
-  
-  
-  sdq_dims = list(emotion = c("psomatic", "pworries", "punhappy", "pclingy", "pafraid"),
-                  conduct = c("ptantrum", "qobeys", "pfights", "plies", "psteals"),
-                  hyper  = c("prestles", "pfidgety", "pdistrac", "qreflect", "qattends"),
-                  peer = c("ploner", "qfriend", "qpopular", "pbullied", "poldbest"),
-                  prosoc  = c("pconsid", "pshares", "pcaring", "pkind", "phelpout"),
-                  impact  = paste("p",impact,sep = ""))
-  
-  
-  rm(i,items,sdqavars,vn,vnq,v,x)
-  
-  impact = paste("p",impact,sep = "")  
+  rm(items,sdqavars,vn,vnq,v)
 
   sdqb = qu_b[,sdqbvars,with = F]
   
   items = c("Emotions","Concentration","Behavior","Social")
-  for (i in 1:length(items)) setnames(sdqb,paste(sdq_sav_stub,i,sep = "_"),paste(base_name,items[i],sep = "item."))
+  setnames(sdqb,paste(sdq_sav_stub,1:length(items),sep = "_"),paste0(base_name,items))
+
   
+  setnames(sdqb,
+           paste0(sdq_sav_stub,gsub("^0","_",formatC(6:10,width = 2,format = "d",flag = "0"))),
+           paste0(base_name,"IPT.", sub("^p","",sdq_dims[["impact"]])))
   
-  for (i in 1:length(sdq_dims[["impact"]])) {
-    
-    vn = paste(base_name, sdq_dims[["impact"]][i],sep = "item.")
-    vnq = sub(paste(base_name,"item.p",sep = ""),paste(base_name,"item.q",sep = ""),vn)
-    
-    if ((i+5)<10) {setnames(sdqb,paste(sdq_sav_stub,i+5,sep = "_"),vn)
-    } else {setnames(sdqb,paste(sdq_sav_stub,i+5,sep = ""),vn)}
-    
-    x = as.numeric((sdqb[[vn]]-1) * (sdqb[[vn]] > 1))
-    sdqb = eval(parse(text = paste("sdqb[,",vnq,":= x]")))
+  for (v in names(sdqa)[grep("IPT",names(sdqa))]){
+    sdqb[[v]] = sdqb[[v]]-1
+    attributes(sdqb[[v]]) = attributes(sdqa[[v]])
   }
-  
   
   sdq = rbind(sdqa,sdqb,use.names = T, fill = T)
   
-  for (d in names(sdq_dims)) {
-    dimdat = data.frame(sdq[,paste(base_name,sdq_dims[[d]],sep = "item."),with = F])
-    tmp <- apply(dimdat, 1, function(x) sum(is.na(x)))
-    tmp <- ifelse(tmp<3, rowMeans(dimdat, na.rm=TRUE), NA)
-    tmp <- as.numeric(tmp) * 5
-    tmp <- floor(0.5 + tmp)
-    eval(parse(text = paste("sdq$",base_name,"SCORE.",d, "= tmp",sep = "")))
+  for (vn in names(sdq)[grep("IPT",names(sdq))]) {
+    vnq = sub("IPT.","IPT.q.",vn)
+    sdq[[vnq]] = recode(sdq[[vn]], "0:1=0; 2=1; 3=2; NA=0")
   }
+  
+  for (d in setdiff(names(sdq_dims),"impact")){
+    df = sdq[,paste0(base_name,sdq_dims[[d]]),with = F]
+    xn = apply(df, 1, function(x) sum(is.na(x)))
+    sdq[[paste0(base_name,d,".SS")]] = 
+      ifelse(xn<3, floor(0.5 + rowMeans(df, na.rm=TRUE)), NA)
+  }
+  rm(df,xn)
+  
+  df = sdq[,paste0(base_name,"IPT.",sdq_dims[["impact"]]),with = F]
+  dfq = sdq[,paste0(base_name,"IPT.q.",sdq_dims[["impact"]]),with = F]
+  xn <- apply(df, 1, function(x) sum(is.na(x)))
+  x <- ifelse(!xn==5, rowSums(dfq), NA)
+  sdq[[paste0(base_name,"IPT.SS")]] <- as.numeric(ifelse(sdq$ebddiff==0, 0, x))
+  
+  sdq[[paste0(base_name,"TOT.SS")]] =
+    rowSums(sdq[,paste0(base_name,setdiff(names(sdq_dims),c("impact","prosoc")),".SS"),with = F])
+  
+  attributes(sdq[[paste0(base_name,"TOT.SS")]]) = list(label = "sum of sumscores for emotion, conduct, hyper, peer")
+  
+  sdq = sdq[,-grep(paste0(base_name,"IPT.q"),names(sdq)),with = F]
   
   return(sdq)
 }
