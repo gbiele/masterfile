@@ -2,14 +2,14 @@
 
 get_brief = function(qu_a,qu_b,rater){
   
-  if (rater == "parent") {
+  if (rater == "PA") {
     briefavars = c("PREG_ID_299","BARN_NR",names(qu_a)[grep("SBFBRIEF",names(qu_a))])
     briefbvars = c("PREG_ID_299","BARN_NR",names(qu_b)[grep("C_29",names(qu_b))])
-    base_name = "BRIEF.parent."
-  } else if (rater == "teacher") {
+    base_name = "BRIEF.PA."
+  } else if (rater == "TE") {
     briefavars = c("PREG_ID_299","BARN_NR",names(qu_a)[grep("BHBRIEF",names(qu_a))])
     briefbvars = c("PREG_ID_299","BARN_NR",names(qu_b)[grep("B__3",names(qu_b))])
-    base_name = "BRIEF.teacher."
+    base_name = "BRIEF.TE."
   }
   
   for (v in briefbvars[-c(1,2)]) qu_b[[v]] = qu_b[[v]]-1
