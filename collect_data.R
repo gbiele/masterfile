@@ -1,6 +1,8 @@
 library(haven)
 library(data.table)
+library(plyr)
 library(car)
+library(stringr)
 
 file.sources = paste("scripts4tests/",list.files(path = "scripts4tests/",pattern="*.R"),sep = "")
 tmp = sapply(file.sources,source,.GlobalEnv)
@@ -42,9 +44,9 @@ MASTER = merge(MASTER,get_StanfordBinet(),by = c("PREG_ID_299","BARN_NR"),all = 
 pqa = data.table(read_sav("savs/SBF.sav"))
 pqb = data.table(read_sav("savs/ADHD13_SBF.sav"))
 
-MASTER = merge(MASTER,get_cdi(pqa,pqb,"parent"),by = c("PREG_ID_299","BARN_NR"),all = T)
-MASTER = merge(MASTER,get_sdq(pqa,pqb,"parent"),by = c("PREG_ID_299","BARN_NR"),all = T)
-MASTER = merge(MASTER,get_brief(pqa,pqb,"parent"),by = c("PREG_ID_299","BARN_NR"),all = T)
+MASTER = merge(MASTER,get_cdi(pqa,pqb,"PA"),by = c("PREG_ID_299","BARN_NR"),all = T)
+MASTER = merge(MASTER,get_sdq(pqa,pqb,"PA"),by = c("PREG_ID_299","BARN_NR"),all = T)
+MASTER = merge(MASTER,get_brief(pqa,pqb,"PA"),by = c("PREG_ID_299","BARN_NR"),all = T)
 MASTER = merge(MASTER,get_cbq_eas(pqa,pqb) ,by = c("PREG_ID_299","BARN_NR"),all = T)
 MASTER = merge(MASTER,get_diagnoses(pqa,pqb),by = c("PREG_ID_299","BARN_NR"),all = T)
 MASTER = merge(MASTER,get_family_illness(pqa,pqb),by = c("PREG_ID_299","BARN_NR"),all = T)
@@ -58,8 +60,8 @@ kgqa = data.table(read_sav("savs/BHG.sav"))
 kgqb = data.table(read_sav("savs/ADHD6_BHG.sav"))
 
 MASTER = merge(MASTER,get_cdi_kg(kgqa,kgqb),by = c("PREG_ID_299","BARN_NR"),all = T)
-MASTER = merge(MASTER,get_sdq(kgqa,kgqb,"teacher"),by = c("PREG_ID_299","BARN_NR"),all = T)
-MASTER = merge(MASTER,get_brief(kgqa,kgqb,"teacher"),by = c("PREG_ID_299","BARN_NR"),all = T)
+MASTER = merge(MASTER,get_sdq(kgqa,kgqb,"TE"),by = c("PREG_ID_299","BARN_NR"),all = T)
+MASTER = merge(MASTER,get_brief(kgqa,kgqb,"TE"),by = c("PREG_ID_299","BARN_NR"),all = T)
 MASTER = merge(MASTER,get_Conners(kgqa,kgqb),by = c("PREG_ID_299","BARN_NR"),all = T)
 MASTER = merge(MASTER,get_Copland(kgqa,kgqb),by = c("PREG_ID_299","BARN_NR"),all = T)
 rm(kgqa,kgqb)
@@ -77,7 +79,7 @@ MASTER = MASTER[-is50163,]
 is87831 = which(MASTER$Age_in_days == 1294 & MASTER$PAPA.ADHD.sum.SCORE == 3 & MASTER$PAPA.BH.ODD.sum.SCORE == 4)
 
 MASTER[is87831, StBn.SCORE.ABIQ := NA]
-MASTER[is87831, StBn.SCORE.PercRank := NA]
+MASTER[is87831, StBn.SCORE.ABIQ.PercRank := NA]
 MASTER[is87831, StBn.SCORE.WMindex := NA]
 
 # Nina: slette BNT skåre til barnet der mor oversetter alle testinstruksjonene.
@@ -98,8 +100,8 @@ save(MASTER_scores,file = "masterfile_scores.Rdata")
 
 
 
-plot_my_hists(MASTER_scores)
-make_correlation_plot(MASTER_scores)
+#plot_my_hists(MASTER_scores)
+#make_correlation_plot(MASTER_scores)
 
 ## note: select a subset of variables, if you want to look only at those
 # e.g. 
