@@ -6,14 +6,14 @@
 
 get_cdi = function(qu_a,qu_b,rater){
   
-  if (rater == "parent") {
+  if (rater == "PA") {
     a_var = "SBFCDI"
     b_var = "C_27"
-    base_name = "CDIlang.parent"
-  } else if (rater == "teacher") {
+    base_name = "CDIlang.PA"
+  } else if (rater == "TE") {
     a_var = "BHCDI"
     b_var = "B__2"
-    base_name = "CDIlang.teacher" 
+    base_name = "CDIlang.TE" 
   }
   
   cdiavars = c("PREG_ID_299","BARN_NR",names(qu_a)[grep(a_var,names(qu_a))])
