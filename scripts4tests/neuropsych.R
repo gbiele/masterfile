@@ -34,25 +34,34 @@ get_neuropsych = function() {
   rm(tmp)
   
   vnames = names(dt)
-  dt[,NEPSY.understanding_sum1 := sum(.SD), by = c("PREG_ID_299","BARN_NR"), .SDcols = vnames[grep("NY2_1",vnames)]]
-  dt[,NEPSY.understanding_sum2 := sum(.SD), by = c("PREG_ID_299","BARN_NR"), .SDcols = vnames[grep("NY3_2",vnames)]]
-  dt[,NEPSY.understanding.SCORE := NEPSY.understanding_sum1 + NEPSY.understanding_sum2,by = c("PREG_ID_299","BARN_NR")]
+  dt[,NY.undrst.sum1 := sum(.SD), by = c("PREG_ID_299","BARN_NR"), .SDcols = vnames[grep("NY2_1",vnames)]]
+  dt[,NY.undrst.sum2 := sum(.SD), by = c("PREG_ID_299","BARN_NR"), .SDcols = vnames[grep("NY3_2",vnames)]]
+  dt[,NY.undrst.S := NY.undrst.sum1 + NY.undrst.sum2,by = c("PREG_ID_299","BARN_NR")]
   
   # Visuospatial Processing Domain
-  setnames(dt,"NY1_1","NEPSY.VISPROC.DesignCopying.SCORE")
+  setnames(dt,"NY1_1","NY.VISPROC.DesignCopying.S")
   # Attention and Executive Functioning
-  setnames(dt,"NY6_1","NEPSY.INHIB.Statue.SCORE")
+  setnames(dt,"NY6_1","NY.INHIB.Statue.S")
   # Language
-  setnames(dt,"NEPSY.understanding.SCORE","NEPSY.LANG.ComprehInstr.SCORE")
-  setnames(dt,"NY4_2","NEPSY.LANG.PhonProc")
+  setnames(dt,"NY.undrst.S","NY.L.ComprehInstr.S")
+  setnames(dt,"NY4_2","NY.L.PhonProc")
   # Visual Attention
-  dt[,NEPSY.VISATT.cats.SCORE := as.numeric(dt$NY5_2_3)]
-  dt[NEPSY.VISATT.cats.SCORE > 20, NEPSY.VISATT.cats.SCORE:=20]
-  print("2 NEPSY.VISATT.cats.SCORE values larger 20 set to 20")
-  dt[,NEPSY.VISATT.cats_time := as.numeric(gsub("[a-z.]","",NY5_2_4))]
-  dt[,NEPSY.VISATT.bunniescats.SCORE := as.numeric(dt$NY5_3_3)]
-  dt[NEPSY.VISATT.bunniescats.SCORE > 45, NEPSY.VISATT.bunniescats.SCORE := NA]
-  setnames(dt,"NY5_3_4","NEPSY.VISATT.bunniescats_time")
+  dt[,NY.VI.cats.S := as.numeric(dt$NY5_2_3)]
+  dt[NY.VI.cats.S > 20, NY.VI.cats.S:=20]
+  print("2 NY.VI.cats.S values larger 20 set to 20")
+  dt[,NY.VI.cats.T := as.numeric(gsub("[a-z.]","",NY5_2_4))]
+  dt[,NY.VI.bunniescats.S := as.numeric(dt$NY5_3_3)]
+  dt[NY.VI.bunniescats.S > 45, NY.VI.bunniescats.S := NA]
+  setnames(dt,"NY5_3_4","NY.VI.bunniescats.T")
+  
+  setnames(dt,names(dt))
+
+  abbreviations = c(NY = "NEPSY",
+                    L = "Language",
+                    VI = "Visual attention",
+                    S = "Score",
+                    T = "time",
+                    undrst = "understanding")
   
   #####################################################
   ############## Boston naming task ##################
