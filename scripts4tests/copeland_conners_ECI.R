@@ -58,8 +58,8 @@ get_Conners = function(qu_a,qu_b){
   # Conners
   # A BHCONNERS_B1 - BHCONNERS_B25
   
-  items2dimensions = list(AD_IA = c(1,4,12,14,16,17,22,23), # 14, 16 and 23 right here?
-                          AD_H = c(3,7,8,10,11,15,19,24,25),
+  items2dimensions = list(AIA = c(1,4,12,14,16,17,22,23), # 14, 16 and 23 right here?
+                          AH = c(3,7,8,10,11,15,19,24,25),
                           ODD = c(2,6,9,18,5,20, 21)) # not sure about 20 and 21 here
   
   items2dimensions$ADHD = sort(c(items2dimensions[[1]],items2dimensions[[2]]))
@@ -82,8 +82,8 @@ get_Conners = function(qu_a,qu_b){
   for (v in names(items2dimensions)) {
     CRS = make_sum_scores(CRS,names(CRS)[grep(v,names(CRS))], paste0("CS.T.",v,".SS"))
   }
-  abbreviations = c(AD_IA = "ADHD, inattention",
-                    AD_H = "ADHD, hyperactivity",
+  abbreviations = c(AIA = "ADHD, inattention",
+                    AH = "ADHD, hyperactivity",
                     ADHD = "ADHD",
                     ODD = "ODD",
                     SS = "sum of scores")
@@ -99,7 +99,7 @@ get_ECI = function(qu_a,qu_b){
   # BALAJ A, Albu M, Porumb M, Miclea M Cognition, Brain, Behavior. An Interdisciplinary Journal
   # http://www.harkinsandassociatesinc.com/harkins/docs/files/NP%20Packet%20for%203-4%20year%20olds.pdf
   
-  items2dimensions = list(ADHD = 1:19,AD_IA = 1:9,AD_H = 10:18,
+  items2dimensions = list(ADHD = 1:19,AIA = 1:9,AH = 10:18,
                           ODD = 19:26,CD = 27:35,
                           PCS = 36:45, SpecificPhobia  = 46,
                           Obsessions = 47, Compulsions = 48,
