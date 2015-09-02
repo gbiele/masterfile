@@ -56,7 +56,7 @@ get_neuropsych = function() {
   
   setnames(dt,names(dt))
 
-  abbreviations = c(NY = "NEPSY",
+  abbreviations = c(NY = "NEPSY (Developmental Neuropsychological Assessment)",
                     L = "Language",
                     VI = "Visual attention",
                     S = "Score",
@@ -69,18 +69,25 @@ get_neuropsych = function() {
   bnt = data.table(read_sav("F:/Forskningsprosjekter/PDB 299 - ADHD-studien Prescho_/Forskningsfiler/GUBI/GuidoData/masterfile/savs/BNT.sav"))
   SDcols = names(bnt)[grep("BN1_",names(bnt))]
   
-  bnt[,BNT.completed := is.na(BNBNT0)]
-  bnt[BN2_1 == "Ikke tatt" | BN2_1 == "3 , men avbrutt" , BNT.completed := F]
+  bnt[,BNT.compl := is.na(BNBNT0)]
+  bnt[BN2_1 == "Ikke tatt" | BN2_1 == "3 , men avbrutt" , BNT.compl := F]
   
-  bnt[BNT.completed == T,BNT.SCORE := sum(.SD<5,na.rm = T),by = list(PREG_ID_299,BARN_NR),.SDcols = SDcols]
-  bnt[,BNT.missings := sum(is.na(.SD)),by = list(PREG_ID_299,BARN_NR),.SDcols = SDcols]
+  bnt[BNT.compl == T,BNT.S := sum(.SD<5,na.rm = T),by = list(PREG_ID_299,BARN_NR),.SDcols = SDcols]
+  bnt[,BNT.misss := sum(is.na(.SD)),by = list(PREG_ID_299,BARN_NR),.SDcols = SDcols]
   bnt[,BNT.errors := sum(.SD == 5, na.rm = T),by = list(PREG_ID_299,BARN_NR),.SDcols = SDcols]
   
-  bnt[BNT.missings == 25, BNT.completed := F]
-  bnt[BNT.errors < 5 & BNT.SCORE < 10,BNT.completed := F]
-  bnt[BNT.completed != T,BNT.SCORE := NA]
+  bnt[BNT.misss == 25, BNT.compl := F]
+  bnt[BNT.errors < 5 & BNT.S < 10,BNT.compl := F]
+  bnt[BNT.compl != T,BNT.S := NA]
+  
+  abbreviations = c(BNT = "Boston naming task",
+                    compl = "number of completed items",
+                    miss = "number of missing items",
+                    errors = "number of errors",
+                    S = "Score")
   
   dt = merge(dt,bnt,by = c("PREG_ID_299","BARN_NR"))
+  
   rm(bnt)
   
   
@@ -88,7 +95,8 @@ get_neuropsych = function() {
   ################ COOKIE DELAY TASK ##################
   #####################################################
   cdt = data.table(read_sav("F:/Forskningsprosjekter/PDB 299 - ADHD-studien Prescho_/Forskningsfiler/GUBI/GuidoData/masterfile/savs/CDT.sav"))
-  setnames(cdt,"CD1_2","CDT.sum.SCORE")
+  setnames(cdt,"CD1_2","CDT.SS")
+  attributes(cdt[["CDT.SS"]])$label = "Sumscore cookie delay task"
   dt = merge(dt,cdt,by = c("PREG_ID_299","BARN_NR"))
   rm(cdt)
   
@@ -96,12 +104,18 @@ get_neuropsych = function() {
   ############# TRUCK REVERSAL LEARNING ###############
   #####################################################
   trl = data.table(read_sav("F:/Forskningsprosjekter/PDB 299 - ADHD-studien Prescho_/Forskningsfiler/GUBI/GuidoData/masterfile/savs/TRLT.sav"))
-  setnames(trl,"TR1_2_1","TRLT.A.learned")
-  setnames(trl,"TR1_3","TRLT.A.numbererrors")
-  setnames(trl,"TR1_4","TRLT.A.trials2crit")
-  setnames(trl,"TR2_2_1","TRLT.B.learned")
-  setnames(trl,"TR2_3","TRLT.B.numbererrors")
-  setnames(trl,"TR2_4","TRLT.B.trials2crit")
+  setnames(trl,"TR1_2_1","TRLT.A.lrd")
+  setnames(trl,"TR1_3","TRLT.A.errors")
+  setnames(trl,"TR1_4","TRLT.A.t2c")
+  setnames(trl,"TR2_2_1","TRLT.B.lrd")
+  setnames(trl,"TR2_3","TRLT.B.errors")
+  setnames(trl,"TR2_4","TRLT.B.t2c")
+  
+  abbreviations = c(TRLT = "Truck reversal learning task",
+                    errors = "number of errors",
+                    t2c = "number trials to criterion",
+                    lrd = "learned")
+  
   dt = merge(dt,trl,by = c("PREG_ID_299","BARN_NR"))
   rm(trl)
   
@@ -113,16 +127,21 @@ get_neuropsych = function() {
   # Hughes & ENsor 2005
   
   stp = data.table(read_sav("F:/Forskningsprosjekter/PDB 299 - ADHD-studien Prescho_/Forskningsfiler/GUBI/GuidoData/masterfile/savs/SnurrB.sav"))
-  setnames(stp,"SNURR1_1","STP.trials2crit")
-  setnames(stp,"SNURR1_2","STP.numerrorsempty")
-  setnames(stp,"SB1_3","STP.numerrorsfull")
-  setnames(stp,"SNURR1_4","STP.totalerrors")
-  setnames(stp,"SNURR1_5","STP.SCORE")
-  setnames(stp,"SNURR1_8","STP.impulsopenings")
+  setnames(stp,"SNURR1_1","STP.t2c")
+  setnames(stp,"SNURR1_2","STP.err_e")
+  setnames(stp,"SB1_3","STP.err_f")
+  setnames(stp,"SNURR1_4","STP.err_t")
+  setnames(stp,"SNURR1_5","STP.S")
+  setnames(stp,"SNURR1_8","STP.io")
+  abbreviations = c(STP = "spin the pots task",
+                    err_e = "number of errors empty",
+                    err_f = "number of errors full",
+                    err_t = "total number of errors",
+                    t2c = "number trials to criterion",
+                    S = "Score",
+                    io = "impulsive openings")
   dt = merge(dt,stp,by = c("PREG_ID_299","BARN_NR"))
   rm(stp)
-  
-  
   #####################################################
   ################## Grooved Pegboard #################
   #####################################################
@@ -131,14 +150,24 @@ get_neuropsych = function() {
   
   gpt = data.table(read_sav("F:/Forskningsprosjekter/PDB 299 - ADHD-studien Prescho_/Forskningsfiler/GUBI/GuidoData/masterfile/savs/Pegs.sav"))
   gpt[,GP1 := factor(GP1,labels = c("right","left"))]
-  setnames(gpt,"GP1","GPT.dominanthand")
-  setnames(gpt,"GP2_1","GPT.dominant.seconds")
-  setnames(gpt,"GP2_2","GPT.dominant.numbermissed")
-  setnames(gpt,"GP2_3","GPT.dominant.number2hands")
-  setnames(gpt,"GP3_1","GPT.ndomnt.seconds")
-  setnames(gpt,"GP3_2","GPT.ndomnt.numbermissed")
-  setnames(gpt,"GP3_3","GPT.ndomnt.number2hands")
+  setnames(gpt,"GP1","GPT.dh")
+  setnames(gpt,"GP2_1","GPT.d.sec")
+  setnames(gpt,"GP2_2","GPT.d.n_miss")
+  setnames(gpt,"GP2_3","GPT.d.n2h")
+  setnames(gpt,"GP3_1","GPT.nd.sec")
+  setnames(gpt,"GP3_2","GPT.nd.n_miss")
+  setnames(gpt,"GP3_3","GPT.nd.n2h")
+  gpt$GPT.d.sec = char2num(gpt$GPT.d.sec)
+  gpt$GPT.nd.sec = char2num(gpt$GPT.nd.sec)
   
+  abbreviations = c(GPT = "Grooved pegboard task",
+                    dh = "dominant hand",
+                    d = "dominant hand",
+                    nd = "non-dominant hand",
+                    n_miss = "number misses",
+                    n2h = "number to hand",
+                    sec = "seconds")
+  gpt = add_label(gpt,"GPT",abbreviations)
   dt = merge(dt,gpt,by = c("PREG_ID_299","BARN_NR"))
   rm(gpt)
   return(dt)
