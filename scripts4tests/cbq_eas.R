@@ -18,36 +18,44 @@ get_cbq_eas = function(pqa,pqb){
   cbqbvars = c("PREG_ID_299","BARN_NR",names(pqb)[grep("C_28",names(pqb))])
   cbqb = pqb[,cbqbvars,with = F]
   
+  for (v in 3:ncol(cbqa)){
+    attributes(cbqb[[v]]) = attributes(cbqa[[v]])
+    cbqa[[v]][which(cbqa[[v]] == 9)] = NA
+  }
+  
   cbq = rbind(cbqa,cbqb,use.names = F)
+  
+  
+  
   rm(cbqa,cbqb,cbqavars,cbqbvars)
   
   cbq_item_info = fread("instrument_docs/cbq_items_and_scale.txt")
   empathy_items = setnames(data.table(cbind(37:50,rep("Empathy",14))),c("V1","V2"),names(cbq_item_info))
   cbq_item_info = rbind(cbq_item_info,empathy_items)
   
-  cbqitems = paste(paste("CBQ.parent.item",cbq_item_info$item_number,sep = ""),cbq_item_info$scale,sep = ".")
+  cbqitems = paste(paste("CBQ.P.PI",cbq_item_info$item_number,sep = ""),cbq_item_info$scale,sep = ".")
   setnames(cbq,paste("SBFCBQ",1:50,sep = ""),cbqitems )
   
   cbq_scales = unique(cbq_item_info$scale)
   for (s in cbq_scales) {
-    cbq[[paste("CBQ.parent.sum.SCORE",s,sep = ".")]] = make_sum_scores(cbq[,grep(s,names(cbq)),with = F])
+    cbq = make_sum_scores(cbq,grep(s,names(cbq)),paste("CBQ.P.SS",s,sep = "."))
   }
   
   
   ############### need to add scale scores for EAS ####################
   # from mathiesen & tambs, 1999
-  eas_scales = list(Emotionality = c(1,7,10),
-                    Activity = c(2,4,-8),
-                    Shyness = c(-5,6,-11),
-                    Sociability = c(3,9,12))
+  eas_scales = list(EMOTIONALITY = c(1,7,10),
+                    ACTIVITY = c(2,4,-8),
+                    SHYNESS = c(-5,6,-11),
+                    SOCIABILITY = c(3,9,12))
   
-  setnames(cbq,paste("SBFCBQ",51:62,sep = ""),paste("EAS.parent.item",1:12,sep = ""))
+  setnames(cbq,paste("SBFCBQ",51:62,sep = ""),paste0("EAS.P.I.",1:12))
   for (s in names(eas_scales)) {
     w = eas_scales[[s]]
-    cbq[[paste("EAS.parent.sum.SCORE",s,sep = ".")]] = 
-      (as.matrix(cbq[,paste("EAS.parent.item",abs(w),sep = ""),with = F]) %*% sign(w))
+    cbq[[paste("EAS.P.SS",s,sep = ".")]] = 
+      (as.matrix(cbq[,paste0("EAS.P.I.",abs(w)),with = F]) %*% sign(w))
   }
-  cbq$EAS.parent.sum.SCORE.Shyness = cbq$EAS.parent.sum.SCORE.Shyness - min(cbq$EAS.parent.sum.SCORE.Shyness,na.rm = T)
-  print("set minimum value of EAS.parent.sum.SCORE.Shyness to 0")
+  cbq$EAS.P.SS.SHYNESS = cbq$EAS.P.SS.SHYNESS - min(cbq$EAS.P.SS.SHYNESS,na.rm = T)
+  print("set minimum value of EAS.P.SS.SHYNESS to 0")
   return(cbq)
 }
