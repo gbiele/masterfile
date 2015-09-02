@@ -1,6 +1,6 @@
 
 get_diagnoses = function(pqa,pqb){
-  diagnosis = list(skin = c("C_24_1_1","SBF15B_1"),
+  diagnosis = list(skincondition = c("C_24_1_1","SBF15B_1"),
                    nose_mouth_throat = c("C_24_2_1","NO"),
                    asthma_lung = c("C_24_3_1","SBF15C_1"), # and SBF15D_1
                    allergies = c("C_24_4_1","SBF15E_1"),
@@ -29,9 +29,10 @@ get_diagnoses = function(pqa,pqb){
   for (d in names(diagnosis)) {
     tmp = c(pqa[[diagnosis[[d]][2]]],pqb[[diagnosis[[d]][1]]]-1)
     tmp[tmp<0] = 0
-    diags[[d]] = factor(tmp,labels = c("No","Yes")[1:length(unique(tmp[!is.na(tmp)]))],ordered = F)
+    diags[[d]] = labelled(tmp,labels = c(No = 0, Yes = 1))
+    attributes(diags[[d]])$label = paste0("Child diagnosis-",d)
   }
-  setnames(diags,names(diags),paste("CHILD_DIAGNOSIS.",names(diags),sep = ""))
+  setnames(diags,names(diags),paste("CDIAG.",names(diags),sep = ""))
   diags = cbind(rbind(pqa[,list(PREG_ID_299,BARN_NR)],pqb[,list(PREG_ID_299,BARN_NR)]),
                 diags)
   return(diags)
