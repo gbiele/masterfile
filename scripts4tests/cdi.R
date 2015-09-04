@@ -6,14 +6,14 @@
 
 get_cdi = function(qu_a,qu_b,rater){
   
-  if (rater == "PA") {
+  if (rater == "P") {
     a_var = "SBFCDI"
     b_var = "C_27"
-    base_name = "CDIlang.PA"
-  } else if (rater == "TE") {
+    base_name = "CDI.L..PA"
+  } else if (rater == "T") {
     a_var = "BHCDI"
     b_var = "B__2"
-    base_name = "CDIlang.TE" 
+    base_name = "CDI.L..TE" 
   }
   
   cdiavars = c("PREG_ID_299","BARN_NR",names(qu_a)[grep(a_var,names(qu_a))])
@@ -32,9 +32,9 @@ get_cdi = function(qu_a,qu_b,rater){
   
   cdi = rbindlist(list(cdia,cdib),use.names = F)
   
-  setnames(cdi,names(cdi)[-c(1,2)], paste("CDIlang.PA",c(1:50,"pronounciation","understood"),sep = "."))
+  setnames(cdi,names(cdi)[-c(1,2)], paste0("CDI.L.P.I.",c(1:50,"pronounciation","understood")))
   
-  cdi = make_sum_scores(cdi,names(cdi)[grep("PA[0-9]",names(cdi))],"CDIlang.PA.SS")
+  cdi = make_sum_scores(cdi,names(cdi)[grep("CDI\\.L\\.P\\.I\\.[0-9]",names(cdi))],"CDI.L.P.SS")
  
   for (k in 3:length(cdiavars)) attributes(cdi[[k]])$label = varlabels[k]
   
@@ -60,11 +60,18 @@ get_cdi_kg = function(kgqa,kgqb){
   
   cdi = rbind(cdia,cdib,use.names = F)
   
-  setnames(cdi,names(cdi)[-c(1,2)], paste("CDIlang.TE",c(1:50,"pronounciation","understood"),sep = "."))
+  setnames(cdi,names(cdi)[-c(1,2)], paste0("CDI.L.T.I.",c(1:50,"pronounciation","understood")))
   
-  cdi = make_sum_scores(cdi,names(cdi)[grep("TE[0-9]",names(cdi))],"CDIlang.TE.SS")
+  cdi = make_sum_scores(cdi,names(cdi)[grep("CDI\\.L\\.T\\.I\\.[0-9]",names(cdi))],"CDI.L.T.SS")
   
   for (k in 3:length(cdiavars)) attributes(cdi[[k]])$label = varlabels[k]
+  
+  abbreviations = c(CDI = "Child Development Inventory",
+                    T = "teacher",
+                    P = "parent",
+                    SS = "sum of scores",
+                    L = "language",
+                    I = "item")
   
   return(cdi)
 }

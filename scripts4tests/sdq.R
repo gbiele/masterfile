@@ -1,20 +1,20 @@
 get_sdq = function(qu_a,qu_b,rater){
   
-  if (rater == "PA") {
+  if (rater == "P") {
     sdqavars = c("PREG_ID_299","BARN_NR",names(qu_a)[grep("SBFSDQ",names(qu_a))])
     sdqavars = setdiff(sdqavars,c("SBFSDQ26","SBFSDQ28","SBFSDQ34"))
     sdqbvars = c("PREG_ID_299","BARN_NR",names(qu_b)[grep("C_31",names(qu_b))])
     sdqbvars = setdiff(sdqbvars,c("C_31_5","C_3111","C_3112"))
-    base_name = "SDQ.PA." 
+    base_name = "SDQ.P." 
     sbase = "SBFSDQ"
     impact = c("distres","imphome","impfrie","impclas","impleis")
     sdq_sav_stub = "C_31"
-  } else if (rater == "TE") {
+  } else if (rater == "T") {
     sdqavars = c("PREG_ID_299","BARN_NR",names(qu_a)[grep("BHSDQ",names(qu_a))])
     sdqavars = setdiff(sdqavars,c("BHSDQ26","BHSDQ28","BHSDQ34"))
     sdqbvars = c("PREG_ID_299","BARN_NR",names(qu_b)[grep("B__5",names(qu_b))])
     sdqbvars = setdiff(sdqbvars,c("B__5_5","B__511","B__512"))
-    base_name = "SDQ.TE." 
+    base_name = "SQD.T." 
     sbase = "BHSDQ_B"
     impact = c("distres","impfrie","impclas")
     sdq_sav_stub = "B__5"
@@ -23,12 +23,12 @@ get_sdq = function(qu_a,qu_b,rater){
   ################# SDQ #######################
   # scoring: http://www.sdqinfo.org/c9.html
 
-  sdq_dims = list(emotion = c("somatic", "worries", "unhappy", "clingy", "afraid"),
-                  conduct = c("tantrum", "q.obeys", "fights", "lies", "steals"),
-                  hyper   = c("restles", "fidgety", "distrac", "q.reflect", "qattends"),
-                  peer    = c("loner", "q.friend", "q.popular", "bullied", "oldbest"),
-                  prosoc  = c("consid", "shares", "caring", "kind", "helpout"),
-                  impact  = c("distres","imphome","impfrie","impclas","impleis"))
+  sdq_dims = list(EMOTION = c("somatic", "worries", "unhappy", "clingy", "afraid"),
+                  CONDUCT = c("tantrum", "q.obeys", "fights", "lies", "steals"),
+                  HYPERACT   = c("restles", "fidgety", "distrac", "q.reflect", "qattends"),
+                  PEERREL    = c("loner", "q.friend", "q.popular", "bullied", "oldbest"),
+                  PROSOCIAL  = c("consid", "shares", "caring", "kind", "helpout"),
+                  IMPACT  = c("distres","imphome","impfrie","impclas","impleis"))
   items = c("consid", "restles","somatic","shares","tantrum","loner",
             "obeys","worries","caring","fidgety","friend","fights",
             "unhappy","popular","distrac","clingy","kind","lies",
@@ -53,13 +53,13 @@ get_sdq = function(qu_a,qu_b,rater){
 
   sdqb = qu_b[,sdqbvars,with = F]
   
-  items = c("Emotions","Concentration","Behavior","Social")
+  items = c("EMOTIONS","CONCENTRATION","BEHAVIOR","SOCIAL")
   setnames(sdqb,paste(sdq_sav_stub,1:length(items),sep = "_"),paste0(base_name,items))
 
   
   setnames(sdqb,
            paste0(sdq_sav_stub,gsub("^0","_",formatC(6:10,width = 2,format = "d",flag = "0"))),
-           paste0(base_name,"IPT.", sub("^p","",sdq_dims[["impact"]])))
+           paste0(base_name,"IPT.", sub("^p","",sdq_dims[["IMPACT"]])))
   
   for (v in names(sdqa)[grep("IPT",names(sdqa))]){
     sdqb[[v]] = sdqb[[v]]-1
@@ -73,7 +73,7 @@ get_sdq = function(qu_a,qu_b,rater){
     sdq[[vnq]] = recode(sdq[[vn]], "0:1=0; 2=1; 3=2; NA=0")
   }
   
-  for (d in setdiff(names(sdq_dims),"impact")){
+  for (d in setdiff(names(sdq_dims),"IMPACT")){
     df = sdq[,paste0(base_name,sdq_dims[[d]]),with = F]
     xn = apply(df, 1, function(x) sum(is.na(x)))
     sdq[[paste0(base_name,d,".SS")]] = 
@@ -81,18 +81,26 @@ get_sdq = function(qu_a,qu_b,rater){
   }
   rm(df,xn)
   
-  df = sdq[,paste0(base_name,"IPT.",sdq_dims[["impact"]]),with = F]
-  dfq = sdq[,paste0(base_name,"IPT.q.",sdq_dims[["impact"]]),with = F]
+  df = sdq[,paste0(base_name,"IPT.",sdq_dims[["IMPACT"]]),with = F]
+  dfq = sdq[,paste0(base_name,"IPT.q.",sdq_dims[["IMPACT"]]),with = F]
   xn <- apply(df, 1, function(x) sum(is.na(x)))
   x <- ifelse(!xn==5, rowSums(dfq), NA)
   sdq[[paste0(base_name,"IPT.SS")]] <- as.numeric(ifelse(sdq$ebddiff==0, 0, x))
   
   sdq[[paste0(base_name,"TOT.SS")]] =
-    rowSums(sdq[,paste0(base_name,setdiff(names(sdq_dims),c("impact","prosoc")),".SS"),with = F])
+    rowSums(sdq[,paste0(base_name,setdiff(names(sdq_dims),c("IMPACT","PROSOC")),".SS"),with = F])
   
   attributes(sdq[[paste0(base_name,"TOT.SS")]]) = list(label = "sum of sumscores for emotion, conduct, hyper, peer")
   
   sdq = sdq[,-grep(paste0(base_name,"IPT.q"),names(sdq)),with = F]
+  
+  # note: names with capital letter are dimensions,
+  #       names with small letter are items
+  abbreviations = c(T = "teacher",
+                    P = "parent",
+                    IPT = "impact on functioning",
+                    TOT = "global evaluation based on EMOTION, CONDUCT, HYPERACTIVITY, PEERRELATIONS",
+                    SS = "sum of scores")
   
   return(sdq)
 }

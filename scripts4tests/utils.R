@@ -7,6 +7,24 @@ make_sum_scores = function(DT,items,ss_var){
   return(DT)
 }
 
+add_label = function(dt,prefix,abbreviations) {
+  for (v in  names(dt)[grep(paste0("^",prefix),names(dt))]) {
+    short_name = strsplit(v,"\\.")[[1]]
+    if (sum(!is.na(abbreviations[short_name])) == length(short_name)) {
+      long_name = paste(abbreviations[short_name],collapse = "; ")
+      if ("labels" %in% names(attributes(dt[[v]]))) {
+        attributes(dt[[v]]) = list(label = long_name, labels = attributes(dt[[v]])$labels)
+      } else {
+        attributes(dt[[v]]) = list(label = long_name)
+      }
+      
+    } else {
+      stop(paste("did not find all translations for",v))
+    }
+  }
+  return(dt)
+}
+
 char2num = function(x){
   if (class(x) != "numeric") {
     tmp = gsub("[a-z]|[A-Z]|[[:punct:]]"," ",x)

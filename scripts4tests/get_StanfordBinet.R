@@ -23,7 +23,7 @@ get_StanfordBinet = function(){
   StBdata[Age_in_months >= 37 & Age_in_months < 42, NVIQ := mapvalues(SB1_2,0:16,3:19,warn_missing = F)]
   StBdata[Age_in_months >= 42 & Age_in_months < 48, NVIQ := mapvalues(SB1_2,0:17,c(2:7,9,10,10,11:19),warn_missing = F)]
   
-  #################### VIQ ##################
+  #################### VIQ Verbal IQ ##################
   StBdata[,SB3_4 := SB3_2 + SB3_3]
   StBdata[non_valid_scores, SB3_4 := NA]
   StBdata[Age_in_months < 38              , VIQ := mapvalues(SB3_4,0:26,sort(c(1:19,1,2,5,8,12,15,18,18)),warn_missing = F)]
@@ -106,17 +106,27 @@ get_StanfordBinet = function(){
  
   #################### rename variables ###################
    
-  setnames(StBdata,c("VERSJON_STB_TBL1", "SBINSTRUMENT_ID","Kontroll_Alder"),c("StBn.Version","StBn.Instrument_id","Age_in_days"))
+  setnames(StBdata,c("VERSJON_STB_TBL1", "SBINSTRUMENT_ID","Kontroll_Alder"),c("SB.Version","SB.Instrument_id","Age_in_days"))
   old_item_names = names(StBdata)[grep("SB[0-9]_",names(StBdata))]
-  new_item_names = gsub("SB","StBn.Item",old_item_names)
+  new_item_names = gsub("SB","SB.I.",old_item_names)
   setnames(StBdata,old_item_names,new_item_names)
   
   old_names = c("NVIQ","VIQ","NVWMS","VWMS","ABIQ","ABIQ.PercRank","WMindex" )
-  new_names = paste("StBn.SCORE.",old_names,sep = "")
+  new_names = paste("SB.S.",old_names,sep = "")
   setnames(StBdata,old_names,new_names)
   
   StBdata$PREG_ID_299 = as.numeric(StBdata$PREG_ID_299)
   StBdata$BARN_NR = as.numeric(StBdata$BARN_NR)
+
+  abbreviations = c(SB = "stanfor Binet test",
+                    I = "Item",
+                    S = "Score",
+                    ABIQ = "Abbreviated IQ score",
+                    VIQ = "verbal IQ",
+                    NVIQ = "non-verbal IQ",
+                    VWMS = "visual working memory",
+                    NVWMS = "non-visual working memory",
+                    PR = "persent rank")
   
   return(StBdata[,-grep("^SB",names(StBdata)),with = F])
 }
