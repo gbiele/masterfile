@@ -15,7 +15,7 @@
 get_PAPA = function(){
 
   ################################ SLEEP #########################################
-  SL = data.table(read_sav("savs/PAPA/PAPA_K2.sav"))
+  SL = data.table(read_sav("F:/Forskningsprosjekter/PDB 299 - ADHD-studien Prescho_/Forskningsfiler/GUBI/GuidoData/masterfile/savs/PAPA/PAPA_K2.sav"))
   
   old_names = c("K2_2_1_1_1", "K2_2_1_1_2", "K2_2_1_1_3","K2_2_1_2_1",
                 "K2_2_1_3_1", "K2_2_1_3_2_1", "K2_2_1_3_2_2", "K2_2_1_3_2_3", "K2_2_1_3_2_4",
@@ -56,7 +56,7 @@ get_PAPA = function(){
   SL = SL[,c(1,2,grep("S",names(SL))),with = F]
   rm(d,k,old_names,new_names,t)
   ################################ ADHD #########################################
-  AD = data.table(read_sav("savs/PAPA/PAPA_K3.sav"))
+  AD = data.table(read_sav("F:/Forskningsprosjekter/PDB 299 - ADHD-studien Prescho_/Forskningsfiler/GUBI/GuidoData/masterfile/savs/PAPA/PAPA_K3.sav"))
   
   #*(Collaps "selvstendig" and "voksenstyrt" activity into variable K33_10).
   AD[K33_10_1 >= 2 | K33_10_2 >= 2, K33_10 := 2 ]
@@ -102,9 +102,9 @@ get_PAPA = function(){
   
   ######################## ADHD subthreshold with impairment ########################
   my_labels = c("ADHD_subthr_wi_IA" = 1,"ADHD_subthr_wi_H" = 2,"ADHD_subthr_wi_C" = 3,"no_ADHD_subthr_wi" = 4)
-  AD[ADHD.SGR == 4 & ADHD.AT.SC %in% 3:5 & ADHD.HI.SC < 3 & ADHD.IMP.CAT == "present", ADHD.SGR.ST_wi := 1]
-  AD[ADHD.SGR == 4 & ADHD.AT.SC < 3 & ADHD.HI.SC %in% 3:5 & ADHD.IMP.CAT == "present", ADHD.SGR.ST_wi := 2]
-  AD[ADHD.SGR == 4 & ADHD.AT.SC %in% 3:5 & ADHD.HI.SC %in% 3:5 & ADHD.IMP.CAT == "present", ADHD.SGR.ST_wi := 3]
+  AD[ADHD.SGR == 4 & (ADHD.AT.SC > 2 & ADHD.AT.SC < 6)  & ADHD.HI.SC < 3 & ADHD.IMP.CAT == "present", ADHD.SGR.ST_wi := 1]
+  AD[ADHD.SGR == 4 & ADHD.AT.SC < 3 & (ADHD.HI.SC > 2 & ADHD.HI.SC < 6) & ADHD.IMP.CAT == "present", ADHD.SGR.ST_wi := 2]
+  AD[ADHD.SGR == 4 & (ADHD.AT.SC > 2 & ADHD.AT.SC < 6) & (ADHD.HI.SC > 2 & ADHD.HI.SC < 6) & ADHD.IMP.CAT == "present", ADHD.SGR.ST_wi := 3]
   AD[ADHD.SGR == 4 & ADHD.AT.SC < 3 & ADHD.HI.SC < 3, ADHD.SGR.ST_wi := 4]
   AD[,ADHD.SGR.ST_wi := labelled(ADHD.SGR.ST_wi,labels = my_labels)]
   
@@ -124,7 +124,7 @@ get_PAPA = function(){
   
   ############################ ADHD CAT #############################
   AD[ADHD.GR <= 3 ,ADHD.CAT := 1]
-  AD[ADHD.GR %in% 4:6 ,ADHD.CAT := 2]
+  AD[ADHD.GR > 3 & ADHD.GR < 7 ,ADHD.CAT := 2]
   AD[is.na(ADHD.CAT) ,ADHD.CAT := 3]
   my_labels = c("ADHD_clin" = 1, "ADHD_subclin" = 2, "no_ADHD" = 3)
   AD[,ADHD.CAT := labelled(ADHD.CAT,labels = my_labels)]
@@ -152,17 +152,8 @@ get_PAPA = function(){
   ############################### BH: ODD ###############################
   #######################################################################
   
-  BH = data.table(read_sav("savs/PAPA/PAPA_K4.sav"))
-  #BH$K44_14_1 = 2*(BH$K44_14_1 > = 2 | BH$K44_15_1 >= 2) #(Collaps "erter" and "mobber" into variable K44_14).
-  #BH$K44_19_1 = 2*(BH$K44_19_1 > = 2 | BH$K44_20_1 >= 2) #(Collaps "sloss" and "angrep" into variable K44_19).
-  BH$K44_14_1 = as.numeric(cut(BH$K44_15_1 + BH$K44_14_1,breaks = c(-1,1,3.5,6.5)))
-  BH$K44_14_1[BH$K44_14_1<2] = 0
-  BH$K44_19_1 = as.numeric(cut(BH$K44_20_1 + BH$K44_19_1,breaks = c(-1,1,3.5,6.5)))
-  BH$K44_19_1[BH$K44_19_1<2] = 0
-  BH$K44_13_1[BH$K44_13_1 == 9] = NA # 9 was for "snakker ikke" in a question about lying
-  
-  
-  # SYM duration
+  BH = data.table(read_sav("F:/Forskningsprosjekter/PDB 299 - ADHD-studien Prescho_/Forskningsfiler/GUBI/GuidoData/masterfile/savs/PAPA/PAPA_K4.sav"))
+   # SYM duration
   freq_vars = sort(c(paste("K44",c(3,4,6,9,12),"2",sep = "_"),paste("K44",c(10,11),"6",sep = "_"),"K44_8_4"))
   for (v in freq_vars){
     BH[,tmp := char2num(get(v)),by = 1:nrow(BH)]
@@ -217,7 +208,7 @@ get_PAPA = function(){
   BH[ODD.SC >= 4 & ODD.IMP == 1, ODD.GR := 1]
   BH[ODD.GR > 1 & 
        ((ODD.SC > 4 & ODD.IMP == 0) |
-       (ODD.SC %in% 1:3 & ODD.IMP == 1)), ODD.GR := 2]
+       ((ODD.SC > 0 & ODD.SC < 4) & ODD.IMP == 1)), ODD.GR := 2]
   BH[ODD.GR > 2 & ODD.SC >= 4 & is.na(ODD.IMP), ODD.GR := 3]
   BH[ODD.GR > 3 & 
        (ODD.SC <  4 & (ODD.IMP == 0 | is.na(ODD.IMP))) | 
@@ -232,12 +223,22 @@ get_PAPA = function(){
   ######################################################################
   ############################### BH: CD ###############################
   ######################################################################
+  #BH$K44_14_1 = 2*(BH$K44_14_1 > = 2 | BH$K44_15_1 >= 2) #(Collaps "erter" and "mobber" into variable K44_14).
+  #BH$K44_19_1 = 2*(BH$K44_19_1 > = 2 | BH$K44_20_1 >= 2) #(Collaps "sloss" and "angrep" into variable K44_19).
+  labels_14 = c(0,2,3)
+  names(labels_14) = paste(names(attributes(BH[["K44_14_1"]])$labels),names(attributes(BH[["K44_15_1"]])$labels),sep = " / ")
+  labels_19 = c(0,2,3)
+  names(labels_19) = paste(names(attributes(BH[["K44_19_1"]])$labels),names(attributes(BH[["K44_20_1"]])$labels),sep = " / ")
   
-  # *(Slår sammen "erter" og "mobber" i variabel K44_14).
-  BH[K44_14_1 >= 2 | K44_15_1 >= 2, K44_14 := 2]
-  # *(Slår sammen "sloss" og "angrep" i variabel K44_19).
-  BH[K44_19_1 >= 2 | K44_20_1 >= 2, K44_19 := 2]
+  BH$K44_14_1 = as.numeric(cut(BH$K44_15_1 + BH$K44_14_1,breaks = c(-1,1,3.5,6.5)))
+  BH$K44_14_1[BH$K44_14_1<2] = 0
+  BH$K44_19_1 = as.numeric(cut(BH$K44_20_1 + BH$K44_19_1,breaks = c(-1,1,3.5,6.5)))
+  BH$K44_19_1[BH$K44_19_1<2] = 0
+  BH$K44_13_1[BH$K44_13_1 == 9] = NA # 9 was for "snakker ikke" in a question about lying
   
+  BH[["K44_14_1"]] = labelled(BH[["K44_14_1"]],labels = labels_14)
+  BH[["K44_19_1"]] = labelled(BH[["K44_19_1"]],labels = labels_19)
+
   BH[,CD.SC := sum(.SD > 1,na.rm = T),by = 1:nrow(BH),
      .SDcols = c("K44_13_1", "K44_16_1", "K44_17_1", "K44_18_1", "K44_21_1", "K44_22_1", "K44_14")]
   BH[,CD.SY.MI := sum(is.na(.SD),na.rm = T),by = 1:nrow(BH),
@@ -261,7 +262,7 @@ get_PAPA = function(){
   BH[CD.SC >= 3 & CD.IMP == 1,CD.GR := 1]
   BH[CD.GR > 1 & 
        (CD.SC >= 3 & CD.IMP == 0) | 
-       (CD.SC %in% 1:2 & CD.IMP == 1),
+       ((CD.SC == 1 | CD.SC == 2)  & CD.IMP == 1),
      CD.GR := 2]
   BH[CD.GR > 2 & CD.SC >= 3 & is.na(CD.IMP), CD.GR := 3]
   BH[is.na(CD.SC) & is.na(CD.IMP), CD.GR := NA]
@@ -305,9 +306,9 @@ get_PAPA = function(){
   ####################################################################
   ########################### ANXIETY ################################
   ####################################################################
-  AX = data.table(read_sav("savs/PAPA/PAPA_K5.sav"))
+  AX = data.table(read_sav("F:/Forskningsprosjekter/PDB 299 - ADHD-studien Prescho_/Forskningsfiler/GUBI/GuidoData/masterfile/savs/PAPA/PAPA_K5.sav"))
   
-  ########################### PHOIA ################################
+  ########################### PHOBIA ################################
   ax_cols = paste("K55",2:8,"1",sep = "_")
   AX[,PHO.SC := sum(.SD > 1,na.rm = T),by = 1:nrow(AX), .SDcols = ax_cols]
   
@@ -374,7 +375,7 @@ get_PAPA = function(){
   my_labels = c("SEA_clinical" = 1,"SEA_subclinical" = 2,"SEA_noimp" = 3,"no_SEA" = 4)
   AX[SEA.SC > 3 & SEA.IMP.CAT == "present", SEA.GR := 1]
   AX[is.na(SEA.GR) & (SEA.SC > 3 & SEA.IMP.CAT == "absent" ) |
-      (SEA.SC %in% 1:2 & is.na(SEA.IMP)), SEA.GR := 2]
+      ((SEA.SC == 1 | SEA.SC == 2) & is.na(SEA.IMP)), SEA.GR := 2]
   AX[is.na(SEA.GR) & SEA.SC > 3 & is.na(SEA.IMP), SEA.GR := 3]
   AX[is.na(SEA.GR), SEA.GR := 4]
   AX[,SEA.GR := labelled(SEA.GR,labels = my_labels)]
@@ -444,7 +445,7 @@ get_PAPA = function(){
   AX = AX[,c(1,2,grep("SOA|GEA|SEA|PHO|ANX",names(AX))),with = F]
   
   ######################### konklusions ###################
-  KK = data.table(read_sav("savs/PAPA/ADHD_KONKL.sav"))
+  KK = data.table(read_sav("F:/Forskningsprosjekter/PDB 299 - ADHD-studien Prescho_/Forskningsfiler/GUBI/GuidoData/masterfile/savs/PAPA/ADHD_KONKL.sav"))
   
   KK[, LANG.GR := 4]
   for (v in 3:1)  KK[KU2_1_1 == v | KU2_1_2 == v | KU2_2_1 == v, LANG.GR := v]
@@ -492,6 +493,7 @@ get_PAPA = function(){
   PAPA[,DIAG.GR := labelled(DIAG.GR,labels = my_labels)]
   
   
+  
   ############################### Add labels to variable names ############################
   
   # abbreviations used in variables: 
@@ -528,7 +530,137 @@ get_PAPA = function(){
   attributes(PAPA$ADHD.IM.SC) = list(label = "PAPA: Number of present impulsivity SYMPTOMs")
   attributes(PAPA$ADHD.HI.SC) = list(label = "PAPA: Number of present hyperactivity & impulsiveness SYMPTOMs")
   
-  setnames(PAPA,names(PAPA)[-(1:2)],paste0("PP.",names(PAPA)[-(1:2)]))
+  translate = c(SEA = "separation anxiety", 
+                IMP = "impairments", 
+                SS = "sum of scores",
+                SL = "sleep",
+                SOA = "social anxiety",
+                GEA = "generalized anxiety",
+                PHO = "phobia",
+                ANX = "any anxiety",
+                AT = "inattention",
+                HY = "hyperactivity",
+                IM = "impulsivity",
+                HI = "hyperactivity and impulsivity",
+                CD = "conduct disorder",
+                ODD = "oppositional defient disorder",
+                DBD =  "disruptive behavior disorders",
+                SC = "number of present symptoms",
+                MI = "number of missing values",
+                GR = "group",
+                SGR = "sub group",
+                ST = "sub threshold",
+                CAT = "category",
+                clin = "clinical",
+                SY = "symptom",
+                ADHD = "ADHD",
+                IMPwk = "weak impairment",
+                IMPstr = "strong impairment",
+                ST_woi = "sub threshold without impairment",
+                ST_wi = "sub threshold without impairment",
+                ODD1 = "Defiance",
+                ODD2 = "Argues with adults",
+                ODD3 = "Angry outbursts",
+                ODD4 = "Annoys others on purpose",
+                ODD5 = "Blame others",
+                ODD6 = "Malicious or vindictive",
+                ODD7 = "Touchy, does not cope with much from others",
+                ODD8 = "Angry and annoyed",
+                CD1 = "Lies",
+                CD2 = "Teasing/Bullying",
+                CD3 = "Cruel to animals",
+                CD4 = "Mean/cruel to humans",
+                CD5 = "Steals",
+                CD6 = "Fighting/Attacking",
+                CD7 = "Destroys property",
+                CD8 = "Arsony/plays with fire",
+                PHO1 = "Fear of animals",
+                PHO2 = "Fear of storms, thunder and/or lightning",
+                PHO3 = "Fear for doctor or dentist",
+                PHO4 = "Fear of blood/needles",
+                PHO5 = "Fear of the dark",
+                PHO6 = "Fear of activities in small spaces",
+                PHO7 = "Fear of xxxx",
+                SOA1 = "Social anxiety",
+                SOA2 = "Fear of activities in public areas",
+                SOA3 = "FEar of social situations with adults",
+                SEA1 = "Avoids being alone",
+                SEA2 = "Pre concern/resistance to being separated",
+                SEA3 = "Nightmares about separation",
+                SEA4 = "Scared/anxious about attending kindergarden",
+                SEA5 = "Fear of possible injury",
+                SEA6 = "Resistance to going to sleep alone",
+                GEA1 = "Jumpy",
+                GEA2 = "Trouble concentrating when anxious",
+                GEA3 = "Easily tired when anxious/worried",
+                GEA4 = "Exaggerated need for reassurance",
+                HY1 = "Physical restlessness",
+                HY2 = "Hard time sitting still",
+                HY3 = "Runs/climbs too much",
+                HY4 = "Always on the run",
+                HY5 = "Speaks unusually much",
+                HY6 = "Hard time doing things calmly",
+                AT1 = "Hard time doing independent tasks or play activities",
+                AT2 = "Hard time organizing tasks",
+                AT3 = "Hard time following instructions",
+                AT4 = "Avoids mentally challenging tasks",
+                AT5 = "Easily distracted",
+                AT6 = "FOrgetful with daily chores",
+                AT7 = "Often drops things",
+                AT8 = "Do not listen",
+                AT9 = "Is unprecise",
+                IM1 = "Hard time waiting for his/her turn",
+                IM2 = "Blurts out answers to questions",
+                IM3 = "Often interrupts or disturbs others",
+                SYwofreq = "symptoms without frequency",
+                Wk = "weak",
+                btr = "bedtime ritual",
+                btr_read = "bedtime ritual, reading",
+                btr_hist = "bedtime ritual, history/conversation",
+                btr_sing = "bedtime ritual, singing",
+                btr_oth = "bedtime ritual, other",
+                S = "sleep",
+                slp = "sleep",
+                slpr = "sleeper",
+                slps = "sleeps",
+                unr_a_slp = "unrested after sleep",
+                slps_d = "sleeps during day",
+                wk_night = "wakes at night",
+                d = "day",
+                e = "evening",
+                diff_slp = "difficulties sleeping",
+                Oth = "other",
+                self_slpr_d = "Cradle oneself to sleep at daytime",
+                self_slpr_e = "Cradle oneself to sleep in the evening",
+                restl_sleep = "restless sleep",
+                Hypsomn = "Increased need for sleep/hypersomnia",
+                nightm = "nightmares",
+                DIAG = "diagnostic",
+                LANG = "language",
+                OTHER = "other",
+                t_asleep = "How much time does it thake for the child to og to sleep?",
+                got2bed = "When does the child go to bed?",
+                get_up = "When does the child usually get up in the morning?",
+                leaves_bed = "Leaves bed before going to sleep",
+                EMO = "affective disorder",
+                somnabul = "Somnabulisme",
+                XOTHER = "Other disorder than ADHD",
+                res_slp = "resistance to go to sleep",
+                h_night = "hours sleep per night")
+  
+   for (variable in names(PAPA)[-c(1,2)]){
+    variable_info = strsplit(variable,split = "\\.")[[1]]
+    if (length(translate[variable_info]) == length(variable_info)){
+      label = paste0("PAPA: ", paste(translate[variable_info],collapse = "; "))
+      if ( is(PAPA[[variable]],"labelled") ) {
+        attributes(PAPA[[variable]])[["label"]] = label
+      } else {
+        attributes(PAPA[[variable]]) = list(label = label)
+        }
+      }
+    }
+  
+  lapply(PAPA,function(x) attributes(x)[["label"]])
   
   return(PAPA)
 }
