@@ -13,7 +13,7 @@
 ## PAPA_K9.sav/PAPA_K10.sav Life Events?
 
 get_PAPA = function(){
-
+  
   ################################ SLEEP #########################################
   SL = data.table(read_sav("F:/Forskningsprosjekter/PDB 299 - ADHD-studien Prescho_/Forskningsfiler/GUBI/GuidoData/masterfile/savs/PAPA/PAPA_K2.sav"))
   
@@ -22,9 +22,9 @@ get_PAPA = function(){
                 "K2_2_1_4_1","K2_2_1_5_1","K2_2_1_6_1","K2_2_1_6_2",
                 "K2_2_1_8_1","K2_2_1_8_2","K2_2_1_10_1","K2_2_1_11_1",
                 "K2_2_1_12_1","K2_2_1_13_1","K2_2_1_14_1","K2_2_1_16_1")
-    # btr = beadtime ritual, slp = sleep, slpr = sleeper, slps = sleeps,unr_a_slp = unrested after sleep
-    # slps_day = sleeps during day, wk_night = wakes at night, d = day, e = evening, diff_slp = difficulties sleeping
-    new_names = c("got2bed","get_up","h_night","res_slp",
+  # btr = beadtime ritual, slp = sleep, slpr = sleeper, slps = sleeps,unr_a_slp = unrested after sleep
+  # slps_day = sleeps during day, wk_night = wakes at night, d = day, e = evening, diff_slp = difficulties sleeping
+  new_names = c("got2bed","get_up","h_night","res_slp",
                 "btr","btr_read","btr_hist","btr_sing","btr_oth",
                 "leaves_bed","wk_night","t_asleep","diff_slp",
                 "self_slpr_d","self_slpr_e","restl_sleep","unr_a_slp",
@@ -33,7 +33,7 @@ get_PAPA = function(){
   setnames(SL,old_names,new_names)
   
   SL = SL[,c(names(SL)[1:2],new_names),with = F]
-
+  
   d = SL$S.h_night
   d = gsub("[ a-z]","",d)
   d = gsub(",",".",d)
@@ -153,7 +153,7 @@ get_PAPA = function(){
   #######################################################################
   
   BH = data.table(read_sav("F:/Forskningsprosjekter/PDB 299 - ADHD-studien Prescho_/Forskningsfiler/GUBI/GuidoData/masterfile/savs/PAPA/PAPA_K4.sav"))
-   # SYM duration
+  # SYM duration
   freq_vars = sort(c(paste("K44",c(3,4,6,9,12),"2",sep = "_"),paste("K44",c(10,11),"6",sep = "_"),"K44_8_4"))
   for (v in freq_vars){
     BH[,tmp := char2num(get(v)),by = 1:nrow(BH)]
@@ -175,17 +175,17 @@ get_PAPA = function(){
   BH[K44_11_1 > 1 & K44_11_6 >= 21 ,K44_11_1F := K44_11_1]
   BH[K44_12_1 > 1 & K44_12_2 >= 1,K44_12_1F := K44_12_1]
   
- 
+  
   # * Her telles antall ODD-SYMer med hyppighet tatt i betraktning.
   SDcols = names(BH)[intersect(grep("^K44",names(BH)),grep("1F$",names(BH)))]
   BH[,ODD.SC := sum(.SD > 1,na.rm = T),by = 1:nrow(BH),.SDcols = SDcols]
-
+  
   # * Her telles antall ODD-SYMer uavhengig av hyppighet av forekomst.
   SDcols =  gsub("_2|_6|_4","_1",freq_vars)
   BH[,ODD.SYwofreq := sum(.SD > 1,na.rm = T),by = 1:nrow(BH),.SDcols = SDcols]
   BH[,ODD.SYwofreq.MI := sum(is.na(.SD)),by = 1:nrow(BH),.SDcols = SDcols]
   
- # impairment   
+  # impairment   
   impair_cols = paste("K44_23A",1:6,sep = "_")
   BH[,ODD.IMP.MI := sum(is.na(.SD)),by = 1:nrow(BH), .SDcols = impair_cols]
   BH[,ODD.IMP.wk := sum(.SD == 1,na.rm = T),by = 1:nrow(BH), .SDcols = impair_cols]
@@ -194,21 +194,21 @@ get_PAPA = function(){
   BH[, ODD.IMP := 0]
   BH[(ODD.IMP.MI < 6 & ODD.IMP.wk > 2) | ODD.IMPstr > 0, ODD.IMP := 1]
   BH[ODD.IMP.MI >= 6, ODD.IMP := NA]
-
+  
   SDcols = paste("K44_23A",1:6,sep = "_")
   BH[,ODD.IMP.SS := sum(.SD,na.rm = T),by = 1:nrow(BH),.SDcols = SDcols]
   BH[,ODD.IMP.SS.MI := sum(is.na(.SD)),by = 1:nrow(BH),.SDcols = SDcols]
   BH[ODD.IMP.SS.MI > 2, ODD.IMP.SS := NA]
-
+  
   
   SDcols = paste("K44",c(3,4,6,8,9,10,11,12),"1F",sep = "_")
   BH[,ODD.SC := sum(.SD > 0,na.rm = T),by = 1:nrow(BH), .SDcols = SDcols]
-
+  
   BH[, ODD.GR := 5]
   BH[ODD.SC >= 4 & ODD.IMP == 1, ODD.GR := 1]
   BH[ODD.GR > 1 & 
        ((ODD.SC > 4 & ODD.IMP == 0) |
-       ((ODD.SC > 0 & ODD.SC < 4) & ODD.IMP == 1)), ODD.GR := 2]
+          ((ODD.SC > 0 & ODD.SC < 4) & ODD.IMP == 1)), ODD.GR := 2]
   BH[ODD.GR > 2 & ODD.SC >= 4 & is.na(ODD.IMP), ODD.GR := 3]
   BH[ODD.GR > 3 & 
        (ODD.SC <  4 & (ODD.IMP == 0 | is.na(ODD.IMP))) | 
@@ -238,7 +238,7 @@ get_PAPA = function(){
   
   BH[["K44_14_1"]] = labelled(BH[["K44_14_1"]],labels = labels_14)
   BH[["K44_19_1"]] = labelled(BH[["K44_19_1"]],labels = labels_19)
-
+  
   BH[,CD.SC := sum(.SD > 1,na.rm = T),by = 1:nrow(BH),
      .SDcols = c("K44_13_1", "K44_16_1", "K44_17_1", "K44_18_1", "K44_21_1", "K44_22_1", "K44_14")]
   BH[,CD.SY.MI := sum(is.na(.SD),na.rm = T),by = 1:nrow(BH),
@@ -249,7 +249,7 @@ get_PAPA = function(){
   BH[,CD.IMP.MI := sum(.SD,na.rm = T),by = 1:nrow(BH),.SDcols = cd.imp.cols]
   BH[,CD.IMPwk := sum(.SD == 1,na.rm = T),by = 1:nrow(BH),.SDcols = cd.imp.cols]
   BH[,CD.IMPstr := sum(.SD > 1,na.rm = T),by = 1:nrow(BH),.SDcols = cd.imp.cols]
- 
+  
   BH[,CD.IMP := 0]
   BH[CD.IMP.MI >= 6, CD.IMP := NA]
   BH[CD.IMP.MI < 6 & 
@@ -257,7 +257,7 @@ get_PAPA = function(){
   BH[,CD.IMP.CAT := factor(CD.IMP,labels = c("absent","present"))]
   
   BH[,CD.IMP.SS := sum(.SD,na.rm = T),by = 1:nrow(BH),.SDcols = cd.imp.cols]
- 
+  
   BH[,CD.GR := 4]
   BH[CD.SC >= 3 & CD.IMP == 1,CD.GR := 1]
   BH[CD.GR > 1 & 
@@ -266,7 +266,7 @@ get_PAPA = function(){
      CD.GR := 2]
   BH[CD.GR > 2 & CD.SC >= 3 & is.na(CD.IMP), CD.GR := 3]
   BH[is.na(CD.SC) & is.na(CD.IMP), CD.GR := NA]
- 
+  
   my_labels = c("CD_clin" = 1, "CD_subclin" = 2, "CD_missimp" = 3, "no_CD" = 4)
   BH[,CD.GR := labelled(CD.GR,labels = my_labels)]
   
@@ -295,7 +295,7 @@ get_PAPA = function(){
   for(v in new_names) {
     eval(parse(text = 
                  paste0("BH[",v," > 0, ",v," := ",v,"-1,by = list(PREG_ID_299,BARN_NR)]")
-               ))
+    ))
   } 
   
   BH = make_sum_scores(BH,names(BH)[grep("ODD[0-9].SS",names(BH))],"ODD.SS")
@@ -316,7 +316,7 @@ get_PAPA = function(){
   AX[,PHO.IMP.MI := sum(is.na(.SD)),by = 1:nrow(AX), .SDcols = ax_imp_cols]
   AX[,PHO.IMPwk := sum(.SD == 1,na.rm = T),by = 1:nrow(AX), .SDcols = ax_imp_cols]
   AX[,PHO.IMPstr := sum(.SD > 1,na.rm = T),by = 1:nrow(AX), .SDcols = ax_imp_cols]
- 
+  
   AX[,PHO.IMP := 0]
   AX[PHO.IMP.MI >= 6, PHO.IMP := NA]
   AX[PHO.IMPwk > 2 | PHO.IMPstr > 2, PHO.IMP := 1]
@@ -330,7 +330,7 @@ get_PAPA = function(){
   AX[PHO.GR > 3 & PHO.SC < 1 , PHO.GR := 4]
   my_labels = c("Phobia_clinical" = 1,"Phobia_subclinical" = 2,"Phobia_noimp" = 3,"no_Phobia" = 4)
   AX[,PHO.GR := labelled(PHO.GR,labels = my_labels)]
-
+  
   ########################### SOC ANX ################################
   ax_cols = paste("K55",9:11,"1",sep = "_")
   AX[,SOA.SC := sum(.SD > 1,na.rm = T),by = 1:nrow(AX), .SDcols = ax_cols]
@@ -349,9 +349,9 @@ get_PAPA = function(){
   AX[,SOA.GR := 4]
   AX[K55_9_1 > 1 & SOA.IMP.CAT == "present", SOA.GR := 1]
   AX[SOA.GR > 1 & (
-      (K55_9_1 > 1 & SOA.IMP.CAT == "absent") |
+    (K55_9_1 > 1 & SOA.IMP.CAT == "absent") |
       (SOA.SC >= 1 & SOA.IMP.CAT == "absent")
-      ) , SOA.GR := 2]
+  ) , SOA.GR := 2]
   AX[SOA.GR > 2 & SOA.SC >= 1 & is.na(SOA.IMP), SOA.GR := 3]
   AX[SOA.GR > 3 & SOA.SC < 1, SOA.GR := 4]
   my_labels = c("SocAnx_clinical" = 1,"SocAnx_subclinical" = 2,"SocAnx_noimp" = 3,"no_Phobia" = 4)
@@ -360,7 +360,7 @@ get_PAPA = function(){
   ########################### SEP ANX ################################
   ax_cols = paste("K55",c(13,14,16:19),"1",sep = "_")
   AX[,SEA.SC := sum(.SD > 1,na.rm = T),by = 1:nrow(AX), .SDcols = ax_cols]
-
+  
   ax_imp_cols = paste("K55_26C",1:6,sep = "_")
   AX[,SEA.IMP.MI := sum(is.na(.SD)),by = 1:nrow(AX), .SDcols = ax_imp_cols]
   AX[,SEA.IMPwk := sum(.SD == 1,na.rm = T),by = 1:nrow(AX), .SDcols = ax_imp_cols]
@@ -375,7 +375,7 @@ get_PAPA = function(){
   my_labels = c("SEA_clinical" = 1,"SEA_subclinical" = 2,"SEA_noimp" = 3,"no_SEA" = 4)
   AX[SEA.SC > 3 & SEA.IMP.CAT == "present", SEA.GR := 1]
   AX[is.na(SEA.GR) & (SEA.SC > 3 & SEA.IMP.CAT == "absent" ) |
-      ((SEA.SC == 1 | SEA.SC == 2) & is.na(SEA.IMP)), SEA.GR := 2]
+       ((SEA.SC == 1 | SEA.SC == 2) & is.na(SEA.IMP)), SEA.GR := 2]
   AX[is.na(SEA.GR) & SEA.SC > 3 & is.na(SEA.IMP), SEA.GR := 3]
   AX[is.na(SEA.GR), SEA.GR := 4]
   AX[,SEA.GR := labelled(SEA.GR,labels = my_labels)]
@@ -412,7 +412,7 @@ get_PAPA = function(){
   my_labels = c("ANX_clinical" = 1,"ANX_subclin" = 2,"ANX_missimp" = 3,"no_ANX" = 4)
   AX[,ANX.GR := labelled(ANX.GR,labels = my_labels)]
   
- 
+  
   ########################### ANX sumscores ################################
   
   items2dims = list(PHO = 2:8,
@@ -648,7 +648,7 @@ get_PAPA = function(){
                 res_slp = "resistance to go to sleep",
                 h_night = "hours sleep per night")
   
-   for (variable in names(PAPA)[-c(1,2)]){
+  for (variable in names(PAPA)[-c(1,2)]){
     variable_info = strsplit(variable,split = "\\.")[[1]]
     if (length(translate[variable_info]) == length(variable_info)){
       label = paste0("PAPA: ", paste(translate[variable_info],collapse = "; "))
@@ -656,13 +656,12 @@ get_PAPA = function(){
         attributes(PAPA[[variable]])[["label"]] = label
       } else {
         attributes(PAPA[[variable]]) = list(label = label)
-        }
       }
     }
+  }
   
   lapply(PAPA,function(x) attributes(x)[["label"]])
   
   return(PAPA)
 }
-
 
