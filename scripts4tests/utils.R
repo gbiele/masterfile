@@ -1,17 +1,45 @@
+library(haven)
+library(data.table)
+library(plyr)
+library(car)
+library(stringr)
+library(foreign)
+
+
 make_sum_scores = function(DT,items,ss_var){
   DT[,sNAs := sum(is.na(.SD)),by = 1:nrow(DT),.SDcols = items]
-  DT[,sum_score := round(mean(as.numeric(.SD),na.rm = T)*length(items)),by = 1:nrow(DT),.SDcols = items]
+  tmp_items = paste0(items,".tmp")
+  DT[,(tmp_items):=lapply(.SD, function(col) as.numeric(factor(col))-1),.SDcols = items]
+  DT[, sum_score := sum(.SD,na.rm = T),by = 1:nrow(DT), .SDcols = tmp_items]
   DT[sNAs >= (length(items)/2) , sum_score := NA,]
-  DT = DT[,-which(names(DT) == "sNAs"),with = F]
+  DT = DT[,-which(names(DT) %in% c("sNAs",tmp_items)),with = F]
   setnames(DT,"sum_score",ss_var)
   return(DT)
 }
 
-add_label = function(dt,prefix,abbreviations) {
+add_label = function(dt,prefix,abbreviations,my_warning = T) {
   for (v in  names(dt)[grep(paste0("^",prefix),names(dt))]) {
+    tmp_abbrev = abbreviations
     short_name = strsplit(v,"\\.")[[1]]
-    if (sum(!is.na(abbreviations[short_name])) == length(short_name)) {
-      long_name = paste(abbreviations[short_name],collapse = "; ")
+    
+    if (length(grep("i[0-9]",short_name)) > 0) {
+      tmp = short_name[grep("i[0-9]",short_name)]
+      tmp_abbrev[tmp] = paste("item",sub("i","",tmp))}
+    
+    if (any(!short_name %in% names(tmp_abbrev))){
+      for (n in short_name[!short_name %in% names(tmp_abbrev)]) {
+        tmp_abbrev[n] = n
+        if (my_warning) print(paste0("Missing long name for ",n," +++",v,"+++"))
+        }
+    }
+    
+    if (sum(!is.na(tmp_abbrev[short_name])) == length(short_name)) {
+      long_name = paste(tmp_abbrev[short_name],collapse = "; ")
+      
+      if(length(attr(dt[[v]],"label")) == 1) {
+        long_name = paste0(long_name,"(",attributes(dt[[v]])$label,")")
+      }
+         
       if ("labels" %in% names(attributes(dt[[v]]))) {
         attributes(dt[[v]]) = list(label = long_name, labels = attributes(dt[[v]])$labels)
       } else {
@@ -176,3 +204,8 @@ make_correlation_plot = function(D,save_image = T){
             margins = c(12,12))
   if(save_image) dev.off()
 }
+
+
+
+#write.foreign(mydata, "c:/mydata.txt", "c:/mydata.sps",   package="SPSS")
+
