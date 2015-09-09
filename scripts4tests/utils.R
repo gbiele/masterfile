@@ -78,11 +78,27 @@ char2num = function(x){
 }
 
 
+hist_by_version = function(D){
+  par(mfrow = c(3,3))
+  if (is(D,"data.table")) D = data.frame(D)
+  for (v in setdiff(colnames(D),c(index_vars,"VERSION"))) {
+    h = hist(D[,v],plot = F)
+    
+    x = sort(c(h$mids,range(h$breaks)))
+    y1 = c(0,hist(D[D$VERSION == 1,v],breaks = h$breaks,plot = F)$counts,0)
+    y2 = c(0,hist(D[D$VERSION == 2,v],breaks = h$breaks,plot = F)$counts,0)
+    plot(x,y1,'s',main = v, ylab = "density",ylim = c(0,max(y1,y2)))
+    lines(x,y2,'s',col = "red")
+  }
+  par(mfrow = c(1,1))
+}
+  
+
 library(fitdistrplus)
 
 plot_my_hists = function(D){
   if (is(D,"data.table")) D = data.frame(D)
-  for (v in colnames(D)) {
+  for (v in setdiff(colnames(D),c(index_vars,"VERSION"))) {
     d = D[,v]
     if (mean(quantile(d,c(.01,.99),na.rm = T)) < 
         median(d,na.rm = T)) {
