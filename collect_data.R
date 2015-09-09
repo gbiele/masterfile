@@ -1,12 +1,8 @@
-library(haven)
-library(data.table)
-library(plyr)
-library(car)
-library(stringr)
-
 file.sources = paste("scripts4tests/",list.files(path = "scripts4tests/",pattern="*.R"),sep = "")
 tmp = sapply(file.sources,source,.GlobalEnv)
 rm(tmp,file.sources)
+
+index_vars = c("PREG_ID_299","BARN_NR")
 
 #####################################################
 ############# Neuropsychological tests ##############
@@ -24,17 +20,19 @@ MASTER = get_neuropsych()
 #####################################################
 ################## PAPA interview ###################
 #####################################################
-MASTER = merge(MASTER,get_PAPA(),by = c("PREG_ID_299","BARN_NR"),all = T)
+MASTER = merge(MASTER,get_PAPA(),by = index_vars,all = T)
+
+
 
 #####################################################
 ################## Stanford Binet ###################
 #####################################################
-MASTER = merge(MASTER,get_ADHD_SCALE_Q6(),by = c("PREG_ID_299","BARN_NR"),all = T)
+MASTER = merge(MASTER,get_ADHD_SCALE_Q6(),by = index_vars,all = T)
 
 #####################################################
 # screeing scale from Q6, filled out in ADHD Study ##
 #####################################################
-MASTER = merge(MASTER,get_StanfordBinet(),by = c("PREG_ID_299","BARN_NR"),all = T)
+MASTER = merge(MASTER,get_StanfordBinet(),by = index_vars,all = T)
 
 
 #####################################################
@@ -44,12 +42,15 @@ MASTER = merge(MASTER,get_StanfordBinet(),by = c("PREG_ID_299","BARN_NR"),all = 
 pqa = data.table(read_sav("savs/SBF.sav"))
 pqb = data.table(read_sav("savs/ADHD13_SBF.sav"))
 
-MASTER = merge(MASTER,get_cdi(pqa,pqb,"PA"),by = c("PREG_ID_299","BARN_NR"),all = T)
-MASTER = merge(MASTER,get_sdq(pqa,pqb,"PA"),by = c("PREG_ID_299","BARN_NR"),all = T)
-MASTER = merge(MASTER,get_brief(pqa,pqb,"PA"),by = c("PREG_ID_299","BARN_NR"),all = T)
-MASTER = merge(MASTER,get_cbq_eas(pqa,pqb) ,by = c("PREG_ID_299","BARN_NR"),all = T)
-MASTER = merge(MASTER,get_diagnoses(pqa,pqb),by = c("PREG_ID_299","BARN_NR"),all = T)
-MASTER = merge(MASTER,get_family_illness(pqa,pqb),by = c("PREG_ID_299","BARN_NR"),all = T)
+MASTER = merge(MASTER,get_cdi(pqa,pqb,"P"),by = index_vars,all = T)
+MASTER = merge(MASTER,get_sdq(pqa,pqb,"P"),by = index_vars,all = T)
+MASTER = merge(MASTER,get_brief(pqa,pqb,"P"),by = index_vars,all = T)
+MASTER = merge(MASTER,get_cbq_eas(pqa,pqb) ,by = index_vars,all = T)
+MASTER = merge(MASTER,get_diagnoses(pqa,pqb),by = index_vars,all = T)
+MASTER = merge(MASTER,get_family_illness(pqa,pqb),by = index_vars,all = T)
+MASTER = merge(MASTER,get_eci(pqb,"P"),by = index_vars,all = T)
+MASTER = merge(MASTER,get_conners(pqa,"P"),by = index_vars,all = T)
+
 
 rm(pqa,pqb)
 #####################################################
@@ -59,11 +60,13 @@ rm(pqa,pqb)
 kgqa = data.table(read_sav("savs/BHG.sav"))
 kgqb = data.table(read_sav("savs/ADHD6_BHG.sav"))
 
-MASTER = merge(MASTER,get_cdi_kg(kgqa,kgqb),by = c("PREG_ID_299","BARN_NR"),all = T)
-MASTER = merge(MASTER,get_sdq(kgqa,kgqb,"TE"),by = c("PREG_ID_299","BARN_NR"),all = T)
-MASTER = merge(MASTER,get_brief(kgqa,kgqb,"TE"),by = c("PREG_ID_299","BARN_NR"),all = T)
-MASTER = merge(MASTER,get_Conners(kgqa,kgqb),by = c("PREG_ID_299","BARN_NR"),all = T)
-MASTER = merge(MASTER,get_Copland(kgqa,kgqb),by = c("PREG_ID_299","BARN_NR"),all = T)
+MASTER = merge(MASTER,get_cdi_kg(kgqa,kgqb),by = index_vars,all = T)
+MASTER = merge(MASTER,get_sdq(kgqa,kgqb,"T"),by = index_vars,all = T)
+MASTER = merge(MASTER,get_brief(kgqa,kgqb,"T"),by = index_vars,all = T)
+MASTER = merge(MASTER,get_conners(kgqa,"T"),by = index_vars,all = T)
+MASTER = merge(MASTER,get_Copland(kgqa,kgqb),by = index_vars,all = T)
+MASTER = merge(MASTER,get_eci(kgqb,"T"),by = index_vars,all = T)
+MASTER$VERSION = factor(MASTER$PREG_ID_299 %in% kgqb$PREG_ID_299+1)
 rm(kgqa,kgqb)
 # no cbq in kindergarden cbq = get_cbq_eas(pqa,pqb)
 
@@ -72,33 +75,42 @@ rm(kgqa,kgqb)
 ################# corrections #######################
 # GENERELT: slette barn med PREG_ID_299 = 50163 fra alle tester, grunnet usikkerhet rundt barnets norskkunnskaper (dette er inkludert i alle endelige syntakser). 
 # Mor oversetter nær sagt alle testinstruksjoner til serbisk, vi har ikke kontroll på hva hun sier.
-is50163 = which(MASTER$Age_in_days == 1215 & MASTER$PAPA.ADHD.sum.SCORE == 14)
+is50163 = which(MASTER$Age_in_days == 1215 & MASTER$PP.ADHD.SS == 14)
 MASTER = MASTER[-is50163,]
 
 # Vær obs på sakene 50163 og 87831 når disse syntaksene kjøres. Ingen av disse sakene skal ha valid ABIQ!!
-is87831 = which(MASTER$Age_in_days == 1294 & MASTER$PAPA.ADHD.sum.SCORE == 3 & MASTER$PAPA.BH.ODD.sum.SCORE == 4)
+is87831 = which(MASTER$Age_in_days == 1294 & MASTER$PP.ADHD.SS == 3 & MASTER$PP.ODD.SS == 4)
 
-MASTER[is87831, StBn.SCORE.ABIQ := NA]
-MASTER[is87831, StBn.SCORE.ABIQ.PercRank := NA]
-MASTER[is87831, StBn.SCORE.WMindex := NA]
+MASTER[is87831, SB.S.ABIQ := NA]
+MASTER[is87831, SB.S.ABIQ.PercRank := NA]
+MASTER[is87831, SB.S.WMindex := NA]
 
 # Nina: slette BNT skåre til barnet der mor oversetter alle testinstruksjonene.
-MASTER[is87831,BNT.SCORE := NA]
+MASTER[is87831,BNT.S := NA]
 
 # bnt$BNT.SCORE = rowSums(bnt[,names(bnt)[grep("BN1_",names(bnt))],with = F] < 5)
 # bnt[PREG_ID_299 == 50163, BNT.SCORE := NA] 
 
 rm(is87831,is50163)
 
-save(MASTER,file = "masterfile.Rdata")
+############## score, sum-scores, and counts #############
 
-MASTER_scores = MASTER[,grep("SCORE|COUNT",names(MASTER)),with = F]
-missing_more_than_40_sumscores =  which((apply(is.na(MASTER_scores),1,sum)>40))
-MASTER_scores = MASTER_scores[-missing_more_than_40_sumscores,]
+MASTER = MASTER[,c(index_vars,sort(names(MASTER)[-c(1:2)])),with = F]
 
-save(MASTER_scores,file = "masterfile_scores.Rdata")
+scores = c(index_vars,
+           "VERSION",
+           names(MASTER)[grep("\\.S$|\\.SS$",names(MASTER))])
+
+MASTER_scores = MASTER[,scores,with = F]
 
 
+
+par(mfrow = c(4,4))
+hist_by_version(MASTER_scores)
+
+#write.foreign(MASTER[,1:2,with = F], paste0(getwd(),"/MASTER.txt"), paste0(getwd(),"/MASTER.sps"),   package="SPSS")
+#save(MASTER,file = "masterfile.Rdata")
+#save(MASTER_scores,file = "masterfile_scores.Rdata")
 
 #plot_my_hists(MASTER_scores)
 #make_correlation_plot(MASTER_scores)
