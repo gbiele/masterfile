@@ -29,39 +29,50 @@ get_neuropsych = function() {
   
   tmp = data.table(read_sav("F:/Forskningsprosjekter/PDB 299 - ADHD-studien Prescho_/Forskningsfiler/GUBI/GuidoData/masterfile/savs/Nepsy_Delscore.sav"))
   setnames(tmp,names(tmp)[1:2],names(dt)[1:2])
-  dt = merge(dt,tmp,by = c("PREG_ID_299","BARN_NR"))
+  dt = merge(dt,tmp,by = c(index_vars))
   setnames(dt,names(dt),gsub("ny","NY",names(dt)))
   rm(tmp)
   
   vnames = names(dt)
-  dt[,NY.undrst.sum1 := sum(.SD), by = c("PREG_ID_299","BARN_NR"), .SDcols = vnames[grep("NY2_1",vnames)]]
-  dt[,NY.undrst.sum2 := sum(.SD), by = c("PREG_ID_299","BARN_NR"), .SDcols = vnames[grep("NY3_2",vnames)]]
-  dt[,NY.undrst.S := NY.undrst.sum1 + NY.undrst.sum2,by = c("PREG_ID_299","BARN_NR")]
+  dt = make_sum_scores(dt,vnames[grep("NY2_1",vnames)],"NY.L.UI.1_13.S")
+  dt = make_sum_scores(dt,vnames[grep("NY3_2",vnames)],"NY.L.UI.14_20.S")
+  dt[,NY.L.UI.S := NY.L.UI.1_13.S + NY.L.UI.14_20.S]
   
+  dt = dt[,-grep("NY3_|N3_",names(dt)),with = F]
+  # remove scales that are not used
+  dt = dt[,-grep("NY2_|NY7_|NEPSY8_1|NY1_2",names(dt)),with = F]
+  # remove variables with comments (strings) and other stuff
+  dt = dt[,-grep("NY1_2|NY4_3|NY6_2|NYINSTRUMENT_ID|NYSTATUS|VERSJON_NPY_TBL1",names(dt)),with = F]
+  
+    
   # Visuospatial Processing Domain
-  setnames(dt,"NY1_1","NY.VISPROC.DesignCopying.S")
+  setnames(dt,"NY1_1","NY.VP.DesCop.S")
   # Attention and Executive Functioning
   setnames(dt,"NY6_1","NY.INHIB.Statue.S")
   # Language
-  setnames(dt,"NY.undrst.S","NY.L.ComprehInstr.S")
   setnames(dt,"NY4_2","NY.L.PhonProc")
   # Visual Attention
-  dt[,NY.VI.cats.S := as.numeric(dt$NY5_2_3)]
+  dt[,NY.VI.cats.S := char2num(dt$NY5_2_3)]
   dt[NY.VI.cats.S > 20, NY.VI.cats.S:=20]
   print("2 NY.VI.cats.S values larger 20 set to 20")
-  dt[,NY.VI.cats.T := as.numeric(gsub("[a-z.]","",NY5_2_4))]
-  dt[,NY.VI.bunniescats.S := as.numeric(dt$NY5_3_3)]
+  dt[,NY.VI.cats.T := char2num(NY5_2_4)]
+  dt[,NY.VI.bunniescats.S := char2num(dt$NY5_3_3)]
   dt[NY.VI.bunniescats.S > 45, NY.VI.bunniescats.S := NA]
   setnames(dt,"NY5_3_4","NY.VI.bunniescats.T")
   
-  setnames(dt,names(dt))
-
+  dt = dt[,-grep("NY5_",names(dt)),with = F]
+  
   abbreviations = c(NY = "NEPSY (Developmental Neuropsychological Assessment)",
                     L = "Language",
                     VI = "Visual attention",
+                    VP = "Visual processing",
+                    DesCop = "design copying",
                     S = "Score",
                     T = "time",
-                    undrst = "understanding")
+                    UI = "understanding instructions",
+                    PhonProc = "phonological processing",
+                    INHIB = "Inhibition")
+  dt = add_label(dt,"NY.",abbreviations,my_warning = F)
   
   #####################################################
   ############## Boston naming task ##################
@@ -72,11 +83,12 @@ get_neuropsych = function() {
   bnt[,BNT.compl := is.na(BNBNT0)]
   bnt[BN2_1 == "Ikke tatt" | BN2_1 == "3 , men avbrutt" , BNT.compl := F]
   
-  bnt[BNT.compl == T,BNT.S := sum(.SD<5,na.rm = T),by = list(PREG_ID_299,BARN_NR),.SDcols = SDcols]
-  bnt[,BNT.misss := sum(is.na(.SD)),by = list(PREG_ID_299,BARN_NR),.SDcols = SDcols]
-  bnt[,BNT.errors := sum(.SD == 5, na.rm = T),by = list(PREG_ID_299,BARN_NR),.SDcols = SDcols]
+  bnt[,BNT.S := sum(.SD<5,na.rm = T), by = 1:nrow(bnt),.SDcols = SDcols]
+  bnt[BNT.compl == F,BNT.S := NA]
+  bnt[,BNT.miss := sum(is.na(.SD)), by = 1:nrow(bnt),.SDcols = SDcols]
+  bnt[,BNT.errors := sum(.SD == 5, na.rm = T), by = 1:nrow(bnt),.SDcols = SDcols]
   
-  bnt[BNT.misss == 25, BNT.compl := F]
+  bnt[BNT.miss == 25, BNT.compl := F]
   bnt[BNT.errors < 5 & BNT.S < 10,BNT.compl := F]
   bnt[BNT.compl != T,BNT.S := NA]
   
@@ -85,8 +97,12 @@ get_neuropsych = function() {
                     miss = "number of missing items",
                     errors = "number of errors",
                     S = "Score")
+  setnames(bnt,SDcols,paste0("BNT.i",1:25))
   
-  dt = merge(dt,bnt,by = c("PREG_ID_299","BARN_NR"))
+  bnt = bnt[,c(index_vars,names(bnt)[grep("^BNT",names(bnt))]),with = F]
+  bnt = add_label(bnt,"BNT",abbreviations,my_warning = F)
+  
+  dt = merge(dt,bnt,by = c(index_vars))
   
   rm(bnt)
   
@@ -95,28 +111,38 @@ get_neuropsych = function() {
   ################ COOKIE DELAY TASK ##################
   #####################################################
   cdt = data.table(read_sav("F:/Forskningsprosjekter/PDB 299 - ADHD-studien Prescho_/Forskningsfiler/GUBI/GuidoData/masterfile/savs/CDT.sav"))
-  setnames(cdt,"CD1_2","CDT.SS")
-  attributes(cdt[["CDT.SS"]])$label = "Sumscore cookie delay task"
-  dt = merge(dt,cdt,by = c("PREG_ID_299","BARN_NR"))
+  setnames(cdt,"CD1_2","CDT.S")
+  attributes(cdt[["CDT.S"]])$label = "Score cookie delay task"
+  dt = merge(dt,cdt[,c(index_vars,"CDT.S"),with = F],by = c(index_vars))
   rm(cdt)
   
   #####################################################
   ############# TRUCK REVERSAL LEARNING ###############
   #####################################################
   trl = data.table(read_sav("F:/Forskningsprosjekter/PDB 299 - ADHD-studien Prescho_/Forskningsfiler/GUBI/GuidoData/masterfile/savs/TRLT.sav"))
-  setnames(trl,"TR1_2_1","TRLT.A.lrd")
-  setnames(trl,"TR1_3","TRLT.A.errors")
-  setnames(trl,"TR1_4","TRLT.A.t2c")
-  setnames(trl,"TR2_2_1","TRLT.B.lrd")
-  setnames(trl,"TR2_3","TRLT.B.errors")
-  setnames(trl,"TR2_4","TRLT.B.t2c")
   
-  abbreviations = c(TRLT = "Truck reversal learning task",
+  setnames(trl,paste0("TR1_1_",2:13),paste0("TT.A.i",1:12))
+  setnames(trl,paste0("TR2_1_",1:8),paste0("TT.B.i",1:8))
+  
+  setnames(trl,"TR1_2_1","TT.A.lrd")
+  setnames(trl,"TR1_3","TT.A.errors")
+  setnames(trl,"TR1_4","TT.A.t2c")
+  setnames(trl,"TR2_2_1","TT.B.lrd")
+  setnames(trl,"TR2_3","TT.B.errors")
+  setnames(trl,"TR2_4","TT.B.t2c")
+  
+  abbreviations = c(TT = "Truck reversal learning task",
+                    A = "run 1",
+                    B = "run 2",
                     errors = "number of errors",
                     t2c = "number trials to criterion",
                     lrd = "learned")
   
-  dt = merge(dt,trl,by = c("PREG_ID_299","BARN_NR"))
+  trl = trl[,-grep("^TR|^VERS",names(trl)),with = F]
+  
+  trl = add_label(trl,"TT",abbreviations,my_warning = F)
+  
+  dt = merge(dt,trl,by = c(index_vars))
   rm(trl)
   
   
@@ -133,6 +159,10 @@ get_neuropsych = function() {
   setnames(stp,"SNURR1_4","STP.err_t")
   setnames(stp,"SNURR1_5","STP.S")
   setnames(stp,"SNURR1_8","STP.io")
+  
+  stp = stp[, c(which(index_vars %in% names(stp)),
+                grep("^STP",names(stp))),with = F]
+  
   abbreviations = c(STP = "spin the pots task",
                     err_e = "number of errors empty",
                     err_f = "number of errors full",
@@ -140,7 +170,10 @@ get_neuropsych = function() {
                     t2c = "number trials to criterion",
                     S = "Score",
                     io = "impulsive openings")
-  dt = merge(dt,stp,by = c("PREG_ID_299","BARN_NR"))
+  
+  stp = add_label(stp,"STP",abbreviations,my_warning = F)
+  
+  dt = merge(dt,stp,by = c(index_vars))
   rm(stp)
   #####################################################
   ################## Grooved Pegboard #################
@@ -160,15 +193,19 @@ get_neuropsych = function() {
   gpt$GPT.d.sec = char2num(gpt$GPT.d.sec)
   gpt$GPT.nd.sec = char2num(gpt$GPT.nd.sec)
   
+  gpt = gpt[, c(which(index_vars %in% names(gpt)),
+                grep("^STP",names(gpt))),with = F]
+  
   abbreviations = c(GPT = "Grooved pegboard task",
                     dh = "dominant hand",
                     d = "dominant hand",
                     nd = "non-dominant hand",
-                    n_miss = "number misses",
-                    n2h = "number to hand",
+                    n_miss = "number missed pins",
+                    n2h = "number used two hands",
                     sec = "seconds")
   gpt = add_label(gpt,"GPT",abbreviations)
-  dt = merge(dt,gpt,by = c("PREG_ID_299","BARN_NR"))
+  dt = merge(dt,gpt,by = c(index_vars))
   rm(gpt)
   return(dt)
 }
+

@@ -30,10 +30,13 @@ get_diagnoses = function(pqa,pqb){
     tmp = c(pqa[[diagnosis[[d]][2]]],pqb[[diagnosis[[d]][1]]]-1)
     tmp[tmp<0] = 0
     diags[[d]] = labelled(tmp,labels = c(No = 0, Yes = 1))
-    attributes(diags[[d]])$label = paste0("Child diagnosis-",d)
+    attributes(diags[[d]])$label = attributes(pqa[[diagnosis[[d]][2]]])$label
   }
   setnames(diags,names(diags),paste("CDIAG.",names(diags),sep = ""))
-  diags = cbind(rbind(pqa[,list(PREG_ID_299,BARN_NR)],pqb[,list(PREG_ID_299,BARN_NR)]),
+  diags = cbind(rbind(pqa[,index_vars,with = F],
+                      pqb[,index_vars,with = F]),
                 diags)
+  abbreviations = c(CDIAG = "Child diagnosed for")
+  diags = add_label(diags,"CDIAG",abbreviations,my_warning = F)
   return(diags)
 }

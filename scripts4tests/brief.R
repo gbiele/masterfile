@@ -3,12 +3,12 @@
 get_brief = function(qu_a,qu_b,rater){
   
   if (rater == "P") {
-    briefavars = c("PREG_ID_299","BARN_NR",names(qu_a)[grep("SBFBRIEF",names(qu_a))])
-    briefbvars = c("PREG_ID_299","BARN_NR",names(qu_b)[grep("C_29",names(qu_b))])
+    briefavars = c(index_vars,names(qu_a)[grep("SBFBRIEF",names(qu_a))])
+    briefbvars = c(index_vars,names(qu_b)[grep("C_29",names(qu_b))])
     base_name = "BRF.P."
   } else if (rater == "T") {
-    briefavars = c("PREG_ID_299","BARN_NR",names(qu_a)[grep("BHBRIEF",names(qu_a))])
-    briefbvars = c("PREG_ID_299","BARN_NR",names(qu_b)[grep("B__3",names(qu_b))])
+    briefavars = c(index_vars,names(qu_a)[grep("BHBRIEF",names(qu_a))])
+    briefbvars = c(index_vars,names(qu_b)[grep("B__3",names(qu_b))])
     base_name = "BRF.T."
   }
   
@@ -25,19 +25,22 @@ get_brief = function(qu_a,qu_b,rater){
   brief = rbind(briefa,briefb,use.names = F)
   rm(briefa,briefb,briefavars,briefbvars)
   
-  setnames(brief,names(brief)[-c(1,2)],paste(base_name,1:63,sep = "I."))
+  setnames(brief,names(brief)[-c(1,2)],paste(base_name,1:63,sep = "i"))
   
   brief_dims = data.table(read.csv2("instrument_docs/brief_items4dims.txt",sep = ","))
   
   for (d in unique(brief_dims$dimension)){
-    brief[[paste(base_name,d,sep = "SS.")]] = rowSums(brief[,paste(base_name,brief_dims[dimension == d,item],sep = "I."),with = F])
+    items = paste(base_name,brief_dims[dimension == d,item],sep = "i")
+    brief = make_sum_scores(brief,items, paste0(base_name,d,".SS"))
   }
  
   abbreviations = c(BRF = "BRIEF (Behavior Rating Inventory of Executive Function)",
                     T = "teacher",
                     P = "parent",
                     SS = "sum of scores",
-                    I = "Item")
-  
+                    WorkMem = "working memory",
+                    PlanOrga = "planning and organizing",
+                    EmotContr = "Emotional control")
+  brief = add_label(brief,"BRF",abbreviations)
   return(brief)
 }

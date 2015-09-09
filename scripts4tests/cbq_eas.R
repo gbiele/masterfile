@@ -12,10 +12,10 @@
 # info short form: http://www.bowdoin.edu/~sputnam/rothbart-temperament-questionnaires/pdf/CBQ-development-of-short-form.pdf 
 
 get_cbq_eas = function(pqa,pqb){
-  cbqavars = c("PREG_ID_299","BARN_NR",names(pqa)[grep("SBFCBQ",names(pqa))])
+  cbqavars = c(index_vars,names(pqa)[grep("SBFCBQ",names(pqa))])
   cbqa = pqa[,cbqavars,with = F]
   
-  cbqbvars = c("PREG_ID_299","BARN_NR",names(pqb)[grep("C_28",names(pqb))])
+  cbqbvars = c(index_vars,names(pqb)[grep("C_28",names(pqb))])
   cbqb = pqb[,cbqbvars,with = F]
   
   for (v in 3:ncol(cbqa)){
@@ -30,15 +30,20 @@ get_cbq_eas = function(pqa,pqb){
   rm(cbqa,cbqb,cbqavars,cbqbvars)
   
   cbq_item_info = fread("instrument_docs/cbq_items_and_scale.txt")
+  cbq_item_info[,item_number := as.numeric(item_number)]
+  setkey(cbq_item_info,"item_number")
   empathy_items = setnames(data.table(cbind(37:50,rep("Empathy",14))),c("V1","V2"),names(cbq_item_info))
   cbq_item_info = rbind(cbq_item_info,empathy_items)
   
-  cbqitems = paste(paste("CBQ.P.PI",cbq_item_info$item_number,sep = ""),cbq_item_info$scale,sep = ".")
+  cbqitems = paste(paste0("CBQ.P.",cbq_item_info$scale),
+                   cbq_item_info$item_number,
+                   sep = ".i")
+  
   setnames(cbq,paste("SBFCBQ",1:50,sep = ""),cbqitems )
   
   cbq_scales = unique(cbq_item_info$scale)
   for (s in cbq_scales) {
-    cbq = make_sum_scores(cbq,grep(s,names(cbq)),paste("CBQ.P.SS",s,sep = "."))
+    cbq = make_sum_scores(cbq,grep(s,names(cbq)),paste0("CBQ.P.",s,".SS"))
   }
   
   
@@ -48,14 +53,23 @@ get_cbq_eas = function(pqa,pqb){
                     ACTIVITY = c(2,4,-8),
                     SHYNESS = c(-5,6,-11),
                     SOCIABILITY = c(3,9,12))
+  scl = rep("n",length(unlist(eas_scales)))
+  for (s in names(eas_scales)) scl[abs(eas_scales[[s]])] = s
   
-  setnames(cbq,paste("SBFCBQ",51:62,sep = ""),paste0("EAS.P.I.",1:12))
+  setnames(cbq,paste("SBFCBQ",51:62,sep = ""),paste0("EAS.P.",scl,".i",1:12))
   for (s in names(eas_scales)) {
     w = eas_scales[[s]]
-    cbq[[paste("EAS.P.SS",s,sep = ".")]] = 
-      (as.matrix(cbq[,paste0("EAS.P.I.",abs(w)),with = F]) %*% sign(w))
+    cbq[[paste0("EAS.P.",s,sep = ".SS")]] = 
+      (as.matrix(cbq[,grep(s,names(cbq)),with = F]) %*% sign(w))
   }
-  cbq$EAS.P.SS.SHYNESS = cbq$EAS.P.SS.SHYNESS - min(cbq$EAS.P.SS.SHYNESS,na.rm = T)
-  print("set minimum value of EAS.P.SS.SHYNESS to 0")
+  cbq$EAS.P.SHYNESS.SS = cbq$EAS.P.SHYNESS.SS - min(cbq$EAS.P.SHYNESS.SS,na.rm = T)
+  print("set minimum value of EAS.P.SHYNESS.SS to 0")
+  abbreviations = c(CBQ = "Childrens Behavior Questionnaire, short form",
+                    EAS = "Emotionality, Activity and Sociability temperament Survey for Children",
+                    P = "Parent rating",
+                    SS = "sum score")
+  cbq = add_label(cbq,"CBQ",abbreviations)
+  cbq = add_label(cbq,"EAS",abbreviations)
   return(cbq)
 }
+

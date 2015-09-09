@@ -92,10 +92,13 @@ get_family_illness = function(pqa,pqb){
   }
   
   
-  do = cbind(rbind(pqa[,list(PREG_ID_299,BARN_NR)],pqb[,list(PREG_ID_299,BARN_NR)]),
+  do = cbind(rbind(pqa[,index_vars,with = F],
+                   pqb[,index_vars,with = F]),
                     do)
-  abbrevitations = c(FH = "Health problems in family",
+  abbreviations = c(FH = "Health problems in family",
                      FD = "Disorder in family")
+  do = add_label(do,"FH",abbreviations,my_warning = F)
+  do = add_label(do,"FD",abbreviations,my_warning = F)
   rm(disorders)
   return(do)
 }

@@ -4,10 +4,12 @@ get_StanfordBinet = function(){
   StBdata <- read_sav("savs/StB.sav");
   agedata <- read_sav("savs/ADHD_Score.sav");
   names(agedata)[names(agedata) == "barn_nr"] = "BARN_NR"
-  StBdata = merge(StBdata,agedata[,c("PREG_ID_299","BARN_NR","Kontroll_Alder")],by = c("PREG_ID_299","BARN_NR"),all.x = T, all.y = F)
+  StBdata = merge(StBdata,agedata[,c(index_vars,"Kontroll_Alder")],by = c(index_vars),all.x = T, all.y = F)
   rm(agedata)
   
   StBdata = data.table(StBdata)
+  
+  for (v in index_vars) StBdata[, c(v) := as.numeric(get(v))]
   
   StBdata[, Age_in_months := Kontroll_Alder/365.25*12]
   
@@ -81,11 +83,11 @@ get_StanfordBinet = function(){
                     95, 96, 98, 99, 99, 99.5, 99.7, rep(99.9, 4))
   
   StBdata[,ABIQ := mapvalues(NVIQ+VIQ,sum_NV_V_val,ABIQ_val,warn_missing = F)]
-  StBdata[,ABIQ.PercRank := mapvalues(NVIQ+VIQ,sum_NV_V_val,PercRank_val,warn_missing = F)]
+  StBdata[,ABIQ.PR := mapvalues(NVIQ+VIQ,sum_NV_V_val,PercRank_val,warn_missing = F)]
  
   invalid_scores = c(grep("oversatt",StBdata$SB5_6),grep("Avbrøt",StBdata$SB5_6))
   StBdata[invalid_scores, ABIQ := NA]
-  StBdata[invalid_scores, ABIQ.PercRank := NA]
+  StBdata[invalid_scores, ABIQ.PR := NA]
   
   ################################ Working memory (WM) index ################################
   # Based on sum NVWM and VWM.
@@ -108,26 +110,26 @@ get_StanfordBinet = function(){
    
   setnames(StBdata,c("VERSJON_STB_TBL1", "SBINSTRUMENT_ID","Kontroll_Alder"),c("SB.Version","SB.Instrument_id","Age_in_days"))
   old_item_names = names(StBdata)[grep("SB[0-9]_",names(StBdata))]
-  new_item_names = gsub("SB","SB.I.",old_item_names)
+  new_item_names = gsub("SB","SB.i",old_item_names)
   setnames(StBdata,old_item_names,new_item_names)
   
-  old_names = c("NVIQ","VIQ","NVWMS","VWMS","ABIQ","ABIQ.PercRank","WMindex" )
-  new_names = paste("SB.S.",old_names,sep = "")
+  old_names = c("NVIQ","VIQ","NVWMS","VWMS","ABIQ","ABIQ.PR","WMindex" )
+  new_names = paste0("SB.",old_names,".S")
   setnames(StBdata,old_names,new_names)
-  
-  StBdata$PREG_ID_299 = as.numeric(StBdata$PREG_ID_299)
-  StBdata$BARN_NR = as.numeric(StBdata$BARN_NR)
 
-  abbreviations = c(SB = "stanfor Binet test",
-                    I = "Item",
+  abbreviations = c(SB = "Stanford Binet test",
                     S = "Score",
-                    ABIQ = "Abbreviated IQ score",
+                    ABIQ = "Abbreviated IQ",
                     VIQ = "verbal IQ",
                     NVIQ = "non-verbal IQ",
                     VWMS = "visual working memory",
                     NVWMS = "non-visual working memory",
+                    WMindex = "workig memory index",
                     PR = "persent rank")
-  
-  return(StBdata[,-grep("^SB",names(StBdata)),with = F])
+  StBdata = StBdata[,c(1,2,grep("^SB\\.|Age",names(StBdata))),with = F]
+  attributes(StBdata$Age_in_days) = list(label = "Age in days at data collection for ADHD Study")
+  attributes(StBdata$Age_in_months) = list(label = "Age in months at data collection for ADHD Study")
+  StBdata = add_label(StBdata,"SB",abbreviations,my_warning = F)
+  return(StBdata)
 }
- 
+
