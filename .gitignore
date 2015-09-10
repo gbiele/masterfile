@@ -3,7 +3,9 @@
 .RData
 spss_scripts
 savs
+scripts4tests/old
 instrument_docs/pdfs/*
+instrument_docs/*xls
 *.Rdata
 *.db
 *.png
