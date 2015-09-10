@@ -70,8 +70,6 @@ MASTER$VERSION = factor(MASTER$PREG_ID_299 %in% kgqb$PREG_ID_299+1)
 rm(kgqa,kgqb)
 # no cbq in kindergarden cbq = get_cbq_eas(pqa,pqb)
 
-
-
 ################# corrections #######################
 # GENERELT: slette barn med PREG_ID_299 = 50163 fra alle tester, grunnet usikkerhet rundt barnets norskkunnskaper (dette er inkludert i alle endelige syntakser). 
 # Mor oversetter nær sagt alle testinstruksjoner til serbisk, vi har ikke kontroll på hva hun sier.
@@ -91,7 +89,7 @@ MASTER[is87831,BNT.S := NA]
 # bnt$BNT.SCORE = rowSums(bnt[,names(bnt)[grep("BN1_",names(bnt))],with = F] < 5)
 # bnt[PREG_ID_299 == 50163, BNT.SCORE := NA] 
 
-rm(is87831,is50163)
+rm(list = (setdiff(ls()[!(ls() %in% lsf.str())],c("MASTER","index_vars"))))
 
 ############## score, sum-scores, and counts #############
 
