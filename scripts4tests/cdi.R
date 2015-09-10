@@ -77,6 +77,6 @@ get_cdi_kg = function(kgqa,kgqb){
                     P = "parent ratings",
                     SS = "sum of scores",
                     L = "Language")
-  
+  cdi = add_label(cdi,"CDI",abbreviations)
   return(cdi)
 }

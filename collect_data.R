@@ -34,7 +34,6 @@ MASTER = merge(MASTER,get_ADHD_SCALE_Q6(),by = index_vars,all = T)
 #####################################################
 MASTER = merge(MASTER,get_StanfordBinet(),by = index_vars,all = T)
 
-
 #####################################################
 ################ Parent questionnaires ##############
 #####################################################
@@ -79,9 +78,9 @@ MASTER = MASTER[-is50163,]
 # Vær obs på sakene 50163 og 87831 når disse syntaksene kjøres. Ingen av disse sakene skal ha valid ABIQ!!
 is87831 = which(MASTER$Age_in_days == 1294 & MASTER$PP.ADHD.SS == 3 & MASTER$PP.ODD.SS == 4)
 
-MASTER[is87831, SB.S.ABIQ := NA]
-MASTER[is87831, SB.S.ABIQ.PercRank := NA]
-MASTER[is87831, SB.S.WMindex := NA]
+MASTER[is87831, SB.ABIQ.S := NA]
+MASTER[is87831, SB.ABIQ.PR.S := NA]
+MASTER[is87831, SB.WMindex.S := NA]
 
 # Nina: slette BNT skåre til barnet der mor oversetter alle testinstruksjonene.
 MASTER[is87831,BNT.S := NA]
@@ -97,7 +96,7 @@ MASTER = MASTER[,c(index_vars,sort(names(MASTER)[-c(1:2)])),with = F]
 
 scores = c(index_vars,
            "VERSION",
-           names(MASTER)[grep("\\.S$|\\.SS$",names(MASTER))])
+           names(MASTER)[grep("\\.S$|\\.SS$|\\.GR",names(MASTER))])
 
 MASTER_scores = MASTER[,scores,with = F]
 

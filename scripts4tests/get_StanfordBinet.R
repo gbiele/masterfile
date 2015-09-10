@@ -114,7 +114,7 @@ get_StanfordBinet = function(){
   setnames(StBdata,old_item_names,new_item_names)
   
   old_names = c("NVIQ","VIQ","NVWMS","VWMS","ABIQ","ABIQ.PR","WMindex" )
-  new_names = paste0("SB.",old_names,".S")
+  new_names = gsub("PR.S","PR",paste0("SB.",old_names,".S"))
   setnames(StBdata,old_names,new_names)
 
   abbreviations = c(SB = "Stanford Binet test",
@@ -125,7 +125,7 @@ get_StanfordBinet = function(){
                     VWMS = "visual working memory",
                     NVWMS = "non-visual working memory",
                     WMindex = "workig memory index",
-                    PR = "persent rank")
+                    PR = "percent rank")
   StBdata = StBdata[,c(1,2,grep("^SB\\.|Age",names(StBdata))),with = F]
   attributes(StBdata$Age_in_days) = list(label = "Age in days at data collection for ADHD Study")
   attributes(StBdata$Age_in_months) = list(label = "Age in months at data collection for ADHD Study")

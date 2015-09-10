@@ -10,7 +10,7 @@ get_ADHD_SCALE_Q6 = function(){
                     I = "Item",
                     SS = "sum of scores")
   dt = dt[,c(index_vars,new_names,"MB3S.ADHD.SS"),with = F]
-  dt = add_label(dt,"A",abbreviations)
+  dt = add_label(dt,"MB3S",abbreviations)
   
   return(dt)
 }
