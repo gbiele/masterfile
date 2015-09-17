@@ -440,13 +440,79 @@ get_PAPA = function(){
   
   AX = make_sum_scores(AX,names(AX)[grep("PHO.i[0-9]",names(AX))],"PHO.SS")
   AX = make_sum_scores(AX,names(AX)[grep("SEA.i[0-9]",names(AX))],"SEA.SS")
-  AX = make_sum_scores(AX,names(AX)[grep("GEA.i[0-9]",names(AX))],"GEA.SS")
+  #AX = make_sum_scores(AX,names(AX)[grep("GEA.i[0-9]",names(AX))],"GEA.SS")
   AX = make_sum_scores(AX,names(AX)[grep("SOA.i[0-9]",names(AX))],"SOA.SS")
   
   AX = AX[,c(1,2,grep("SOA|GEA|SEA|PHO|ANX",names(AX))),with = F]
   
   ######################### konklusions ###################
   KK = data.table(read_sav("F:/Forskningsprosjekter/PDB 299 - ADHD-studien Prescho_/Forskningsfiler/GUBI/GuidoData/masterfile/savs/PAPA/ADHD_KONKL.sav"))
+  
+  labels = c(KU1_4_1 = "Neuropsychological evaluation",
+             KU2_1_1 = "Expressive speach problems",
+             KU2_1_2 = "Combined expressive and receptive speach problems",
+             KU2_2_1 = "Phonological speach problems",
+             KU4_1_1 = "Motorkoordination problems",
+             KU4_3_1 = "ADHD combined type",
+             KU4_3_2 = "ADHD inattentive type",
+             KU4_3_3 = "ADHD hyperative/imulsive type",
+             KU4_3_4 = "Attention-problems and Hyperactivity",
+             KU5_1_1 = "Oppositional defient disorder (ODD)",
+             KU5_1_2 = "Conduct disorder (CD)",
+             KU5_3_1 = "Separation anxiety",
+             KU5_3_2 = "Specific phobia",
+             KU5_3_3 = "Social phobia",
+             KU5_3_4 = "Generalized anxiety",
+             KU5_3_5 = "Selective mutism",
+             KU6_1_1 = "Adaptation disoder",
+             KU6_1_2 = "PTSD",
+             KU6_3_1 = "Tourette syndrome",
+             KU6_3_2 = "Chronic motor/vocal tics",
+             KU6_3_3 = "Transient tics",
+             KU7_1_1 = "Autism",
+             KU7_1_2 = "Severe developmental retardation/disorder",
+             KU7_3_7 = "Problems falling to sleep",
+             KU7_3_1 = "Sleeps to little",
+             KU7_3_2 = "Sleeps to much",
+             KU7_3_3 = "Unusul sleeping during the day with, exhausted",
+             KU7_3_4 = "Nightmares",
+             KU7_3_5 = "Nightscares",
+             KU7_3_6 = "Somnambulism",
+             KU8_1_1 = "Attachement problems",
+             KU8_1_2 = "Compulsive behaviors",
+             KU8_1_3 = "Sadness (depression)",
+             KU8_1_4 = "Regulation difficulties - Mood",
+             KU8_1_5 = "Regulation difficulties - Sensorik",
+             KU8_1_6 = "Regulation difficulties - Eating")
+  
+  vnames = c("NeuroPsych","ExpSpeach","ExReSpeach","PhonSpeach","Motor","ADHD.C","ADHD.A","ADHD.HI","AttHyp","ODD","CD",
+             "SepAnx","SpecPhob","SocPhob","GenAnx","SelMut","AdptDis","PTSD","Toure","ChronTic","TransTic","Autism",
+             "DevRet","Sleep","SleepL","SleepM","Exhaust","Nighm","Nightsc","Somn","Attachm","Compuls","SadDep",
+             "RegMood","RegSens","RegEat")
+  
+  diags = 1:23
+  diffs = 24:length(labels)
+  
+  labels[diags] = paste0("PAPA conlusion; Diagnosis: ",labels[diags])
+  labels[diffs] = paste0("PAPA conclusion; Diffiulty; ",labels[diffs])
+  
+  KK[,(names(labels)) := lapply(.SD, function(x) as.numeric(factor(x))), .SDcols = names(labels)]
+  KK[,(names(labels)) := lapply(.SD, function(x) {x[is.na(x)] = 0; return(x)}), .SDcols = names(labels)]
+  
+  diagnostic_labels = c(Non_symptomatic = 0,
+                        insufficent_information = 1,
+                        subthreshold_symptoms = 2,
+                        clinical_diagnosis = 3)
+  difficulties_labels = c(No_difficulties = 1,
+                          Difficulties_present_without_impact = 0,
+                          Difficulties_present_with_impact= 2)
+  
+  SDcols = names(labels)[diags]
+  KK[,(SDcols) := lapply(.SD, function(x) labelled(x,labels = diagnostic_labels)), .SDcols = SDcols]
+  SDcols = names(labels)[diffs]
+  KK[,(SDcols) := lapply(.SD, function(x) labelled(x,labels = difficulties_labels)), .SDcols = SDcols]
+  for (v in names(labels)) attributes(KK[[v]])$label = labels[v]
+  
   
   KK[, LANG.GR := 4]
   for (v in 3:1)  KK[KU2_1_1 == v | KU2_1_2 == v | KU2_2_1 == v, LANG.GR := v]
@@ -476,7 +542,16 @@ get_PAPA = function(){
   KK[OTHER.GR < 3 | SL.GR < 3 | EMO.GR < 3,XOTHER.GR := 1]
   KK[,XOTHER.GR := labelled(XOTHER.GR, labels = c("Yes" = 1, "No" = 2))]
   
-  KK = KK[,c(1,2,grep("LANG|EMO|OTHER|SL|XOTHER",names(KK))),with = F]
+  
+  new_names = c(paste0("PP.DIA.",vnames[diags]),
+                paste0("PP.DIF.",vnames[diffs]))
+  setnames(KK,names(labels),new_names)
+  
+  keep_vars = c(index_vars,
+               new_names,
+               names(KK)[grep("LANG|EMO|OTHER|SL|XOTHER",names(KK))])
+  
+  KK = KK[,keep_vars,with = F]
   
   ############################# merge and ADHD COMORBIDITIES ##############################
   
