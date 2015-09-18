@@ -6,14 +6,24 @@ library(stringr)
 library(foreign)
 
 
-make_sum_scores = function(DT,items,ss_var){
+make_sum_scores = function(DT,items,ss_var,count_score = T){
   DT[,sNAs := sum(is.na(.SD)),by = 1:nrow(DT),.SDcols = items]
   tmp_items = paste0(items,".tmp")
   DT[,(tmp_items):=lapply(.SD, function(col) as.numeric(factor(col))-1),.SDcols = items]
+  
   DT[, sum_score := sum(.SD,na.rm = T),by = 1:nrow(DT), .SDcols = tmp_items]
+  DT[, sum_score := round(sum_score/(length(tmp_items)-sNAs)*length(tmp_items))]
   DT[sNAs >= (length(items)/2) , sum_score := NA,]
-  DT = DT[,-which(names(DT) %in% c("sNAs",tmp_items)),with = F]
   setnames(DT,"sum_score",ss_var)
+
+  if (count_score){
+    DT[, count_score := sum(.SD > 0,na.rm = T),by = 1:nrow(DT), .SDcols = tmp_items]
+    DT[, count_score := round(count_score/(length(tmp_items)-sNAs)*length(tmp_items))]
+    DT[sNAs >= (length(items)/2) , count_score := NA,]
+    setnames(DT,"count_score",sub(".SS",".SC",ss_var))
+  }
+  
+  DT = DT[,-which(names(DT) %in% c("sNAs",tmp_items)),with = F]
   return(DT)
 }
 
@@ -79,7 +89,31 @@ char2num = function(x){
 
 
 hist_by_version = function(D){
-  par(mfrow = c(3,3))
+  par (mar=c(3,3,2,1), mgp=c(2,.7,0), tck=-.01)
+  par(mfrow = c(4,4))
+  if (is(D,"data.table")) D = data.frame(D)
+  for (v in colnames(D)) {
+    if (is.numeric(D[,v])){
+      h = hist(D[,v],plot = F)
+      
+      x = sort(c(h$mids,range(h$breaks)))
+      y1 = c(0,hist(D[D$VERSION == 1,v],breaks = h$breaks,plot = F)$counts,0)
+      y2 = c(0,hist(D[D$VERSION == 2,v],breaks = h$breaks,plot = F)$counts,0)
+      plot(x,y1,'s',
+           main = v,
+           ylab = "density",
+           xlab = "value",
+           ylim = c(0,max(y1,y2)))
+      lines(x,y2,'s',col = "red")
+      }
+    }
+  par(mfrow = c(1,1))
+}
+  
+
+shist_by_version = function(D){
+  par (mar=c(0.1,0.1,0.1,0.1), mgp=c(2,.7,0), tck=-.01)
+  par(mfrow = c(11,13))
   if (is(D,"data.table")) D = data.frame(D)
   for (v in setdiff(colnames(D),c(index_vars,"VERSION"))) {
     h = hist(D[,v],plot = F)
@@ -87,12 +121,20 @@ hist_by_version = function(D){
     x = sort(c(h$mids,range(h$breaks)))
     y1 = c(0,hist(D[D$VERSION == 1,v],breaks = h$breaks,plot = F)$counts,0)
     y2 = c(0,hist(D[D$VERSION == 2,v],breaks = h$breaks,plot = F)$counts,0)
-    plot(x,y1,'s',main = v, ylab = "density",ylim = c(0,max(y1,y2)))
+    plot(x,y1,'s',
+         main = "",
+         ylab = "",
+         xlab = "",
+         ylim = c(0,max(y1,y2)),
+         xaxt = "n",
+         yaxt = "n",
+         bty = "n")
+    axis(1,at = range(h$mids),labels = c("",""))
     lines(x,y2,'s',col = "red")
   }
   par(mfrow = c(1,1))
 }
-  
+
 
 library(fitdistrplus)
 
@@ -221,6 +263,38 @@ make_correlation_plot = function(D,save_image = T){
   if(save_image) dev.off()
 }
 
+
+get_time = function(T){
+  nT = rep(NA,length(T))
+  for (k in 1:length(T)) {
+    if (nchar(T[k])<=3 & length(grep("-|:|,|\\.",T[k])) == 0){
+      nT[k] = as.numeric(T[k])*60
+    } else if (length(grep(":|,|\\.",T[k])) > 0 & length(grep("-",T[k])) > 0) {
+      t1 = make_minutes(strsplit(T[k],"-")[[1]][1])
+      t2 = make_minutes(strsplit(T[k],"-")[[1]][2])
+      nT[k] = (t1+t2)/2
+    } else if (length(grep(":|,|\\.",T[k])) > 0 & length(grep("-",T[k])) == 0) {
+      nT[k] = make_minutes(T[k])
+    }else if (length(grep(":|,|\\.",T[k])) == 0 & length(grep("-",T[k])) > 0) {
+      nT[k] = sum(as.numeric(strsplit(T[k],"-")[[1]])*60)/2
+    } else if (length(grep("-|:|,|\\.",T[k])) == 0 & nchar(T[k]) == 4){
+      nT[k] = sum(c(as.numeric(substr(T[k],1,2)),
+                    as.numeric(substr(T[k],3,4))) *c(60,1))
+    }
+  }
+  return(nT)
+}
+
+make_minutes = function(s){
+  tt = sub(":|,|\\.","-",s)
+  tt = as.numeric(strsplit(tt,"-")[[1]])
+  if (length(tt) == 2) {
+    mins = sum(tt * c(60,1))
+  } else {
+    mins = tt*60
+  }
+  return(mins)
+}
 
 
 #write.foreign(mydata, "c:/mydata.txt", "c:/mydata.sps",   package="SPSS")
