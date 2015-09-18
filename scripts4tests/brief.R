@@ -25,12 +25,13 @@ get_brief = function(qu_a,qu_b,rater){
   brief = rbind(briefa,briefb,use.names = F)
   rm(briefa,briefb,briefavars,briefbvars)
   
-  setnames(brief,names(brief)[-c(1,2)],paste(base_name,1:63,sep = "i"))
-  
   brief_dims = data.table(read.csv2("instrument_docs/brief_items4dims.txt",sep = ","))
+  setkeyv(brief_dims,"item")
+  
+  setnames(brief,names(brief)[-c(1,2)],paste0(base_name,brief_dims[,dimension],".i",brief_dims[,item]))
   
   for (d in unique(brief_dims$dimension)){
-    items = paste(base_name,brief_dims[dimension == d,item],sep = "i")
+    items = names(brief)[grep(paste0(".",d,"."),names(brief))]
     brief = make_sum_scores(brief,items, paste0(base_name,d,".SS"))
   }
  
@@ -38,9 +39,12 @@ get_brief = function(qu_a,qu_b,rater){
                     T = "teacher",
                     P = "parent",
                     SS = "sum of scores",
-                    WorkMem = "working memory",
-                    PlanOrga = "planning and organizing",
-                    EmotContr = "Emotional control")
+                    SC = "count of non-zero scores",
+                    WM = "working memory",
+                    PO = "planning and organizing",
+                    EC = "Emotional control",
+                    IH = "Inhibition",
+                    SH = "Shift")
   brief = add_label(brief,"BRF",abbreviations)
   return(brief)
 }

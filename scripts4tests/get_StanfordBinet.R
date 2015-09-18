@@ -3,8 +3,9 @@ get_StanfordBinet = function(){
   
   StBdata <- read_sav("savs/StB.sav");
   agedata <- read_sav("savs/ADHD_Score.sav");
+  agedata[,"Gender"] = gsub("X_","",agedata[,"Gender"])
   names(agedata)[names(agedata) == "barn_nr"] = "BARN_NR"
-  StBdata = merge(StBdata,agedata[,c(index_vars,"Kontroll_Alder")],by = c(index_vars),all.x = T, all.y = F)
+  StBdata = merge(StBdata,agedata[,c(index_vars,"Kontroll_Alder","Gender")],by = c(index_vars),all.x = T, all.y = F)
   rm(agedata)
   
   StBdata = data.table(StBdata)
@@ -126,7 +127,7 @@ get_StanfordBinet = function(){
                     NVWMS = "non-visual working memory",
                     WMindex = "workig memory index",
                     PR = "percent rank")
-  StBdata = StBdata[,c(1,2,grep("^SB\\.|Age",names(StBdata))),with = F]
+  StBdata = StBdata[,c(1,2,grep("^SB\\.|Age|Gender",names(StBdata))),with = F]
   attributes(StBdata$Age_in_days) = list(label = "Age in days at data collection for ADHD Study")
   attributes(StBdata$Age_in_months) = list(label = "Age in months at data collection for ADHD Study")
   StBdata = add_label(StBdata,"SB",abbreviations,my_warning = F)

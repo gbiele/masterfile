@@ -51,7 +51,9 @@ get_Copland = function(qu_a,qu_b){
   }
   
   abbreviations = c(PPS = "Preschool Play Behavior Scale",
-                    T = "Teacher rating")
+                    T = "Teacher rating",
+                    SC = "count of non-zero scores",
+                    SS = "sum of scores")
   PPS = add_label(PPS,"PPS",abbreviations)
   return(PPS)
   

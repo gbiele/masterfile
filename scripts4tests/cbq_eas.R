@@ -67,7 +67,8 @@ get_cbq_eas = function(pqa,pqb){
   abbreviations = c(CBQ = "Childrens Behavior Questionnaire, short form",
                     EAS = "Emotionality, Activity and Sociability temperament Survey for Children",
                     P = "Parent rating",
-                    SS = "sum score")
+                    SS = "sum score",
+                    SC = "count of non-zero scores")
   cbq = add_label(cbq,"CBQ",abbreviations)
   cbq = add_label(cbq,"EAS",abbreviations)
   return(cbq)

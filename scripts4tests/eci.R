@@ -70,6 +70,7 @@ get_eci = function(qu,rater){
                     T = "Teacher ratings",
                     P = "Parent ratings",
                     SS = "sum of scores",
+                    SC = "count of non-zero scores",
                     AIA = "ADHD inattention",
                     AHY = "ADHD hyperactivity",
                     AIM = "ADHD impulsivity",

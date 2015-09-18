@@ -34,8 +34,8 @@ get_neuropsych = function() {
   rm(tmp)
   
   vnames = names(dt)
-  dt = make_sum_scores(dt,vnames[grep("NY2_1",vnames)],"NY.L.UI.1_13.S")
-  dt = make_sum_scores(dt,vnames[grep("NY3_2",vnames)],"NY.L.UI.14_20.S")
+  dt = make_sum_scores(dt,vnames[grep("NY2_1",vnames)], "NY.L.UI.1_13.S", count_score = F)
+  dt = make_sum_scores(dt,vnames[grep("NY3_2",vnames)], "NY.L.UI.14_20.S", count_score = F)
   dt[,NY.L.UI.S := NY.L.UI.1_13.S + NY.L.UI.14_20.S]
   
   dt = dt[,-grep("NY3_|N3_",names(dt)),with = F]
@@ -59,6 +59,7 @@ get_neuropsych = function() {
   dt[,NY.VI.bunniescats.S := char2num(dt$NY5_3_3)]
   dt[NY.VI.bunniescats.S > 45, NY.VI.bunniescats.S := NA]
   setnames(dt,"NY5_3_4","NY.VI.bunniescats.T")
+  dt[, NY.VI.bunniescats.T := char2num(NY.VI.bunniescats.T)]
   
   dt = dt[,-grep("NY5_",names(dt)),with = F]
   
@@ -130,6 +131,7 @@ get_neuropsych = function() {
   setnames(trl,"TR2_2_1","TT.B.lrd")
   setnames(trl,"TR2_3","TT.B.errors")
   setnames(trl,"TR2_4","TT.B.t2c")
+  trl[,TT.B.t2c := char2num(TT.B.t2c)]
   
   abbreviations = c(TT = "Truck reversal learning task",
                     A = "run 1",
