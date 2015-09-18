@@ -101,7 +101,8 @@ get_sdq = function(qu_a,qu_b,rater){
                     P = "parent",
                     IPT = "impact on functioning",
                     TOT = "global evaluation based on EMOTION, CONDUCT, HYPERACTIVITY, PEERRELATIONS",
-                    SS = "sum of scores")
+                    SS = "sum of scores",
+                    SC = "count of non-zero scores")
   sdq = add_label(sdq,"SDQ",abbreviations)
   return(sdq)
 }
