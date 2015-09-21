@@ -23,7 +23,7 @@ get_PAPA = function(){
                 "K2_2_1_12_1","K2_2_1_13_1","K2_2_1_14_1","K2_2_1_16_1")
   # btr = beadtime ritual, slp = sleep, slpr = sleeper, slps = sleeps,unr_a_slp = unrested after sleep
   # slps_day = sleeps during day, wk_night = wakes at night, d = day, e = evening, diff_slp = difficulties sleeping
-  new_names = c("got2bed","get_up","h_night","res_slp",
+  new_names = c("go2bed","get_up","h_night","res_slp",
                 "btr","btr_read","btr_hist","btr_sing","btr_oth",
                 "leaves_bed","wk_night","t_asleep","diff_slp",
                 "self_slpr_d","self_slpr_e","restl_sleep","unr_a_slp",
@@ -65,12 +65,21 @@ get_PAPA = function(){
   SL[S.get_up == "070", S.get_up := "07"]
   SL[,S.get_up := get_time(S.get_up)]
   
-  SL[S.got2bed == "1930-20", S.got2bed := "19:30-20:00"]
-  SL[S.got2bed == "1900-2000", S.got2bed := "19:00-20:00"]
-  SL[S.got2bed == "8", S.got2bed := "20:00"]
-  SL[S.got2bed == "8:00", S.got2bed := "20:00"]
-  SL[S.got2bed == "08:00", S.got2bed := "20:00"]
-  SL[,S.got2bed := gsub("07","19",S.got2bed)]
+  SL[S.go2bed == "1930-20", S.go2bed := "19:30-20:00"]
+  SL[S.go2bed == "1900-2000", S.go2bed := "19:00-20:00"]
+  SL[S.go2bed == "8", S.go2bed := "20:00"]
+  SL[S.go2bed == "8:00", S.go2bed := "20:00"]
+  SL[S.go2bed == "08:00", S.go2bed := "20:00"]
+  SL[,S.go2bed := gsub("07","19",S.go2bed)]
+  SL[,S.go2bed := get_time(S.go2bed)]
+  
+  
+  SL[,S.t_asleep := gsub("[a-z]","",S.t_asleep)]
+  SL[,S.t_asleep := gsub(",",",",S.t_asleep)]
+  for (k in grep("-",SL$S.t_asleep)) {
+    SL$S.t_asleep[k] = as.character(mean(as.numeric(strsplit(SL$S.t_asleep[k],"-")[[1]])))
+  }
+  SL[,S.t_asleep := as.numeric(S.t_asleep)]
   
   ################################ emotion regulation  ############################
   REG = data.table(read_sav("F:/Forskningsprosjekter/PDB 299 - ADHD-studien Prescho_/Forskningsfiler/GUBI/GuidoData/masterfile/savs/PAPA/PAPA_K2.sav"))
@@ -777,7 +786,7 @@ get_PAPA = function(){
                 LANG = "language",
                 OTHER = "other",
                 t_asleep = "How much time does it thake for the child to og to sleep?",
-                got2bed = "When does the child go to bed? (minutes after 00:00)",
+                go2bed = "When does the child go to bed? (minutes after 00:00)",
                 get_up = "When does the child usually get up in the morning? (minutes after 00:00)",
                 leaves_bed = "Leaves bed before going to sleep",
                 EMO = "affective disorder",
