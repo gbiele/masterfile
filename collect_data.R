@@ -1,3 +1,12 @@
+# things to add:
+# - konklusion
+# - depression
+# - eating
+
+# sanity checks: 
+# - effecst of gender
+# - effects of age
+
 file.sources = paste("scripts4tests/",list.files(path = "scripts4tests/",pattern="*.R"),sep = "")
 tmp = sapply(file.sources,source,.GlobalEnv)
 rm(tmp,file.sources)
@@ -45,10 +54,11 @@ MASTER = merge(MASTER,get_cdi(pqa,pqb,"P"),by = index_vars,all = T)
 MASTER = merge(MASTER,get_sdq(pqa,pqb,"P"),by = index_vars,all = T)
 MASTER = merge(MASTER,get_brief(pqa,pqb,"P"),by = index_vars,all = T)
 MASTER = merge(MASTER,get_cbq_eas(pqa,pqb) ,by = index_vars,all = T)
-MASTER = merge(MASTER,get_diagnoses(pqa,pqb),by = index_vars,all = T)
-MASTER = merge(MASTER,get_family_illness(pqa,pqb),by = index_vars,all = T)
 MASTER = merge(MASTER,get_eci(pqb,"P"),by = index_vars,all = T)
 MASTER = merge(MASTER,get_conners(pqa,"P"),by = index_vars,all = T)
+MASTER = merge(MASTER,get_diagnoses(pqa,pqb),by = index_vars,all = T)
+MASTER = merge(MASTER,get_family_illness(pqa,pqb),by = index_vars,all = T)
+
 
 
 rm(pqa,pqb)
@@ -78,36 +88,44 @@ MASTER = MASTER[-is50163,]
 # Vær obs på sakene 50163 og 87831 når disse syntaksene kjøres. Ingen av disse sakene skal ha valid ABIQ!!
 is87831 = which(MASTER$Age_in_days == 1294 & MASTER$PP.ADHD.SS == 3 & MASTER$PP.ODD.SS == 4)
 
-MASTER[is87831, SB.ABIQ.S := NA]
-MASTER[is87831, SB.ABIQ.PR.S := NA]
-MASTER[is87831, SB.WMindex.S := NA]
+MASTER[["SB.ABIQ.S"]][is87831] = NA
+MASTER[["SB.ABIQ.PR"]][is87831] = NA
+MASTER[["SB.WMindex.S"]][is87831] = NA
 
 # Nina: slette BNT skåre til barnet der mor oversetter alle testinstruksjonene.
-MASTER[is87831,BNT.S := NA]
+MASTER[["BNT.S"]][is87831] = NA
 
 # bnt$BNT.SCORE = rowSums(bnt[,names(bnt)[grep("BN1_",names(bnt))],with = F] < 5)
 # bnt[PREG_ID_299 == 50163, BNT.SCORE := NA] 
 
 rm(list = (setdiff(ls()[!(ls() %in% lsf.str())],c("MASTER","index_vars"))))
 
-############## score, sum-scores, and counts #############
+## remove cases with missing ADHD diagnosis
+MASTER = MASTER[!is.na(PP.ADHD.GR),]
+
+MASTER[,Age_quartiles := cut(Age_in_days,quantile(Age_in_days,na.rm = T,(0:4/4)),labels = 1:4)]
+MASTER[,Age_tercile := cut(Age_in_days,quantile(Age_in_days,na.rm = T,(0:3/3)),labels = 1:3)]
+
 
 MASTER = MASTER[,c(index_vars,sort(names(MASTER)[-c(1:2)])),with = F]
 
+MASTER[,fAge_tercile := factor(Age_tercile)]
+MASTER[,fGender := factor(Gender)]
+
 scores = c(index_vars,
            "VERSION",
-           names(MASTER)[grep("\\.S$|\\.SS$|\\.GR",names(MASTER))])
+           names(MASTER)[grep("\\.S$|\\.SS$|\\.GR|Age|Gender",names(MASTER))])
 
 MASTER_scores = MASTER[,scores,with = F]
 
 
+hist_by_version(MASTER_scores[,-grep("\\.GR$",names(MASTER_scores)),with = F])
 
-par(mfrow = c(4,4))
-hist_by_version(MASTER_scores)
+impdata = MASTER_scores[,-grep("\\.GR$",names(MASTER_scores)),with = F]
 
 #write.foreign(MASTER[,1:2,with = F], paste0(getwd(),"/MASTER.txt"), paste0(getwd(),"/MASTER.sps"),   package="SPSS")
-#save(MASTER,file = "masterfile.Rdata")
-#save(MASTER_scores,file = "masterfile_scores.Rdata")
+save(MASTER,file = "masterfile.Rdata")
+save(MASTER_scores,file = "masterfile_scores.Rdata")
 
 #plot_my_hists(MASTER_scores)
 #make_correlation_plot(MASTER_scores)
