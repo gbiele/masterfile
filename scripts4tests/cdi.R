@@ -72,7 +72,7 @@ get_cdi_kg = function(kgqa,kgqb){
   
   for (k in 3:length(cdiavars)) attributes(cdi[[k]])$label = varlabels[k]
   
-  abbreviations = c(CDI = "Child Development Inventory",
+  abbreviations = c(CDI = "CDI",
                     T = "teacher ratings",
                     P = "parent ratings",
                     SS = "sum of scores",

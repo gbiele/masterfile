@@ -64,8 +64,8 @@ get_cbq_eas = function(pqa,pqb){
   }
   cbq$EAS.P.SHYNESS.SS = cbq$EAS.P.SHYNESS.SS - min(cbq$EAS.P.SHYNESS.SS,na.rm = T)
   print("set minimum value of EAS.P.SHYNESS.SS to 0")
-  abbreviations = c(CBQ = "Childrens Behavior Questionnaire, short form",
-                    EAS = "Emotionality, Activity and Sociability temperament Survey for Children",
+  abbreviations = c(CBQ = "CBQ",
+                    EAS = "EAS",
                     P = "Parent rating",
                     SS = "sum score",
                     SC = "count of non-zero scores")

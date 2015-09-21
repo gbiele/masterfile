@@ -65,8 +65,8 @@ get_eci = function(qu,rater){
                                       function(v) paste0(nbase,v,".i",items2dims[[v]]))),
                         paste0(nbase,"ADHD.SS"))
   
-  abbreviations = c(ADHD = "Attention deficit hyperactivity disorder",
-                    ECI = "Early childhood Inventory 4 (ECI-4)",
+  abbreviations = c(ADHD = "ADHD",
+                    ECI = "ECI4",
                     T = "Teacher ratings",
                     P = "Parent ratings",
                     SS = "sum of scores",

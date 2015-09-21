@@ -99,6 +99,7 @@ get_sdq = function(qu_a,qu_b,rater){
   #       names with small letter are items
   abbreviations = c(T = "teacher",
                     P = "parent",
+                    SDQ = "SDQ",
                     IPT = "impact on functioning",
                     TOT = "global evaluation based on EMOTION, CONDUCT, HYPERACTIVITY, PEERRELATIONS",
                     SS = "sum of scores",

@@ -50,7 +50,7 @@ get_Copland = function(qu_a,qu_b){
     PPS = make_sum_scores(PPS,PPS_vars[grep(v,PPS_vars)],paste0("PPS.T.",v,".SS"))
   }
   
-  abbreviations = c(PPS = "Preschool Play Behavior Scale",
+  abbreviations = c(PPS = "PPS",
                     T = "Teacher rating",
                     SC = "count of non-zero scores",
                     SS = "sum of scores")

@@ -81,8 +81,8 @@ get_conners = function(qu,rater){
     setnames(CS,old_name,new_name)
   }
   
-  abbreviations = c(ADHD = "Attention deficit hyperactivity disorder",
-                    CS = "CTRS R-s (Conners' teacher rating scale revised, short, preschol)",
+  abbreviations = c(ADHD = "ADHD",
+                    CS = "CTRS_Rs",
                     T = "Teacher ratings",
                     P = "Parent ratings",
                     SS = "sum of scores",
@@ -93,7 +93,7 @@ get_conners = function(qu,rater){
                     xAIM = "ADHD impulsivity (!= Conners!)",
                     xCD = "Conduct disorder (!= Conners!)",
                     xADHD = "ADHD (!= Conners!)",
-                    xODD = "Oppositional defiant disorder (!= Conners!)",
+                    xODD = "ODD (!= Conners!)",
                     OPP = "A: Oppositional",
                     COG = "B: Cognitive problems/Inattention ",
                     HYP = "C: Hyperactivity",

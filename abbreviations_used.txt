@@ -1,0 +1,13 @@
+BRIEF = Behavior Rating Inventory of Executive Function
+CBQ = Childrens Behavior Questionnaire, short form
+EAS = Emotionality, Activity and Sociability temperament Survey for Children
+CDI = Child Development Inventory
+PAPA = Preschool Age Psychiatric Assessment Interview
+ADHD = Attention deficit hyperactivity disorder,
+CTRS_Rs = Conners' teacher rating scale revised, short, preschol
+ODD = Oppositional defiant disorder
+(!= Conners!) = sum score calculated from CTRS_Rs, but not according to the orginal scoring sheet
+PPS = Preschool Play Behavior Scale
+ECI4 = Early childhood Inventory 4
+NEPSY = Developmental Neuropsychological Assessment
+SDQ = Strengths and difficulties questionnaire

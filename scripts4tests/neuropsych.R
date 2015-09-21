@@ -63,7 +63,7 @@ get_neuropsych = function() {
   
   dt = dt[,-grep("NY5_",names(dt)),with = F]
   
-  abbreviations = c(NY = "NEPSY (Developmental Neuropsychological Assessment)",
+  abbreviations = c(NY = "NEPSY",
                     L = "Language",
                     VI = "Visual attention",
                     VP = "Visual processing",

@@ -35,7 +35,7 @@ get_brief = function(qu_a,qu_b,rater){
     brief = make_sum_scores(brief,items, paste0(base_name,d,".SS"))
   }
  
-  abbreviations = c(BRF = "BRIEF (Behavior Rating Inventory of Executive Function)",
+  abbreviations = c(BRF = "BRIEF",
                     T = "teacher",
                     P = "parent",
                     SS = "sum of scores",

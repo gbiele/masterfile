@@ -661,7 +661,7 @@ get_PAPA = function(){
   attributes(PAPA$PP.ADHD.IM.SC) = list(label = "PAPA: Number of present impulsivity SYMPTOMs")
   attributes(PAPA$PP.ADHD.HI.SC) = list(label = "PAPA: Number of present hyperactivity & impulsiveness SYMPTOMs")
   
-  translate = c(PP = "PAPA (Preschool Age Psychiatric Assessment) Interview",
+  translate = c(PP = "PAPA",
                 SEA = "separation anxiety", 
                 IMP = "impairments", 
                 SS = "sum of scores",
