@@ -86,23 +86,23 @@ get_PAPA = function(){
   for (v in index_vars) REG[, c(v) := as.numeric(get(v))]
   
   old_names = c("K2_2_2_1_1", "K2_2_2_2_1", "K2_2_2_3_1", "K2_2_2_4_1", "K2_2_2_5_1")
-  new_names = paste0("PP.ER.i",1:length(old_names))
+  new_names = paste0("ER.i",1:length(old_names))
   setnames(REG,old_names,new_names)
   REG = make_sum_scores(REG,new_names,"PP.ER.SS")
   
   ################################ sensoric reactivity  ############################
   old_names = paste0("K2_2_3_",1:10,"_1")
-  new_names = paste0("PP.SR.i",1:length(old_names))
+  new_names = paste0("SR.i",1:length(old_names))
   setnames(REG,old_names,new_names)
-  REG = make_sum_scores(REG,new_names,"PP.SR.SS")
+  REG = make_sum_scores(REG,new_names,"SR.SS")
   
   ################################ eating habits reactivity ############################
   old_names = c("K2_2_4_1_1", "K2_2_4_1_2", "K2_2_4_1_3","K2_2_4_2_1")
-  new_names = paste0("PP.EH.i",1:length(old_names))
+  new_names = paste0("EH.i",1:length(old_names))
   setnames(REG,old_names,new_names)
-  REG = make_sum_scores(REG,new_names,"PP.EH.SS")
+  REG = make_sum_scores(REG,new_names,"EH.SS")
   
-  REG = REG[,c(index_vars,names(REG)[grep("^PP.",names(REG))]),with = F]
+  REG = REG[,c(index_vars,names(REG)[grep("^EH.|^ER.|^SR.",names(REG))]),with = F]
   
   ################################ ADHD #########################################
   AD = data.table(read_sav("F:/Forskningsprosjekter/PDB 299 - ADHD-studien Prescho_/Forskningsfiler/GUBI/GuidoData/masterfile/savs/PAPA/PAPA_K3.sav"))
@@ -541,11 +541,12 @@ get_PAPA = function(){
              "DevRet","Sleep","SleepL","SleepM","Exhaust","Nighm","Nightsc","Somn","Attachm","Compuls","SadDep",
              "RegMood","RegSens","RegEat")
   
+
   diags = 1:23
   diffs = 24:length(labels)
   
-  labels[diags] = paste0("PAPA conlusion; Diagnosis: ",labels[diags])
-  labels[diffs] = paste0("PAPA conclusion; Diffiulty; ",labels[diffs])
+  #labels[diags] = paste0("PAPA conlusion; Diagnosis: ",labels[diags])
+  #labels[diffs] = paste0("PAPA conclusion; Diffiulty; ",labels[diffs])
   
   KK[,(names(labels)) := lapply(.SD, function(x) as.numeric(factor(x))), .SDcols = names(labels)]
   KK[,(names(labels)) := lapply(.SD, function(x) {x[is.na(x)] = 0; return(x)}), .SDcols = names(labels)]
@@ -562,8 +563,7 @@ get_PAPA = function(){
   KK[,(SDcols) := lapply(.SD, function(x) labelled(x,labels = diagnostic_labels)), .SDcols = SDcols]
   SDcols = names(labels)[diffs]
   KK[,(SDcols) := lapply(.SD, function(x) labelled(x,labels = difficulties_labels)), .SDcols = SDcols]
-  for (v in names(labels)) attributes(KK[[v]])$label = labels[v]
-  
+
   
   tmp = KK[,c("KU2_1_1", "KU2_1_2", "KU2_2_1"),with = F]
   tmp[tmp == 0] = 4
@@ -605,6 +605,9 @@ get_PAPA = function(){
                names(KK)[grep("LANG|EMO|OTHER|SL|XOTHER",names(KK))])
   
   KK = KK[,keep_vars,with = F]
+  
+  diag_labels = labels
+  names(diag_labels) = vnames
   
   ######################### communicartion, social play, rep. beh. #################
   
@@ -670,7 +673,7 @@ get_PAPA = function(){
   attributes(PAPA$PP.ADHD.IM.SC) = list(label = "PAPA: Number of present impulsivity SYMPTOMs")
   attributes(PAPA$PP.ADHD.HI.SC) = list(label = "PAPA: Number of present hyperactivity & impulsiveness SYMPTOMs")
   
-  translate = c(PP = "PAPA",
+  abbreviations = c(PP = "PAPA",
                 SEA = "separation anxiety", 
                 IMP = "impairments", 
                 SS = "sum of scores",
@@ -687,7 +690,7 @@ get_PAPA = function(){
                 ODD = "oppositional defient disorder",
                 DBD =  "disruptive behavior disorders",
                 SOC = "social play",
-                COMM = "comuniation",
+                COMM = "communication",
                 ER = "Emotion regulation",
                 SR = "Sensoric reactivity",
                 EH = "Eating habits",
@@ -793,20 +796,26 @@ get_PAPA = function(){
                 somnabul = "Somnabulisme",
                 XOTHER = "Other disorder than ADHD",
                 res_slp = "resistance to go to sleep",
-                h_night = "hours sleep per night")
+                h_night = "hours sleep per night",
+                CSR = "Communication, social behavior, and regulation",
+                DIF = "Conclusion: Difficulties",
+                DIA = "Conclusion: Diagnosis",
+                diag_labels,
+                C = "combined type",
+                A = "inattentive type")
   
-  for (variable in names(PAPA)[-c(1,2)]){
-    variable_info = strsplit(variable,split = "\\.")[[1]]
-    if (length(translate[variable_info]) == length(variable_info)){
-      label = paste0("PAPA: ", paste(translate[variable_info],collapse = "; "))
-      if ( is(PAPA[[variable]],"labelled") ) {
-        attributes(PAPA[[variable]])[["label"]] = label
-      } else {
-        attributes(PAPA[[variable]]) = list(label = label)
-      }
-    }
-  }
-  
+#   for (variable in names(PAPA)[-c(1,2)]){
+#     variable_info = strsplit(variable,split = "\\.")[[1]]
+#     if (length(translate[variable_info]) == length(variable_info)){
+#       label = paste0("", paste(translate[variable_info],collapse = "; "))
+#       if ( is(PAPA[[variable]],"labelled") ) {
+#         attributes(PAPA[[variable]])[["label"]] = label
+#       } else {
+#         attributes(PAPA[[variable]]) = list(label = label)
+#       }
+#     }
+#   }
+  PAPA = add_label(PAPA,"PP",abbreviations)
   return(PAPA)
 }
 
