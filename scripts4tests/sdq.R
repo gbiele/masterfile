@@ -103,7 +103,10 @@ get_sdq = function(qu_a,qu_b,rater){
                     IPT = "impact on functioning",
                     TOT = "global evaluation based on EMOTION, CONDUCT, HYPERACTIVITY, PEERRELATIONS",
                     SS = "sum of scores",
-                    SC = "count of non-zero scores")
+                    SC = "count of non-zero scores",
+                    imppeer  = "peer relationships",
+                    impclas  = "in class(room)")
   sdq = add_label(sdq,"SDQ",abbreviations)
+  if (length(grep("BHSDQ_B[0-9]",names(sdq))) > 0) sdq = sdq[,-grep("BHSDQ_B[0-9]",names(sdq)),with = F]
   return(sdq)
 }
