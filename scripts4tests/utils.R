@@ -47,7 +47,18 @@ add_label = function(dt,prefix,abbreviations,my_warning = T) {
       long_name = paste(tmp_abbrev[short_name],collapse = "; ")
       
       if(length(attr(dt[[v]],"label")) == 1) {
-        long_name = paste0(long_name,"(",attributes(dt[[v]])$label,")")
+        orig_label = strsplit(attributes(dt[[v]])$label,";")[[1]]
+        orig_label = orig_label[length(orig_label)]
+        if (nchar(orig_label) < 5) {
+          orig_label = ""
+        } else {
+          if (length(grep(";",attr(dt[[v]],"label"))) > 0) {
+            orig_label = paste0(" [Orig Label: ",orig_label,"]")
+          } else {
+            orig_label = paste0("; ",orig_label)
+          }
+        }
+        long_name = paste0(long_name,orig_label)
       }
          
       if ("labels" %in% names(attributes(dt[[v]]))) {
