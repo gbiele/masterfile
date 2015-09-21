@@ -1,11 +1,12 @@
 
 get_StanfordBinet = function(){
   
-  StBdata <- read_sav("savs/StB.sav");
-  agedata <- read_sav("savs/ADHD_Score.sav");
-  agedata[,"Gender"] = gsub("X_","",agedata[,"Gender"])
-  names(agedata)[names(agedata) == "barn_nr"] = "BARN_NR"
-  StBdata = merge(StBdata,agedata[,c(index_vars,"Kontroll_Alder","Gender")],by = c(index_vars),all.x = T, all.y = F)
+  StBdata <- data.table(read_sav("savs/StB.sav"))
+  agedata <- data.table(read_sav("savs/ADHD_Score.sav"))
+  agedata[,Gender := factor(as.numeric(factor(Gender)),labels = c("female","male"))]
+  
+  setnames(agedata,"barn_nr", "BARN_NR")
+  StBdata = merge(StBdata,agedata[,c(index_vars,"Kontroll_Alder","Gender"),with = F],by = c(index_vars),all.x = T, all.y = F)
   rm(agedata)
   
   StBdata = data.table(StBdata)
@@ -130,6 +131,9 @@ get_StanfordBinet = function(){
   StBdata = StBdata[,c(1,2,grep("^SB\\.|Age|Gender",names(StBdata))),with = F]
   attributes(StBdata$Age_in_days) = list(label = "Age in days at data collection for ADHD Study")
   attributes(StBdata$Age_in_months) = list(label = "Age in months at data collection for ADHD Study")
+  
+  StBdata = StBdata[,-grep("Kommentar|Psykologens|ikke gjennomført",sapply(StBdata,function(x) attr(x,"label"))),with = F]
+  StBdata = StBdata[,-grep("Version",names(StBdata))]
   StBdata = add_label(StBdata,"SB",abbreviations,my_warning = F)
   return(StBdata)
 }
