@@ -8,7 +8,8 @@ get_ADHD_SCALE_Q6 = function(){
   abbreviations = c(ADHD = "ADHD",
                     MB3 = "scale from Moba questionnaire 6 (3 years)",
                     I = "Item",
-                    SS = "sum of scores")
+                    SS = "sum of scores",
+                    SC = "count of non-zero scores")
   dt = dt[,c(index_vars,new_names,"MB3S.ADHD.SS"),with = F]
   dt = add_label(dt,"MB3S",abbreviations)
   
