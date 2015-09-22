@@ -99,5 +99,11 @@ get_eci = function(qu,rater){
   eci = eci[,c(index_vars,names(eci)[grep("^ECI",names(eci))]),with = F]
   
   eci = add_label(eci,"ECI",abbreviations)
+  eci_labels = c(Never = 1, Sometimes = 2, Often = 3, VeryOften = 4)
+  for (v in names(eci)[grep("i[0-9]",names(eci))]) {
+    eci[[v]] = labelled(eci[[v]],labels = eci_labels)
+  }
+  
+  return(eci)
 }
 
