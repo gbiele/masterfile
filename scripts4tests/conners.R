@@ -23,6 +23,11 @@ get_conners = function(qu,rater){
                       COG = c(3,8,12,17,21,25),
                       HYP = c(4,9,14,18,22,26),
                       ADHDI = c(1,5,7,10,13,15,17,19,21,23,25,27))
+    items2dims = list(AIA = c(1, 4, 12, 14, 16, 17, 22, 23),
+                      AHY = c(3,  7,  8, 10, 11, 19, 21, 25),
+                      AIM = c(15, 24),
+                      ODD = c(2,6,13),
+                      CD = c(5,9,18,20))
   } else if (rater == "T") {
     CS = qu[,c(index_vars,names(qu)[grep("B__4",names(qu))]),with = F]
     base = "BHCONNERS_B"
@@ -31,6 +36,11 @@ get_conners = function(qu,rater){
                       COG = c(4,16),
                       HYP = c(3,7,10,15,19,21,24),
                       ADHDI = c(1,5,8,11,12,14,17,22,22,23,24,25))
+    items2dims = list(AIA = c(1,3,5,8,10,12,15,19,21,27 ),
+                      AHY = c(14,18,23),
+                      AIM = c(4,7,9),
+                      ODD = c(2,6,13,17,20,26),
+                      CD = c(11,16,24))
   }
   
   CS = qu[,c(index_vars,names(qu)[grep(base,names(qu))]),with = F]
@@ -95,17 +105,21 @@ get_conners = function(qu,rater){
                     xADHD = "ADHD (!= Conners!)",
                     xODD = "ODD (!= Conners!)",
                     OPP = "A: Oppositional",
-                    COG = "B: Cognitive problems/Inattention ",
+                    COG = "B: Cognitive problems/Inattention",
                     HYP = "C: Hyperactivity",
-                    ADHDI = "D: ADHD index")
+                    ADHDI = "D: ADHD index",
+                    COGADHDI = "Cognitive problems/Inattention & ADHD index")
   
   CS = add_label(CS,"CS",abbreviations)
   
-  attributes(CS$CS.P.AHY.SS)$label = paste0(attr(CS$CS.P.AHY.SS,"label"),"; (Items: ",paste0(item2dims$AHY,collapse = ","),")")
-  attributes(CS$CS.P.AIA.SS)$label = paste0(attr(CS$CS.P.AIA.SS,"label"),"; (Items: ",paste0(item2dims$AIA,collapse = ","),")")
-  attributes(CS$CS.P.AIM.SS)$label = paste0(attr(CS$CS.P.AIM.SS,"label"),"; (Items: ",paste0(item2dims$AIM,collapse = ","),")")
-  attributes(CS$CS.P.CD.SS)$label = paste0(attr(CS$CS.P.CD.SS,"label"),"; (Items: ",paste0(item2dims$CD,collapse = ","),")")
-  attributes(CS$CS.P.ODD.SS)$label = paste0(attr(CS$CS.P.ODD.SS,"label"),"; (Items: ",paste0(item2dims$ODD,collapse = ","),")")
+  for (v in c("xAHY","xAIA","xAIM","xCD","xODD")){
+    vn = paste0(nbase,v,".SS")
+    attributes(CS[[vn]])$label = paste0(attr(CS[[vn]],"label"),
+                                        "; (Items: ",
+                                        paste0(item2dims[[sub("x","",v)]],
+                                               collapse = ","),
+                                        ")")
+  }
   
   return(CS)
 }
