@@ -11,3 +11,19 @@ PPS = Preschool Play Behavior Scale
 ECI4 = Early childhood Inventory 4
 NEPSY = Developmental Neuropsychological Assessment
 SDQ = Strengths and difficulties questionnaire
+
+### generation of sum scores ####
+
+Sum scores were calculated for each (sub) dimension of a questionnaire using following algorithm
+- rescale the values such that the lowest score (typically "symptom is not present") has the value 0 and the following scores the values 1, 2, 3, etc.
+- calculate the scum score as the sum of the rescaled scores for all items of a dimension
+- if fewer than 50% of the items for a diemsion were missing, the sum score is calculated by taking the mean of the avilable items, mutliplying with the number of the items for the dimension and rounding to the next integer
+- if 50% or more of the items are missing, the sum score is set to 0
+
+
+### generation of "symptom counts" ####
+
+For each variable for which a sum score is calculated, a "symtom count" is also calculated.
+This variabel is called "count of symptoms" or "count of symptoms/non-zero scores".
+Accordingly, this variable is calculated as the sum of the itmes that have a score larger than zero.
+Missing values are treated as for the sum scores.
