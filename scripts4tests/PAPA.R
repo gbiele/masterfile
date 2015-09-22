@@ -136,39 +136,39 @@ get_PAPA = function(){
   
   ######################## ADHD sub groups ########################
   my_labels = c("ADHD_IA" = 1,"ADHD_H" = 2,"ADHD_C" = 3,"no_ADHD" = 4)
-  AD[ADHD.IMP.CAT == "present" & ADHD.AT.SC >= 6 & ADHD.HI.SC < 6, ADHD.SGR := 1]
-  AD[ADHD.IMP.CAT == "present" & ADHD.AT.SC < 6 & ADHD.HI.SC >= 6, ADHD.SGR := 2]
-  AD[ADHD.IMP.CAT == "present" & ADHD.AT.SC >= 6 & ADHD.HI.SC >= 6, ADHD.SGR := 3]
-  AD[ADHD.IMP.CAT == "absent" | (ADHD.AT.SC < 6 & ADHD.HI.SC < 6), ADHD.SGR := 4]
-  AD[,ADHD.SGR := labelled(ADHD.SGR,labels = my_labels)]
+  AD[ADHD.IMP.CAT == "present" & ADHD.AT.SC >= 6 & ADHD.HI.SC < 6, ADHD.SG := 1]
+  AD[ADHD.IMP.CAT == "present" & ADHD.AT.SC < 6 & ADHD.HI.SC >= 6, ADHD.SG := 2]
+  AD[ADHD.IMP.CAT == "present" & ADHD.AT.SC >= 6 & ADHD.HI.SC >= 6, ADHD.SG := 3]
+  AD[ADHD.IMP.CAT == "absent" | (ADHD.AT.SC < 6 & ADHD.HI.SC < 6), ADHD.SG := 4]
+  AD[,ADHD.SG := labelled(ADHD.SG,labels = my_labels)]
   
   ######################## ADHD subthreshold without impairment ########################
   my_labels = c("ADHD_subthr_woi_IA" = 1,"ADHD_subthr_woi_H" = 2,"ADHD_subthr_woi_C" = 3,"no_ADHD_subthr_woi" = 4)
-  AD[ADHD.SGR == 4 & ADHD.AT.SC >= 6 & ADHD.HI.SC < 6, ADHD.SGR.ST_woi := 1]
-  AD[ADHD.SGR == 4 & ADHD.AT.SC < 6 & ADHD.HI.SC >= 6, ADHD.SGR.ST_woi := 2]
-  AD[ADHD.SGR == 4 & ADHD.AT.SC >= 6 & ADHD.HI.SC >= 6, ADHD.SGR.ST_woi := 3]
-  AD[ADHD.SGR == 4 & ADHD.AT.SC < 6 & ADHD.HI.SC < 6, ADHD.SGR.ST_woi := 4]
-  AD[,ADHD.SGR.ST_woi := labelled(ADHD.SGR.ST_woi,labels = my_labels)]
+  AD[ADHD.SG == 4 & ADHD.AT.SC >= 6 & ADHD.HI.SC < 6, ADHD.SG.ST_woi := 1]
+  AD[ADHD.SG == 4 & ADHD.AT.SC < 6 & ADHD.HI.SC >= 6, ADHD.SG.ST_woi := 2]
+  AD[ADHD.SG == 4 & ADHD.AT.SC >= 6 & ADHD.HI.SC >= 6, ADHD.SG.ST_woi := 3]
+  AD[ADHD.SG == 4 & ADHD.AT.SC < 6 & ADHD.HI.SC < 6, ADHD.SG.ST_woi := 4]
+  AD[,ADHD.SG.ST_woi := labelled(ADHD.SG.ST_woi,labels = my_labels)]
   
   ######################## ADHD subthreshold with impairment ########################
   my_labels = c("ADHD_subthr_wi_IA" = 1,"ADHD_subthr_wi_H" = 2,"ADHD_subthr_wi_C" = 3,"no_ADHD_subthr_wi" = 4)
-  AD[ADHD.SGR == 4 & (ADHD.AT.SC > 2 & ADHD.AT.SC < 6)  & ADHD.HI.SC < 3 & ADHD.IMP.CAT == "present", ADHD.SGR.ST_wi := 1]
-  AD[ADHD.SGR == 4 & ADHD.AT.SC < 3 & (ADHD.HI.SC > 2 & ADHD.HI.SC < 6) & ADHD.IMP.CAT == "present", ADHD.SGR.ST_wi := 2]
-  AD[ADHD.SGR == 4 & (ADHD.AT.SC > 2 & ADHD.AT.SC < 6) & (ADHD.HI.SC > 2 & ADHD.HI.SC < 6) & ADHD.IMP.CAT == "present", ADHD.SGR.ST_wi := 3]
-  AD[ADHD.SGR == 4 & ADHD.AT.SC < 3 & ADHD.HI.SC < 3, ADHD.SGR.ST_wi := 4]
-  AD[,ADHD.SGR.ST_wi := labelled(ADHD.SGR.ST_wi,labels = my_labels)]
+  AD[ADHD.SG == 4 & (ADHD.AT.SC > 2 & ADHD.AT.SC < 6)  & ADHD.HI.SC < 3 & ADHD.IMP.CAT == "present", ADHD.SG.ST_wi := 1]
+  AD[ADHD.SG == 4 & ADHD.AT.SC < 3 & (ADHD.HI.SC > 2 & ADHD.HI.SC < 6) & ADHD.IMP.CAT == "present", ADHD.SG.ST_wi := 2]
+  AD[ADHD.SG == 4 & (ADHD.AT.SC > 2 & ADHD.AT.SC < 6) & (ADHD.HI.SC > 2 & ADHD.HI.SC < 6) & ADHD.IMP.CAT == "present", ADHD.SG.ST_wi := 3]
+  AD[ADHD.SG == 4 & ADHD.AT.SC < 3 & ADHD.HI.SC < 3, ADHD.SG.ST_wi := 4]
+  AD[,ADHD.SG.ST_wi := labelled(ADHD.SG.ST_wi,labels = my_labels)]
   
   ######################## Combined variable for subthreshold ADHD ########################
   my_labels = c("ADHD_subthr_IA" = 1,"ADHD_subthr_H" = 2,"ADHD_subthr_C" = 3,"no_ADHD_subthr" = 4)
-  AD[ADHD.SGR.ST_woi == 1 | ADHD.SGR.ST_wi == 1, ADHD.SGR.ST := 1]
-  AD[is.na(ADHD.SGR.ST) & ADHD.SGR.ST_woi == 2 | ADHD.SGR.ST_wi == 2, ADHD.SGR.ST := 2]
-  AD[is.na(ADHD.SGR.ST) & ADHD.SGR.ST_woi == 3 | ADHD.SGR.ST_wi == 3, ADHD.SGR.ST := 3]
-  AD[is.na(ADHD.SGR.ST) , ADHD.SGR.ST := 4]
-  AD[,ADHD.SGR.ST := labelled(ADHD.SGR.ST,labels = my_labels)]
+  AD[ADHD.SG.ST_woi == 1 | ADHD.SG.ST_wi == 1, ADHD.SG.ST := 1]
+  AD[is.na(ADHD.SG.ST) & ADHD.SG.ST_woi == 2 | ADHD.SG.ST_wi == 2, ADHD.SG.ST := 2]
+  AD[is.na(ADHD.SG.ST) & ADHD.SG.ST_woi == 3 | ADHD.SG.ST_wi == 3, ADHD.SG.ST := 3]
+  AD[is.na(ADHD.SG.ST) , ADHD.SG.ST := 4]
+  AD[,ADHD.SG.ST := labelled(ADHD.SG.ST,labels = my_labels)]
   
   my_labels = c("ADHD_c_clin" = 1,"ADHD_H_clin" = 2,"ADHD_IA_clin" = 3,"ADHD_C_subclin" = 4,"ADHD_H_subclin" = 5,"ADHD_IA_subclin" = 6,"no_ADHD" = 7)
-  AD[ADHD.SGR < 4, ADHD.GR := abs(ADHD.SGR-4)]
-  AD[ADHD.SGR > 3 & ADHD.SGR.ST < 4, ADHD.GR := abs(ADHD.SGR.ST-4)+3]
+  AD[ADHD.SG < 4, ADHD.GR := abs(ADHD.SG-4)]
+  AD[ADHD.SG > 3 & ADHD.SG.ST < 4, ADHD.GR := abs(ADHD.SG.ST-4)+3]
   AD[is.na(ADHD.GR), ADHD.GR := 7]
   AD[,ADHD.GR := labelled(ADHD.GR,labels = my_labels)]
   
@@ -240,11 +240,11 @@ get_PAPA = function(){
   # impairment   
   impair_cols = paste("K44_23A",1:6,sep = "_")
   BH[,ODD.IMP.MI := sum(is.na(.SD)),by = 1:nrow(BH), .SDcols = impair_cols]
-  BH[,ODD.IMP.wk := sum(.SD == 1,na.rm = T),by = 1:nrow(BH), .SDcols = impair_cols]
+  BH[,ODD.IMPwk := sum(.SD == 1,na.rm = T),by = 1:nrow(BH), .SDcols = impair_cols]
   BH[,ODD.IMPstr := sum(.SD > 1,na.rm = T),by = 1:nrow(BH), .SDcols = impair_cols]
   
   BH[, ODD.IMP := 0]
-  BH[(ODD.IMP.MI < 6 & ODD.IMP.wk > 2) | ODD.IMPstr > 0, ODD.IMP := 1]
+  BH[(ODD.IMP.MI < 6 & ODD.IMPwk > 2) | ODD.IMPstr > 0, ODD.IMP := 1]
   BH[ODD.IMP.MI >= 6, ODD.IMP := NA]
   
   SDcols = paste("K44_23A",1:6,sep = "_")
@@ -548,21 +548,21 @@ get_PAPA = function(){
   #labels[diags] = paste0("PAPA conlusion; Diagnosis: ",labels[diags])
   #labels[diffs] = paste0("PAPA conclusion; Diffiulty; ",labels[diffs])
   
-  KK[,(names(labels)) := lapply(.SD, function(x) as.numeric(factor(x))), .SDcols = names(labels)]
   KK[,(names(labels)) := lapply(.SD, function(x) {x[is.na(x)] = 0; return(x)}), .SDcols = names(labels)]
   
-  diagnostic_labels = c(Non_symptomatic = 0,
-                        insufficent_information = 1,
-                        subthreshold_symptoms = 2,
-                        clinical_diagnosis = 3)
+  diagnostic_labels = c(Non_symptomatic = 1,
+                        insufficent_information = 2,
+                        subthreshold_symptoms = 3,
+                        clinical_diagnosis = 4,
+                        situational_ADHD = 5)
   difficulties_labels = c(No_difficulties = 1,
-                          Difficulties_present_without_impact = 0,
-                          Difficulties_present_with_impact= 2)
+                          Difficulties_present_without_impact = 2,
+                          Difficulties_present_with_impact= 3)
   
   SDcols = names(labels)[diags]
-  KK[,(SDcols) := lapply(.SD, function(x) labelled(x,labels = diagnostic_labels)), .SDcols = SDcols]
+  KK[,(SDcols) := lapply(.SD, function(x) labelled(as.numeric(factor(x)),labels = diagnostic_labels)), .SDcols = SDcols]
   SDcols = names(labels)[diffs]
-  KK[,(SDcols) := lapply(.SD, function(x) labelled(x,labels = difficulties_labels)), .SDcols = SDcols]
+  KK[,(SDcols) := lapply(.SD, function(x) labelled(as.numeric(factor(x)),labels = difficulties_labels)), .SDcols = SDcols]
 
   
   tmp = KK[,c("KU2_1_1", "KU2_1_2", "KU2_2_1"),with = F]
@@ -609,7 +609,10 @@ get_PAPA = function(){
   diag_labels = labels
   names(diag_labels) = vnames
   
-  ######################### communicartion, social play, rep. beh. #################
+  SDcols = c("DIA.ADHD.A","DIA.ADHD.HI","DIA.ADHD.C")
+KK[,DIA.ADHD.any_ADHD := labelled(max(.SD),labels = diagnostic_labels), by = 1:nrow(KK),.SDcols = SDcols]
+
+  ######################### communication, social play, rep. beh. #################
   
   CSR = data.table(read_sav("F:/Forskningsprosjekter/PDB 299 - ADHD-studien Prescho_/Forskningsfiler/GUBI/GuidoData/masterfile/savs/PAPA/PAPA_K1.sav"))
   
@@ -676,6 +679,8 @@ get_PAPA = function(){
   abbreviations = c(PP = "PAPA",
                 SEA = "separation anxiety", 
                 IMP = "impairments", 
+                IMPstr = "strong impairments", 
+                IMPwk = "weak impairments", 
                 SS = "sum of scores",
                 SL = "sleep",
                 SOA = "social anxiety",
@@ -697,8 +702,8 @@ get_PAPA = function(){
                 REP = "repetetive behavior",
                 SC = "count of non-zero scores",
                 MI = "number of missing values",
-                GR = "group",
-                SGR = "sub group",
+                GR = "diagnostic groups",
+                SG = "diagnostic sub groups",
                 ST = "sub threshold",
                 CAT = "category",
                 clin = "clinical",
