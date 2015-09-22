@@ -42,6 +42,7 @@ get_cdi = function(qu_a,qu_b,rater){
                     T = "teacher ratings",
                     P = "parent ratings",
                     SS = "sum of scores",
+                    SC = "count of non-zero symptoms/scores",
                     L = "Language")
   cdi = add_label(cdi,"CDI",abbreviations)
   return(cdi)
@@ -76,6 +77,7 @@ get_cdi_kg = function(kgqa,kgqb){
                     T = "teacher ratings",
                     P = "parent ratings",
                     SS = "sum of scores",
+                    SC = "count of non-zero symptoms/scores",
                     L = "Language")
   cdi = add_label(cdi,"CDI",abbreviations)
   return(cdi)
