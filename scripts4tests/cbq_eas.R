@@ -20,7 +20,8 @@ get_cbq_eas = function(pqa,pqb){
   
   for (v in 3:ncol(cbqa)){
     attributes(cbqb[[v]]) = attributes(cbqa[[v]])
-    cbqa[[v]][which(cbqa[[v]] == 9)] = NA
+    cbqa[[v]][c(which(cbqa[[v]] > 7),which(cbqa[[v]] == 0))] = NA
+    cbqb[[v]][c(which(cbqb[[v]] > 7),which(cbqb[[v]] == 0))] = NA
   }
   
   cbq = rbind(cbqa,cbqb,use.names = F)
@@ -45,14 +46,14 @@ get_cbq_eas = function(pqa,pqb){
   for (s in cbq_scales) {
     cbq = make_sum_scores(cbq,grep(s,names(cbq)),paste0("CBQ.P.",s,".SS"))
   }
-  
+
   
   ############### need to add scale scores for EAS ####################
   # from mathiesen & tambs, 1999
-  eas_scales = list(EMOTIONALITY = c(1,7,10),
+  eas_scales = list(EMOTION = c(1,7,10),
                     ACTIVITY = c(2,4,-8),
                     SHYNESS = c(-5,6,-11),
-                    SOCIABILITY = c(3,9,12))
+                    SOCIABIL = c(3,9,12))
   scl = rep("n",length(unlist(eas_scales)))
   for (s in names(eas_scales)) scl[abs(eas_scales[[s]])] = s
   
@@ -68,9 +69,23 @@ get_cbq_eas = function(pqa,pqb){
                     EAS = "EAS",
                     P = "Parent rating",
                     SS = "sum score",
-                    SC = "count of non-zero scores")
+                    SC = "count of non-zero scores",
+                    EMOTION = "EMOTIONABILITY",
+                    SOCIABIL = "SOCIABILITY")
   cbq = add_label(cbq,"CBQ",abbreviations)
   cbq = add_label(cbq,"EAS",abbreviations)
+  
+  cbq_labels = 1:7
+  names(cbq_labels) = c("extremely untrue of your child",
+                        "quite untrue of your child",
+                        "slightly untrue of your child",
+                        "neither true nor false of your child",
+                        "slightly true of your child",
+                        "quite true of your child",
+                        "extremely true of your child")
+  for (v in names(cbq)[grep("\\.i[0-9]",names(cbq))])
+    attributes(cbq[[v]])$labels = cbq_labels
+  
   return(cbq)
 }
 
