@@ -5,6 +5,7 @@ library(car)
 library(stringr)
 library(foreign)
 
+index_vars = c("PREG_ID_299","BARN_NR")
 
 make_sum_scores = function(DT,items,ss_var,count_score = T){
   DT[,sNAs := sum(is.na(.SD)),by = 1:nrow(DT),.SDcols = items]
@@ -39,15 +40,18 @@ add_label = function(dt,prefix,abbreviations,my_warning = T) {
     if (any(!short_name %in% names(tmp_abbrev))){
       for (n in short_name[!short_name %in% names(tmp_abbrev)]) {
         tmp_abbrev[n] = n
-        if (my_warning) print(paste0("Missing long name for ",n," +++",v,"+++"))
+        if (my_warning & nchar(n)<4) print(paste0("Missing long name for ",n," +++",v,"+++"))
         }
     }
     
     if (sum(!is.na(tmp_abbrev[short_name])) == length(short_name)) {
       long_name = paste(tmp_abbrev[short_name],collapse = "; ")
       
-      if(length(attr(dt[[v]],"label")) == 1) {
+      orig_label = attributes(dt[[v]])[["label"]]
+      if(length(orig_label) > 0 && !is.na(orig_label)) {
+
         orig_label = strsplit(attributes(dt[[v]])$label,";")[[1]]
+        if(orig_label[length(orig_label)] == " .") orig_label = orig_label[1:(length(orig_label)-1)]
         orig_label = orig_label[length(orig_label)]
         if (nchar(orig_label) < 5) {
           orig_label = ""
@@ -60,9 +64,9 @@ add_label = function(dt,prefix,abbreviations,my_warning = T) {
         }
         long_name = paste0(long_name,orig_label)
       }
-         
+    long_name = gsub(" . ","",long_name)
       if ("labels" %in% names(attributes(dt[[v]]))) {
-        attributes(dt[[v]]) = list(label = long_name, labels = attributes(dt[[v]])$labels)
+        attributes(dt[[v]])$label = long_name
       } else {
         attributes(dt[[v]]) = list(label = long_name)
       }
@@ -306,7 +310,4 @@ make_minutes = function(s){
   }
   return(mins)
 }
-
-
-#write.foreign(mydata, "c:/mydata.txt", "c:/mydata.sps",   package="SPSS")
 
