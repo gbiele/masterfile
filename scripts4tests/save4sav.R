@@ -1,7 +1,7 @@
 
 adQuote <- function(x) paste("\"", x, "\"", sep = "")
 
-writeForeignSPSS <- function(df, datafile, codefile, varnames = NULL){
+writeSPSSfromLabelled <- function(df, datafile, codefile, varnames = NULL){
   df = data.frame(df)
   
   char_var = which((sapply(df,is.character)))

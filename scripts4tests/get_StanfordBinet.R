@@ -133,7 +133,7 @@ get_StanfordBinet = function(){
   attributes(StBdata$Age_in_months) = list(label = "Age in months at data collection for ADHD Study")
   
   StBdata = StBdata[,-grep("Kommentar|Psykologens|ikke gjennomført",sapply(StBdata,function(x) attr(x,"label"))),with = F]
-  StBdata = StBdata[,-grep("Version",names(StBdata))]
+  StBdata = StBdata[,-grep("Version",names(StBdata)),with = F]
   StBdata = add_label(StBdata,"SB",abbreviations,my_warning = F)
   return(StBdata)
 }

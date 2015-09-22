@@ -165,7 +165,7 @@ get_neuropsych = function() {
   stp = stp[, c(which(index_vars %in% names(stp)),
                 grep("^STP",names(stp))),with = F]
   
-  abbreviations = c(STP = "spin the pots task",
+  abbreviations = c(STP = "Spin the pots task",
                     err_e = "number of errors empty",
                     err_f = "number of errors full",
                     err_t = "total number of errors",
