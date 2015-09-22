@@ -6,7 +6,7 @@ get_ADHD_SCALE_Q6 = function(){
   setnames(dt,old_names,new_names)
   dt = make_sum_scores(dt,new_names,"MB3S.ADHD.SS")
   abbreviations = c(ADHD = "ADHD",
-                    MB3 = "scale from Moba questionnaire 6 (3 years)",
+                    MB3S = "scale from Moba questionnaire 6 (3 years)",
                     I = "Item",
                     SS = "sum of scores",
                     SC = "count of non-zero scores")
