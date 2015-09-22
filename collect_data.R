@@ -11,8 +11,6 @@ file.sources = paste("scripts4tests/",list.files(path = "scripts4tests/",pattern
 tmp = sapply(file.sources,source,.GlobalEnv)
 rm(tmp,file.sources)
 
-index_vars = c("PREG_ID_299","BARN_NR")
-
 #####################################################
 ############# Neuropsychological tests ##############
 #####################################################
@@ -76,8 +74,11 @@ MASTER = merge(MASTER,get_conners(kgqa,"T"),by = index_vars,all = T)
 MASTER = merge(MASTER,get_Copland(kgqa,kgqb),by = index_vars,all = T)
 MASTER = merge(MASTER,get_eci(kgqb,"T"),by = index_vars,all = T)
 MASTER$VERSION = factor(MASTER$PREG_ID_299 %in% kgqb$PREG_ID_299+1)
+MASTER[,VERSION := factor(VERSION)]
 rm(kgqa,kgqb)
 # no cbq in kindergarden cbq = get_cbq_eas(pqa,pqb)
+
+MASTER = MASTER[,-which(colSums(is.na(MASTER)) == nrow(MASTER)),with = F]
 
 ################# corrections #######################
 # GENERELT: slette barn med PREG_ID_299 = 50163 fra alle tester, grunnet usikkerhet rundt barnets norskkunnskaper (dette er inkludert i alle endelige syntakser). 
@@ -112,9 +113,20 @@ MASTER = MASTER[,c(index_vars,sort(names(MASTER)[-c(1:2)])),with = F]
 MASTER[,fAge_tercile := factor(Age_tercile)]
 MASTER[,fGender := factor(Gender)]
 
+
+nms = data.frame( label = unlist(sapply(MASTER,function(x) attr(x,"label"))))
+nms$varname = rownames(nms)
+value_labels = data.frame(val_labels = unlist(sapply(MASTER,function(x) {ifelse(length(attributes(x)$labels) > 0,
+                                                                                paste0(paste(attributes(x)$labels,names(attributes(x)$labels)),collapse = "; "),
+                                                                                " ")})))
+value_labels$varname = rownames(value_labels)
+nms = merge(nms,value_labels,by = "varname")
+write.csv(nms,"nms.txt")
+
+
 scores = c(index_vars,
            "VERSION",
-           names(MASTER)[grep("\\.S$|\\.SS$|\\.GR|Age|Gender",names(MASTER))])
+           names(MASTER)[grep("\\.S$|\\.SS$|\\.GR|\\.SC$|Age|Gender",names(MASTER))])
 
 MASTER_scores = MASTER[,scores,with = F]
 
@@ -126,6 +138,9 @@ impdata = MASTER_scores[,-grep("\\.GR$",names(MASTER_scores)),with = F]
 #write.foreign(MASTER[,1:2,with = F], paste0(getwd(),"/MASTER.txt"), paste0(getwd(),"/MASTER.sps"),   package="SPSS")
 save(MASTER,file = "masterfile.Rdata")
 save(MASTER_scores,file = "masterfile_scores.Rdata")
+
+#writeSPSSfromLabelled(MASTER,paste0(getwd(),"/MASTER.csv"),"MASTER.sps")
+#writeSPSSfromLabelled(MASTER_scores,paste0(getwd(),"/MASTER_scores.csv"),"MASTER_scores.sps")
 
 #plot_my_hists(MASTER_scores)
 #make_correlation_plot(MASTER_scores)
