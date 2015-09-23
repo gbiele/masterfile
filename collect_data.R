@@ -101,16 +101,9 @@ MASTER[["BNT.S"]][is87831] = NA
 
 rm(list = (setdiff(ls()[!(ls() %in% lsf.str())],c("MASTER","index_vars"))))
 
-## remove cases with missing ADHD diagnosis
-MASTER = MASTER[!is.na(PP.ADHD.GR),]
-
-MASTER[,Age_quartiles := cut(Age_in_days,quantile(Age_in_days,na.rm = T,(0:4/4)),labels = 1:4)]
-MASTER[,Age_tercile := cut(Age_in_days,quantile(Age_in_days,na.rm = T,(0:3/3)),labels = 1:3)]
-
 
 MASTER = MASTER[,c(index_vars,sort(names(MASTER)[-c(1:2)])),with = F]
 
-MASTER[,fAge_tercile := factor(Age_tercile)]
 MASTER[,fGender := factor(Gender)]
 
 
