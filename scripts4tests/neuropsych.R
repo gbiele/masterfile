@@ -29,7 +29,7 @@ get_neuropsych = function() {
   
   tmp = data.table(read_sav("F:/Forskningsprosjekter/PDB 299 - ADHD-studien Prescho_/Forskningsfiler/GUBI/GuidoData/masterfile/savs/Nepsy_Delscore.sav"))
   setnames(tmp,names(tmp)[1:2],names(dt)[1:2])
-  dt = merge(dt,tmp,by = c(index_vars))
+  dt = merge(dt,tmp,by = c(index_vars), all = T)
   setnames(dt,names(dt),gsub("ny","NY",names(dt)))
   rm(tmp)
   
@@ -103,7 +103,7 @@ get_neuropsych = function() {
   bnt = bnt[,c(index_vars,names(bnt)[grep("^BNT",names(bnt))]),with = F]
   bnt = add_label(bnt,"BNT",abbreviations,my_warning = F)
   
-  dt = merge(dt,bnt,by = c(index_vars))
+  dt = merge(dt,bnt,by = c(index_vars), all = T)
   
   rm(bnt)
   
@@ -114,7 +114,7 @@ get_neuropsych = function() {
   cdt = data.table(read_sav("F:/Forskningsprosjekter/PDB 299 - ADHD-studien Prescho_/Forskningsfiler/GUBI/GuidoData/masterfile/savs/CDT.sav"))
   setnames(cdt,"CD1_2","CDT.S")
   attributes(cdt[["CDT.S"]])$label = "Score cookie delay task"
-  dt = merge(dt,cdt[,c(index_vars,"CDT.S"),with = F],by = c(index_vars))
+  dt = merge(dt,cdt[,c(index_vars,"CDT.S"),with = F],by = c(index_vars), all = T)
   rm(cdt)
   
   #####################################################
@@ -144,7 +144,7 @@ get_neuropsych = function() {
   
   trl = add_label(trl,"TT",abbreviations,my_warning = F)
   
-  dt = merge(dt,trl,by = c(index_vars))
+  dt = merge(dt,trl,by = c(index_vars), all = T)
   rm(trl)
   
   
@@ -175,7 +175,7 @@ get_neuropsych = function() {
   
   stp = add_label(stp,"STP",abbreviations,my_warning = F)
   
-  dt = merge(dt,stp,by = c(index_vars))
+  dt = merge(dt,stp,by = c(index_vars), all = T)
   rm(stp)
   #####################################################
   ################## Grooved Pegboard #################
@@ -206,7 +206,7 @@ get_neuropsych = function() {
                     n2h = "number used two hands",
                     sec = "seconds")
   gpt = add_label(gpt,"GPT",abbreviations)
-  dt = merge(dt,gpt,by = c(index_vars))
+  dt = merge(dt,gpt,by = c(index_vars), all = T)
   rm(gpt)
   return(dt)
 }

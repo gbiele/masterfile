@@ -77,7 +77,7 @@ get_conners = function(qu,rater){
                       HYP = c(3,7,10,15,19,21,24),
                       ADHDI = c(1,5,8,11,12,14,17,20,22,23,24,25))
   }
-  CS = merge(CS,qu[,c(index_vars,names(qu)[grep(base,names(qu))]),with = F],by = index_vars)
+  CS = merge(CS,qu[,c(index_vars,names(qu)[grep(base,names(qu))]),with = F],by = index_vars, all = T)
   for (v in names(Oitem2dims)) {
     CS = make_sum_scores(CS,paste0(base,Oitem2dims[[v]]),paste0(nbase,v,".SS"))
   }
