@@ -122,7 +122,7 @@ get_PAPA = function(){
   
   ######################## Impairment score ########################
   imp_cols = paste("K33_28",1:6,sep = "_")
-  AD[,ADHD.IMP.MI := sum(.SD,na.rm = T),by = 1:nrow(AD),.SDcols = imp_cols]
+  AD[,ADHD.IMP.MI := sum(is.na(.SD)),by = 1:nrow(AD),.SDcols = imp_cols]
   AD[,ADHD.IMPwk := sum(.SD == 1,na.rm = T),by = 1:nrow(AD),.SDcols = imp_cols]
   AD[,ADHD.IMPstr := sum(.SD > 1,na.rm = T),by = 1:nrow(AD),.SDcols = imp_cols]
   
@@ -133,6 +133,7 @@ get_PAPA = function(){
   AD[,ADHD.IMP.CAT := factor(ADHD.IMP,labels = c("absent","present"))]
   
   AD[,ADHD.IMP.SS := sum(.SD,na.rm = T),by = 1:nrow(AD),.SDcols = imp_cols]
+  AD[is.na(ADHD.IMP.CAT),ADHD.IMP.SS := NA]
   
   ######################## ADHD sub groups ########################
   my_labels = c("ADHD_IA" = 1,"ADHD_H" = 2,"ADHD_C" = 3,"no_ADHD" = 4)
@@ -650,12 +651,12 @@ KK[,DIA.ADHD.any_ADHD := labelled(max(.SD),labels = diagnostic_labels), by = 1:n
   
   ############################# merge and ADHD COMORBIDITIES ##############################
   
-  PAPA = merge(AD, BH, by = c(index_vars))
-  PAPA = merge(PAPA, AX, by = c(index_vars))
-  PAPA = merge(PAPA, SL, by = c(index_vars))
-  PAPA = merge(PAPA, KK, by = c(index_vars))
-  PAPA = merge(PAPA, CSR, by = c(index_vars))
-  PAPA = merge(PAPA, REG, by = c(index_vars))
+  PAPA = merge(AD, BH, by = c(index_vars), all = T)
+  PAPA = merge(PAPA, AX, by = c(index_vars), all = T)
+  PAPA = merge(PAPA, SL, by = c(index_vars), all = T)
+  PAPA = merge(PAPA, KK, by = c(index_vars), all = T)
+  PAPA = merge(PAPA, CSR, by = c(index_vars), all = T)
+  PAPA = merge(PAPA, REG, by = c(index_vars), all = T)
   
   PAPA[,DIAG.GR := 4]
   PAPA[ADHD.CAT <= 2 & DBD.GR == 4 & ANX.GR == 4, DIAG.GR := 1]
