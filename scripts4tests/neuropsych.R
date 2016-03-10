@@ -10,8 +10,8 @@
 
 ################ QUESTIONS ##############
 # what is with NA values?
-get_neuropsych = function() {
-  dt = data.table(read_sav("F:/Forskningsprosjekter/PDB 299 - ADHD-studien Prescho_/Forskningsfiler/GUBI/GuidoData/masterfile/savs/NpY.sav"))
+get_neuropsych = function(data_dir) {
+  dt = data.table(read_sav(paste0(data_dir,"NpY.sav")))
   #dt = data.table(dt[,-c(27:29,32,33)])
   
   ########### corrections Nepsy from Nina ####################
@@ -27,16 +27,16 @@ get_neuropsych = function() {
                      grep("serbisk",dt[,NY1_2]))
   dt[invalid_scores,N3_5 := NA]
   
-  tmp = data.table(read_sav("F:/Forskningsprosjekter/PDB 299 - ADHD-studien Prescho_/Forskningsfiler/GUBI/GuidoData/masterfile/savs/Nepsy_Delscore.sav"))
-  setnames(tmp,names(tmp)[1:2],names(dt)[1:2])
-  dt = merge(dt,tmp,by = c(index_vars), all = T)
-  setnames(dt,names(dt),gsub("ny","NY",names(dt)))
-  rm(tmp)
+  #tmp = data.table(read_sav(paste0(data_dir,"Nepsy_Delscore.sav")))
+  #setnames(tmp,names(tmp)[1:2],names(dt)[1:2])
+  #dt = merge(dt,tmp,by = c(index_vars), all = T)
+  #setnames(dt,names(dt),gsub("ny","NY",names(dt)))
+  #rm(tmp)
   
-  vnames = names(dt)
-  dt = make_sum_scores(dt,vnames[grep("NY2_1",vnames)], "NY.L.UI.1_13.S", count_score = F)
-  dt = make_sum_scores(dt,vnames[grep("NY3_2",vnames)], "NY.L.UI.14_20.S", count_score = F)
-  dt[,NY.L.UI.S := NY.L.UI.1_13.S + NY.L.UI.14_20.S]
+  #vnames = names(dt)
+  #dt = make_sum_scores(dt,vnames[grep("NY2_1",vnames)], "NY.L.UI.1_13.S", count_score = F)
+  #dt = make_sum_scores(dt,vnames[grep("NY3_2",vnames)], "NY.L.UI.14_20.S", count_score = F)
+  #dt[,NY.L.UI.S := NY.L.UI.1_13.S + NY.L.UI.14_20.S]
   
   dt = dt[,-grep("NY3_|N3_",names(dt)),with = F]
   # remove scales that are not used
@@ -78,7 +78,7 @@ get_neuropsych = function() {
   #####################################################
   ############## Boston naming task ##################
   #####################################################
-  bnt = data.table(read_sav("F:/Forskningsprosjekter/PDB 299 - ADHD-studien Prescho_/Forskningsfiler/GUBI/GuidoData/masterfile/savs/BNT.sav"))
+  bnt = data.table(read_sav(paste0(data_dir,"BNT.sav")))
   SDcols = names(bnt)[grep("BN1_",names(bnt))]
   
   bnt[,BNT.compl := is.na(BNBNT0)]
@@ -98,7 +98,7 @@ get_neuropsych = function() {
                     miss = "number of missing items",
                     errors = "number of errors",
                     S = "Score")
-  setnames(bnt,SDcols,paste0("BNT.i",1:25))
+  setnames(bnt,SDcols,paste0("BNT.i",sprintf("%02d",1:25)))
   
   bnt = bnt[,c(index_vars,names(bnt)[grep("^BNT",names(bnt))]),with = F]
   bnt = add_label(bnt,"BNT",abbreviations,my_warning = F)
@@ -111,7 +111,7 @@ get_neuropsych = function() {
   #####################################################
   ################ COOKIE DELAY TASK ##################
   #####################################################
-  cdt = data.table(read_sav("F:/Forskningsprosjekter/PDB 299 - ADHD-studien Prescho_/Forskningsfiler/GUBI/GuidoData/masterfile/savs/CDT.sav"))
+  cdt = data.table(read_sav(paste0(data_dir,"CDT.sav")))
   setnames(cdt,"CD1_2","CDT.S")
   attributes(cdt[["CDT.S"]])$label = "Score cookie delay task"
   dt = merge(dt,cdt[,c(index_vars,"CDT.S"),with = F],by = c(index_vars), all = T)
@@ -120,7 +120,7 @@ get_neuropsych = function() {
   #####################################################
   ############# TRUCK REVERSAL LEARNING ###############
   #####################################################
-  trl = data.table(read_sav("F:/Forskningsprosjekter/PDB 299 - ADHD-studien Prescho_/Forskningsfiler/GUBI/GuidoData/masterfile/savs/TRLT.sav"))
+  trl = data.table(read_sav(paste0(data_dir,"TRLT.sav")))
   
   setnames(trl,paste0("TR1_1_",2:13),paste0("TT.A.i",1:12))
   setnames(trl,paste0("TR2_1_",1:8),paste0("TT.B.i",1:8))
@@ -134,8 +134,8 @@ get_neuropsych = function() {
   trl[,TT.B.t2c := char2num(TT.B.t2c)]
   
   abbreviations = c(TT = "Truck reversal learning task",
-                    A = "run 1",
-                    B = "run 2",
+                    A = "pre reversal/switch",
+                    B = "post reversal/switch",
                     errors = "number of errors",
                     t2c = "number trials to criterion",
                     lrd = "learned")
@@ -154,7 +154,7 @@ get_neuropsych = function() {
   # https://paperpile.com/view/49565dba-6695-029a-ac69-7e1d9bd95028
   # Hughes & ENsor 2005
   
-  stp = data.table(read_sav("F:/Forskningsprosjekter/PDB 299 - ADHD-studien Prescho_/Forskningsfiler/GUBI/GuidoData/masterfile/savs/SnurrB.sav"))
+  stp = data.table(read_sav(paste0(data_dir,"SnurrB.sav")))
   setnames(stp,"SNURR1_1","STP.t2c")
   setnames(stp,"SNURR1_2","STP.err_e")
   setnames(stp,"SB1_3","STP.err_f")
@@ -166,8 +166,8 @@ get_neuropsych = function() {
                 grep("^STP",names(stp))),with = F]
   
   abbreviations = c(STP = "Spin the pots task",
-                    err_e = "number of errors empty",
-                    err_f = "number of errors full",
+                    err_e = "number of errors empty boxes",
+                    err_f = "number of errors boxes with sticker",
                     err_t = "total number of errors",
                     t2c = "number trials to criterion",
                     S = "Score",
@@ -183,7 +183,7 @@ get_neuropsych = function() {
   # http://www.si-instruments.com/supplier/files/download/lafayette-current-version-grooved-pegboard-test-32025-lafayette-32025-grooved-pegboard-test-manual-pdf.html
   # psychomotoric spees
   
-  gpt = data.table(read_sav("F:/Forskningsprosjekter/PDB 299 - ADHD-studien Prescho_/Forskningsfiler/GUBI/GuidoData/masterfile/savs/Pegs.sav"))
+  gpt = data.table(read_sav(paste0(data_dir,"Pegs.sav")))
   gpt[,GP1 := factor(GP1,labels = c("right","left"))]
   setnames(gpt,"GP1","GPT.dh")
   setnames(gpt,"GP2_1","GPT.d.sec")
@@ -196,7 +196,7 @@ get_neuropsych = function() {
   gpt$GPT.nd.sec = char2num(gpt$GPT.nd.sec)
   
   gpt = gpt[, c(which(index_vars %in% names(gpt)),
-                grep("^STP",names(gpt))),with = F]
+                grep("^GPT",names(gpt))),with = F]
   
   abbreviations = c(GPT = "Grooved pegboard task",
                     dh = "dominant hand",
@@ -205,6 +205,7 @@ get_neuropsych = function() {
                     n_miss = "number missed pins",
                     n2h = "number used two hands",
                     sec = "seconds")
+  for (n in names(gpt)[-c(1,2)]) gpt[[n]] = as.numeric(gpt[[n]])
   gpt = add_label(gpt,"GPT",abbreviations)
   dt = merge(dt,gpt,by = c(index_vars), all = T)
   rm(gpt)

@@ -13,8 +13,8 @@ writeSPSSfromLabelled <- function(df, datafile, codefile, varnames = NULL){
   
   ## FIXME: re-write this to hold a connection open
   dfn <- lapply(df, function(x) if (is.factor(x) | length(attr(x,"labels")) > 0) as.numeric(x) else x)
-  write.table(dfn, file = datafile, row.names = FALSE, col.names = FALSE,
-              sep = ",", quote = FALSE, na = "",eol = ",\n")
+  write.table(dfn, file = datafile, row.names = FALSE, col.names = FALSE, 
+              sep = ", ", quote = FALSE, na = "",eol = ",\n")
   
   varlabels <- names(df)
   varlabels_vars <- sapply(df,function(x) length(attr(x,"label")) > 0)
@@ -45,7 +45,25 @@ writeSPSSfromLabelled <- function(df, datafile, codefile, varnames = NULL){
   
   cat("DATA LIST FILE=", adQuote(datafile), " free (\",\")\n",
       file = codefile)
-  cat("/",  dl.varnames, " .\n\n", file = codefile, append = TRUE)
+  #cat("/",  dl.varnames, " .\n\n", file = codefile, append = TRUE)
+  if (length(dl.varnames) > 10) {
+    cat("/",  dl.varnames[1:10], file = codefile, append = TRUE)
+    
+    for (k in 2:floor(length(dl.varnames) / 10)) {
+      cat("\n ",  dl.varnames[(1:10)+(k-1)*10], file = codefile, append = TRUE)
+    }
+    rest = length(dl.varnames) %% 10
+    if (rest > 0) {
+      cat("\n ",  dl.varnames[(length(dl.varnames)-rest+1) : length(dl.varnames)], file = codefile, append = TRUE)
+    }
+    cat(" .\n\n", file = codefile, append = TRUE)
+  } else {
+    cat("/",  dl.varnames, " .\n\n", file = codefile, append = TRUE)
+  }
+  
+  cat("SET LOCALE= ENGLISH. \n\n", file = codefile, append = TRUE)
+  
+  
   cat("VARIABLE LABELS\n", file = codefile, append = TRUE)
   cat(paste(varnames, adQuote(varlabels),"\n"), ".\n",
       file = codefile, append = TRUE)

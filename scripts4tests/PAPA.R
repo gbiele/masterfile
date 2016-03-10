@@ -13,7 +13,39 @@
 get_PAPA = function(){
   
   ################################ SLEEP #########################################
-  SL = data.table(read_sav("F:/Forskningsprosjekter/PDB 299 - ADHD-studien Prescho_/Forskningsfiler/GUBI/GuidoData/masterfile/savs/PAPA/PAPA_K2.sav"))
+  
+  SL1 = data.table(read_sav(paste0(data_dir,"PAPA_K2_1_V1.sav")))
+  SL1 = merge(SL1,data.table(read_sav(paste0(data_dir,"PAPA_K2_2_V1.sav"))), by = index_vars)
+  SL1 = merge(SL1,data.table(read_sav(paste0(data_dir,"PAPA_K2_3_V1.sav"))), by = index_vars)
+  SL1 = merge(SL1,data.table(read_sav(paste0(data_dir,"PAPA_K2_4_V1.sav"))), by = index_vars)
+  SL1[,AlderUtfylt_PAPA_K2 := AlderUtfylt_PAPA_K2_3_V1]
+  SL1[,K2_INSTRUMENT_ID_V2 := K2_INSTRUMENT_ID.x]
+  SL1[,(unique(names(SL1)[grep(".x$|.y$",names(SL1))])) := NULL]
+  SL1[,(unique(names(SL1)[grep(".x$|.y$",names(SL1))])) := NULL]
+  SL2 = data.table(read_sav(paste0(data_dir,"PAPA_K2_V2.sav")))
+  SL2[,AlderUtfylt_PAPA_K2 := AlderUtfylt_PAPA_K2_V2]
+  
+  for(v in intersect(names(SL1),names(SL2))) {
+    if (class(SL1[[v]]) == "numeric" & class(SL2[[v]]) == "labelled") {
+      SL1[[v]] = labelled(SL1[[v]],labels = attr(SL2[[v]],"labels"))
+    } else if (class(SL1[[v]]) == "character" & class(SL2[[v]]) == "numeric") {
+      if ( (mean(SL1[[v]] == "") > .5 & mean(is.na(SL2[[v]])) > .5) |
+           mean(SL2[[v]],na.rm = T) > 1200) {
+        SL1[[v]] = as.numeric(SL1[[v]])
+        attr(SL1[[v]],"label") = attributes(SL2[[v]])[["label"]]
+      }
+    }
+    if (class(SL1[[v]]) != class(SL2[[v]]) ) {
+      SL1[[v]] = unlist(apply(data.frame(as.vector(SL1[[v]])),1, make_numbers))
+    }
+  }
+  
+
+  SL = rbind(SL1[,(intersect(names(SL1),names(SL2))),with = F],
+             SL2[,(intersect(names(SL1),names(SL2))),with = F])
+  
+  save(SL,file = paste0(data_dir,"PAPA_K2.Rdata"))
+  
   for (v in index_vars) SL[, c(v) := as.numeric(get(v))]
   
   old_names = c("K2_2_1_1_1", "K2_2_1_1_2", "K2_2_1_1_3","K2_2_1_2_1",
@@ -82,7 +114,8 @@ get_PAPA = function(){
   SL[,S.t_asleep := as.numeric(S.t_asleep)]
   
   ################################ emotion regulation  ############################
-  REG = data.table(read_sav("F:/Forskningsprosjekter/PDB 299 - ADHD-studien Prescho_/Forskningsfiler/GUBI/GuidoData/masterfile/savs/PAPA/PAPA_K2.sav"))
+  load(paste0(data_dir,"PAPA_K2.Rdata"))
+  REG = SL
   for (v in index_vars) REG[, c(v) := as.numeric(get(v))]
   
   old_names = c("K2_2_2_1_1", "K2_2_2_2_1", "K2_2_2_3_1", "K2_2_2_4_1", "K2_2_2_5_1")
@@ -104,8 +137,10 @@ get_PAPA = function(){
   
   REG = REG[,c(index_vars,names(REG)[grep("^EH.|^ER.|^SR.",names(REG))]),with = F]
   
+  ###############################################################################
   ################################ ADHD #########################################
-  AD = data.table(read_sav("F:/Forskningsprosjekter/PDB 299 - ADHD-studien Prescho_/Forskningsfiler/GUBI/GuidoData/masterfile/savs/PAPA/PAPA_K3.sav"))
+  ###############################################################################
+  AD = data.table(read_sav(paste0(data_dir,"PAPA_K3.sav")))
   for (v in index_vars) AD[, c(v) := as.numeric(get(v))]
   
   #*(Collaps "selvstendig" and "voksenstyrt" activity into variable K33_10).
@@ -190,11 +225,13 @@ get_PAPA = function(){
                      ".i",
                      gsub("[A-Z]","",names(unlist(items2dims))))
   setnames(AD,old_names,new_names)
-  AD = make_sum_scores(AD,names(AD)[grep("ADHD.HY.i[0-9]",names(AD))],"ADHD.HY.SS",count_score = F)
-  AD = make_sum_scores(AD,names(AD)[grep("ADHD.IM.i[0-9]",names(AD))],"ADHD.IM.SS",count_score = F)
-  AD = make_sum_scores(AD,names(AD)[grep("ADHD.AT.i[0-9]",names(AD))],"ADHD.AT.SS",count_score = F)
-  SDcols = c("ADHD.HY.SS" , "ADHD.IM.SS" , "ADHD.AT.SS")
-  AD[,ADHD.SS := sum(.SD),by = 1:nrow(AD),.SDcols = SDcols]
+  AD = make_sum_scores(AD,names(AD)[grep("ADHD.HY.i[0-9]",names(AD))],"ADHD.HY.SS")
+  AD = make_sum_scores(AD,names(AD)[grep("ADHD.IM.i[0-9]",names(AD))],"ADHD.IM.SS")
+  AD = make_sum_scores(AD,names(AD)[grep("ADHD.AT.i[0-9]",names(AD))],"ADHD.AT.SS")
+  
+  AD = make_sum_scores(AD,
+                       names(AD)[grep("ADHD.AT.i[0-9]|ADHD.IM.i[0-9]|ADHD.HY.i[0-9]",names(AD))],
+                       "ADHD.SS",count_score = F)
   
   rm(att_cols,hyp_cols,imp_cols,items2dims,new_names,old_names)
   
@@ -204,7 +241,7 @@ get_PAPA = function(){
   ############################### BH: ODD ###############################
   #######################################################################
   
-  BH = data.table(read_sav("F:/Forskningsprosjekter/PDB 299 - ADHD-studien Prescho_/Forskningsfiler/GUBI/GuidoData/masterfile/savs/PAPA/PAPA_K4.sav"))
+  BH = data.table(read_sav(paste0(data_dir,"PAPA_K4.sav")))
   for (v in index_vars) BH[, c(v) := as.numeric(get(v))]
   # SYM duration
   freq_vars = sort(c(paste("K44",c(3,4,6,9,12),"2",sep = "_"),paste("K44",c(10,11),"6",sep = "_"),"K44_8_4"))
@@ -350,15 +387,15 @@ get_PAPA = function(){
     ))
   } 
   
-  BH = make_sum_scores(BH,names(BH)[grep("ODD.i[0-9]",names(BH))],"ODD.SS",count_score = F)
-  BH = make_sum_scores(BH,names(BH)[grep("CD.i[0-9]",names(BH))],"CD.SS",count_score = F)
+  BH = make_sum_scores(BH,names(BH)[grep("ODD.i[0-9]",names(BH))],"ODD.SS")
+  BH = make_sum_scores(BH,names(BH)[grep("CD.i[0-9]",names(BH))],"CD.SS")
   
   
   BH = BH[,c(1,2,grep("ODD|CD|DBD",names(BH))),with = F]
   ####################################################################
   ########################### ANXIETY ################################
   ####################################################################
-  AX = data.table(read_sav("F:/Forskningsprosjekter/PDB 299 - ADHD-studien Prescho_/Forskningsfiler/GUBI/GuidoData/masterfile/savs/PAPA/PAPA_K5.sav"))
+  AX = data.table(read_sav(paste0(data_dir,"PAPA_K5.sav")))
   for (v in index_vars) AX[, c(v) := as.numeric(get(v))]
   ########################### PHOBIA ################################
   ax_cols = paste("K55",2:8,"1",sep = "_")
@@ -490,15 +527,15 @@ get_PAPA = function(){
     ))
   } 
   
-  AX = make_sum_scores(AX,names(AX)[grep("PHO.i[0-9]",names(AX))],"PHO.SS",count_score = F)
-  AX = make_sum_scores(AX,names(AX)[grep("SEA.i[0-9]",names(AX))],"SEA.SS",count_score = F)
-  #AX = make_sum_scores(AX,names(AX)[grep("GEA.i[0-9]",names(AX))],"GEA.SS",count_score = F)
-  AX = make_sum_scores(AX,names(AX)[grep("SOA.i[0-9]",names(AX))],"SOA.SS",count_score = F)
+  AX = make_sum_scores(AX,names(AX)[grep("PHO.i[0-9]",names(AX))],"PHO.SS")
+  AX = make_sum_scores(AX,names(AX)[grep("SEA.i[0-9]",names(AX))],"SEA.SS")
+  #AX = make_sum_scores(AX,names(AX)[grep("GEA.i[0-9]",names(AX))],"GEA.SS")
+  AX = make_sum_scores(AX,names(AX)[grep("SOA.i[0-9]",names(AX))],"SOA.SS")
   
   AX = AX[,c(1,2,grep("SOA|GEA|SEA|PHO|ANX",names(AX))),with = F]
   
   ######################### konklusions ###################
-  KK = data.table(read_sav("F:/Forskningsprosjekter/PDB 299 - ADHD-studien Prescho_/Forskningsfiler/GUBI/GuidoData/masterfile/savs/PAPA/ADHD_KONKL.sav"))
+  KK = data.table(read_sav(paste0(data_dir,"ADHD_KONKL.sav")))
   
   labels = c(KU1_4_1 = "Neuropsychological evaluation",
              KU2_1_1 = "Expressive speach problems",
@@ -615,7 +652,7 @@ KK[,DIA.ADHD.any_ADHD := labelled(max(.SD),labels = diagnostic_labels), by = 1:n
 
   ######################### communication, social play, rep. beh. #################
   
-  CSR = data.table(read_sav("F:/Forskningsprosjekter/PDB 299 - ADHD-studien Prescho_/Forskningsfiler/GUBI/GuidoData/masterfile/savs/PAPA/PAPA_K1.sav"))
+  CSR = data.table(read_sav(paste0(data_dir,"PAPA_K1.sav")))
   
   labels = c(K11_2_1 = "Delayed or reduced speach",
              K11_2_2 = "Stereotyic and repetetive speach",

@@ -54,16 +54,19 @@ get_eci = function(qu,rater){
     
     new_names = paste0(nbase,v,".i",items2dims[[v]])
     setnames(eci,old_names,new_names)
-    eci = make_sum_scores(eci,new_names,paste0(nbase,v,".SS"))
+    eci = make_sum_scores(eci,new_names,paste0(nbase,v,".SS"),count_cutoff_idx = 2)
   }
   eci = make_sum_scores(eci,
                         unlist(lapply(names(items2dims[2:3]), 
                                       function(v) paste0(nbase,v,".i",items2dims[[v]]))),
-                        paste0(nbase,"AHI.SS"))
+                        paste0(nbase,"AHI.SS"),
+                        count_cutoff_idx = 2)
   eci = make_sum_scores(eci,
                         unlist(lapply(names(items2dims[1:3]), 
                                       function(v) paste0(nbase,v,".i",items2dims[[v]]))),
-                        paste0(nbase,"ADHD.SS"))
+                        paste0(nbase,"ADHD.SS"),
+                        count_score = T,
+                        count_cutoff_idx = 2)
   
   abbreviations = c(ADHD = "ADHD",
                     ECI = "ECI4",

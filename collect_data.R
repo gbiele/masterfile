@@ -1,15 +1,9 @@
-# things to add:
-# - konklusion
-# - depression
-# - eating
-
-# sanity checks: 
-# - effecst of gender
-# - effects of age
-
 file.sources = paste("scripts4tests/",list.files(path = "scripts4tests/",pattern="*.R"),sep = "")
 tmp = sapply(file.sources,source,.GlobalEnv)
 rm(tmp,file.sources)
+
+data_dir = "../ADHD_3aar/PDB1717_"
+index_vars = c( "PREG_ID_1717", "BARN_NR")
 
 #####################################################
 ############# Neuropsychological tests ##############
@@ -21,8 +15,7 @@ rm(tmp,file.sources)
 # - Truck reversla Task
 # - Spin the pots
 # - grooved pegboard
-# - 
-MASTER = get_neuropsych()
+MASTER = get_neuropsych(data_dir)
 
 #####################################################
 ################## PAPA interview ###################
@@ -39,14 +32,19 @@ MASTER = merge(MASTER,get_ADHD_SCALE_Q6(),by = index_vars,all = T)
 #####################################################
 # screeing scale from Q6, filled out in ADHD Study ##
 #####################################################
-MASTER = merge(MASTER,get_StanfordBinet(),by = index_vars,all = T)
+age = data.table(read_sav("../PDB1717_AlderKlinikk.sav"))[,c(index_vars,"Kontroll_Alder"),with = F]
+age = merge(age,data.table(read_sav("../PDB1717_MFR_410_v8.sav"))[,c(index_vars,"KJONN"),with = F],by = index_vars,all.y = F)
+setnames(age,"KJONN","Gender")
+age$Gender = factor(age$Gender,labels  = c("boy","girl"))
+
+MASTER = merge(MASTER,get_StanfordBinet(age),by = index_vars,all = T)
 
 #####################################################
 ################ Parent questionnaires ##############
 #####################################################
 
-pqa = data.table(read_sav("savs/SBF.sav"))
-pqb = data.table(read_sav("savs/ADHD13_SBF.sav"))
+pqa = data.table(read_sav(paste0(data_dir,"SBF.sav")))
+pqb = data.table(read_sav(paste0(data_dir,"ADHD13_SBF.sav")))
 
 MASTER = merge(MASTER,get_cdi(pqa,pqb,"P"),by = index_vars,all = T)
 MASTER = merge(MASTER,get_sdq(pqa,pqb,"P"),by = index_vars,all = T)
@@ -64,8 +62,8 @@ rm(pqa,pqb)
 ################ teacher questionnaires ##############
 #####################################################
 
-kgqa = data.table(read_sav("savs/BHG.sav"))
-kgqb = data.table(read_sav("savs/ADHD6_BHG.sav"))
+kgqa = data.table(read_sav(paste0(data_dir,"BHG.sav")))
+kgqb = data.table(read_sav(paste0(data_dir,"ADHD6_BHG.sav")))
 
 MASTER = merge(MASTER,get_cdi_kg(kgqa,kgqb),by = index_vars,all = T)
 MASTER = merge(MASTER,get_sdq(kgqa,kgqb,"T"),by = index_vars,all = T)
@@ -73,8 +71,7 @@ MASTER = merge(MASTER,get_brief(kgqa,kgqb,"T"),by = index_vars,all = T)
 MASTER = merge(MASTER,get_conners(kgqa,"T"),by = index_vars,all = T)
 MASTER = merge(MASTER,get_Copland(kgqa,kgqb),by = index_vars,all = T)
 MASTER = merge(MASTER,get_eci(kgqb,"T"),by = index_vars,all = T)
-MASTER$VERSION = factor(MASTER$PREG_ID_299 %in% kgqb$PREG_ID_299+1)
-MASTER[,VERSION := factor(VERSION)]
+MASTER$VERSION = factor(1+MASTER[,get(index_vars[1])] %in% kgqb[,get(index_vars[1])])
 rm(kgqa,kgqb)
 # no cbq in kindergarden cbq = get_cbq_eas(pqa,pqb)
 
@@ -89,22 +86,21 @@ MASTER = MASTER[-is50163,]
 # Vær obs på sakene 50163 og 87831 når disse syntaksene kjøres. Ingen av disse sakene skal ha valid ABIQ!!
 is87831 = which(MASTER$Age_in_days == 1294 & MASTER$PP.ADHD.SS == 3 & MASTER$PP.ODD.SS == 4)
 
-MASTER[["SB.ABIQ.S"]][is87831] = NA
-MASTER[["SB.ABIQ.PR"]][is87831] = NA
-MASTER[["SB.WMindex.S"]][is87831] = NA
+MASTER[["StB.ABIQ.S"]][is87831] = NA
+MASTER[["StB.ABIQ.PR"]][is87831] = NA
+MASTER[["StB.WMindex.S"]][is87831] = NA
 
 # Nina: slette BNT skåre til barnet der mor oversetter alle testinstruksjonene.
 MASTER[["BNT.S"]][is87831] = NA
 
 # bnt$BNT.SCORE = rowSums(bnt[,names(bnt)[grep("BN1_",names(bnt))],with = F] < 5)
-# bnt[PREG_ID_299 == 50163, BNT.SCORE := NA] 
 
 rm(list = (setdiff(ls()[!(ls() %in% lsf.str())],c("MASTER","index_vars"))))
 
 
 MASTER = MASTER[,c(index_vars,sort(names(MASTER)[-c(1:2)])),with = F]
 
-MASTER[,fGender := factor(Gender)]
+#MASTER[,fGender := factor(Gender)]
 
 
 nms = data.frame( label = unlist(sapply(MASTER,function(x) attr(x,"label"))))
@@ -119,18 +115,39 @@ write.csv(nms,"nms.txt")
 
 scores = c(index_vars,
            "VERSION",
-           names(MASTER)[grep("\\.S$|\\.SS$|\\.GR|\\.SC$|Age|Gender",names(MASTER))])
+           names(MASTER)[grep("\\.S$|\\.SS$|\\.GR|\\.SC$|Age|Gender|.errors$|n_miss$|sec$|n2h$",names(MASTER))])
 
 MASTER_scores = MASTER[,scores,with = F]
 
+par(ps = 12)
+pdf(file = "histograms.pdf",width = 29/2.54,height = 21/2.54,pointsize = 10)
+hist_by_version(MASTER_scores[,-c(1,2,4,grep("\\.GR$",names(MASTER_scores))),with = F])
+dev.off()
 
-hist_by_version(MASTER_scores[,-grep("\\.GR$",names(MASTER_scores)),with = F])
+
+hists(MASTER_scores[,grep("\\.SC$",names(MASTER_scores)),with = F])
 
 impdata = MASTER_scores[,-grep("\\.GR$",names(MASTER_scores)),with = F]
 
 #write.foreign(MASTER[,1:2,with = F], paste0(getwd(),"/MASTER.txt"), paste0(getwd(),"/MASTER.sps"),   package="SPSS")
 save(MASTER,file = "masterfile.Rdata")
 save(MASTER_scores,file = "masterfile_scores.Rdata")
+
+variable_infoa = data.frame(unlist(lapply(MASTER_scores, function(x) attr(x,"label"))))
+variable_infob = data.frame(unlist(lapply(MASTER_scores, function(x) paste(paste(names(attr(x,"labels")),
+                                                                                 attr(x,"labels"),
+                                                                                 sep = " = "),
+                                                                           collapse = "; ") )))
+names(variable_infoa) = "Variable_label"
+names(variable_infob) = "Value_labels"
+variable_infoa$Variable_name = row.names(variable_infoa)
+variable_infob$Variable_name = row.names(variable_infob)
+variable_info = merge(variable_infoa,
+                      variable_infob,
+                      by = "Variable_name")[,c("Variable_name","Variable_label","Value_labels")]
+rm(variable_infoa,variable_infob)
+
+write.table(variable_info,file = "varivariable_info.dat",sep = "\t")
 
 #writeSPSSfromLabelled(MASTER,paste0(getwd(),"/MASTER.csv"),"MASTER.sps")
 #writeSPSSfromLabelled(MASTER_scores,paste0(getwd(),"/MASTER_scores.csv"),"MASTER_scores.sps")

@@ -66,8 +66,11 @@ get_sdq = function(qu_a,qu_b,rater){
     attributes(sdqb[[v]]) = attributes(sdqa[[v]])
   }
   
-  sdq = rbind(sdqa,sdqb,use.names = T, fill = T)
-  
+  sdq = rbind(sdqa[,names(sdqb)[names(sdqb) %in% names(sdqa)],with = F],
+              sdqb[,names(sdqb)[names(sdqb) %in% names(sdqa)],with = F])
+  sdq = merge(sdq,sdqa[,c(index_vars,setdiff(names(sdqa),names(sdqb))),with = F],by = index_vars, all = T)
+  sdq = merge(sdq,sdqb[,c(index_vars,setdiff(names(sdqb),names(sdqa))),with = F],by = index_vars, all = T)
+
   for (vn in names(sdq)[grep("IPT",names(sdq))]) {
     vnq = sub("IPT.","IPT.q.",vn)
     sdq[[vnq]] = recode(sdq[[vn]], "0:1=0; 2=1; 3=2; NA=0")

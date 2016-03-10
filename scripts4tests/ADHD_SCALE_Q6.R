@@ -1,5 +1,5 @@
 get_ADHD_SCALE_Q6 = function(){
-  dt = data.table(read_sav("savs/Atferd.sav"))
+  dt = data.table(read_sav(paste0(data_dir,"ATFERD.sav")))
   
   old_names = names(dt)[grep("^AT3",names(dt))]
   new_names = paste("MB3S.ADHDi",1:11,sep = "")

@@ -57,8 +57,8 @@ get_family_illness = function(pqa,pqb){
     for (a in names(pqa_levels)[-1]){
       d_pqa = pqa[[paste(diagnosis[[d]][2],pqa_levels[[a]],sep = "_")]]
       d_pqb = pqb[[paste(diagnosis[[d]][1],pqb_levels[[a]],sep = "_")]]
-      if (is.null(d_pqa)) d_pqa = rep(NA,548)
-      if (is.null(d_pqb)) d_pqb = rep(NA,654)
+      if (is.null(d_pqa)) d_pqa = rep(NA,nrow(pqa))
+      if (is.null(d_pqb)) d_pqb = rep(NA,nrow(pqb))
       tmp = c(d_pqa,d_pqb)*new_levels[a]
       tmp[is.na(tmp)] = 0
       x = cbind(x,tmp)

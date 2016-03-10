@@ -28,14 +28,14 @@ get_brief = function(qu_a,qu_b,rater){
   brief_dims = data.table(read.csv2("instrument_docs/brief_items4dims.txt",sep = ","))
   setkeyv(brief_dims,"item")
   
-  setnames(brief,names(brief)[-c(1,2)],paste0(base_name,brief_dims[,dimension],".i",brief_dims[,item]))
+  setnames(brief,names(brief)[-c(1,2)],paste0(base_name,brief_dims[,dimension],".i",sprintf("%02d",brief_dims[,item])))
   
   for (d in unique(brief_dims$dimension)){
     items = names(brief)[grep(paste0(".",d,"."),names(brief))]
     brief = make_sum_scores(brief,items, paste0(base_name,d,".SS"))
   }
  
-  abbreviations = c(BRF = "BRIEF",
+  abbreviations = c(BRF = "BRIEF-Preschool",
                     T = "teacher",
                     P = "parent",
                     SS = "sum of scores",

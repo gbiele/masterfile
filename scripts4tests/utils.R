@@ -5,9 +5,7 @@ library(car)
 library(stringr)
 library(foreign)
 
-index_vars = c("PREG_ID_299","BARN_NR")
-
-make_sum_scores = function(DT,items,ss_var,count_score = T){
+make_sum_scores = function(DT,items,ss_var,count_score = F,count_cutoff_idx = 1){
   DT[,sNAs := sum(is.na(.SD)),by = 1:nrow(DT),.SDcols = items]
   tmp_items = paste0(items,".tmp")
   DT[,(tmp_items):=lapply(.SD, function(col) as.numeric(factor(col))-1),.SDcols = items]
@@ -16,9 +14,11 @@ make_sum_scores = function(DT,items,ss_var,count_score = T){
   DT[, sum_score := round(sum_score/(length(tmp_items)-sNAs)*length(tmp_items))]
   DT[sNAs >= (length(items)/2) , sum_score := NA,]
   setnames(DT,"sum_score",ss_var)
-
+  
   if (count_score){
-    DT[, count_score := sum(.SD > 0,na.rm = T),by = 1:nrow(DT), .SDcols = tmp_items]
+    count_cutoff = sort(unique(unlist(lapply(DT[,tmp_items,with = F],
+                                             unique))))[count_cutoff_idx]
+    DT[, count_score := sum(.SD > count_cutoff,na.rm = T),by = 1:nrow(DT), .SDcols = tmp_items]
     DT[, count_score := round(count_score/(length(tmp_items)-sNAs)*length(tmp_items))]
     DT[sNAs >= (length(items)/2) , count_score := NA,]
     setnames(DT,"count_score",sub(".SS",".SC",ss_var))
@@ -27,6 +27,7 @@ make_sum_scores = function(DT,items,ss_var,count_score = T){
   DT = DT[,-which(names(DT) %in% c("sNAs",tmp_items)),with = F]
   return(DT)
 }
+
 
 add_label = function(dt,prefix,abbreviations,my_warning = T) {
   for (v in  names(dt)[grep(paste0("^",prefix),names(dt))]) {
@@ -105,7 +106,7 @@ char2num = function(x){
 
 hist_by_version = function(D){
   par (mar=c(3,3,2,1), mgp=c(2,.7,0), tck=-.01)
-  par(mfrow = c(4,4))
+  par(mfrow = c(4,5))
   if (is(D,"data.table")) D = data.frame(D)
   for (v in colnames(D)) {
     if (is.numeric(D[,v])){
@@ -118,8 +119,9 @@ hist_by_version = function(D){
            main = v,
            ylab = "density",
            xlab = "value",
-           ylim = c(0,max(y1,y2)))
-      lines(x,y2,'s',col = "red")
+           ylim = c(0,max(c(y1,y2,sum(is.na(D[,v]))))))
+      lines(x,y2,'s',col = "magenta")
+      lines(rep(mean(c(par("usr")[2],par("xaxp")[1:2][2])),2),c(0,sum(is.na(D[,v]))),lwd = 2, col = "red")
       }
     }
   par(mfrow = c(1,1))
@@ -149,6 +151,19 @@ shist_by_version = function(D){
   }
   par(mfrow = c(1,1))
 }
+
+
+hists = function(D){
+  if (is.data.table(D)) D = data.frame(D)
+  par (mar=c(3,3,2,1), mgp=c(2,.7,0), tck=-.01)
+  par(mfrow = c(4,5))
+  for (v in colnames(D)) {
+    if (is.numeric(D[,v])){
+      hist(D[,v],main = v)
+    }
+  }
+}
+
 
 
 library(fitdistrplus)
@@ -311,3 +326,36 @@ make_minutes = function(s){
   return(mins)
 }
 
+make_numbers = function(s){
+  if (s == "") {
+    n = NA
+  } else {
+    tt = gsub(",",".",gsub("[a-z]| ","",s))
+    tt = as.numeric(strsplit(tt,"-")[[1]])
+    if (length(tt) == 2) {
+      n = mean(tt)
+    } else {
+      n = tt
+    }  
+  }
+  return(n)
+}
+
+my_coefplot = function(fit){
+  d = cbind(coef(fit),confint(fit),confint(fit,level = c(.9)))[-1,]
+  clrs = rep("black",nrow(d))
+  clrs[summary(f)$coefficients[-1,4] < .05] = "red"
+  ys = 1:nrow(d)
+  plot(d[,1],ys,
+       xlim = range(d),
+       ylim = c(0.5,nrow(d)+.5),
+       xlab = "",ylab = "",
+       yaxt = "n",
+       pch = 19,
+       col = clrs)
+  segments(d[,2],ys,d[,3],ys,col = clrs)
+  segments(d[,4],ys,d[,5],ys,lwd = 3,col = clrs)
+  abline(v = 0,lty = 2,col = "black")
+  axis(2,at = ys,labels = rownames(d),las = 2)
+  mtext(side = 3, text = v,line = 0.2)
+}

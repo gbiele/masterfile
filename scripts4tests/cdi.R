@@ -25,7 +25,7 @@ get_cdi = function(qu_a,qu_b,rater){
   
   varlabels = c()
   for (k in 3:length(cdiavars)) {
-    varlabels = sub("^ ","",c(varlabels,strsplit(attributes(cdia[[cdiavars[k]]])$label,";")[[1]][2]))
+    varlabels = sub("^ ","",c(varlabels,strsplit(attributes(cdia[[cdiavars[k]]])$label,";")[[1]][3]))
     eval(parse(text = paste("cdia[,",cdiavars[k]," := labelled(",cdiavars[k],",labels = c(No = 0, Yes = 1))]")))
     eval(parse(text = paste("cdib[,",cdibvars[k]," := labelled(",cdibvars[k],",labels = c(No = 0, Yes = 1))]")))
   }
@@ -56,11 +56,11 @@ get_cdi_kg = function(kgqa,kgqb){
   
   cdibvars = c(index_vars,names(kgqb)[grep("B__2",names(kgqb))])
   cdib = kgqb[,cdibvars,with = F]
-  cdib = cbind(cdib[,1:2,with = F],cdib[,3:54,with = F] - 1)
-  
+  for (v in cdibvars[3:54]) cdib[[v]] = cdib[[v]]-1
+
   varlabels = c()
   for (k in 3:length(cdiavars)) {
-    varlabels = sub(" . ","",c(varlabels,strsplit(attributes(cdia[[cdiavars[k]]])$label,";")[[1]][3]))
+    varlabels = sub(" . ","",c(varlabels,strsplit(attributes(cdia[[cdiavars[k]]])$label,";")[[1]][2]))
     eval(parse(text = paste("cdia[,",cdiavars[k]," := labelled(",cdiavars[k],",labels = c(No = 0, Yes = 1))]")))
     eval(parse(text = paste("cdib[,",cdibvars[k]," := labelled(",cdibvars[k],",labels = c(No = 0, Yes = 1))]")))
   }
