@@ -10,42 +10,42 @@
 ## PAPA_K8.sav Tics
 ## PAPA_K9.sav/PAPA_K10.sav Life Events?
 
-get_PAPA = function(){
+get_PAPA299 = function(){
   
   ################################ SLEEP #########################################
   
-  SL1 = data.table(read_sav(paste0(data_dir,"PAPA_K2_1_V1.sav")))
-  SL1 = merge(SL1,data.table(read_sav(paste0(data_dir,"PAPA_K2_2_V1.sav"))), by = index_vars)
-  SL1 = merge(SL1,data.table(read_sav(paste0(data_dir,"PAPA_K2_3_V1.sav"))), by = index_vars)
-  SL1 = merge(SL1,data.table(read_sav(paste0(data_dir,"PAPA_K2_4_V1.sav"))), by = index_vars)
-  SL1[,AlderUtfylt_PAPA_K2 := AlderUtfylt_PAPA_K2_3_V1]
-  SL1[,K2_INSTRUMENT_ID_V2 := K2_INSTRUMENT_ID.x]
-  SL1[,(unique(names(SL1)[grep(".x$|.y$",names(SL1))])) := NULL]
-  SL1[,(unique(names(SL1)[grep(".x$|.y$",names(SL1))])) := NULL]
-  SL2 = data.table(read_sav(paste0(data_dir,"PAPA_K2_V2.sav")))
-  SL2[,AlderUtfylt_PAPA_K2 := AlderUtfylt_PAPA_K2_V2]
-  
-  for(v in intersect(names(SL1),names(SL2))) {
-    if (class(SL1[[v]]) == "numeric" & class(SL2[[v]]) == "labelled") {
-      SL1[[v]] = labelled(SL1[[v]],labels = attr(SL2[[v]],"labels"))
-    } else if (class(SL1[[v]]) == "character" & class(SL2[[v]]) == "numeric") {
-      if ( (mean(SL1[[v]] == "") > .5 & mean(is.na(SL2[[v]])) > .5) |
-           mean(SL2[[v]],na.rm = T) > 1200) {
-        SL1[[v]] = as.numeric(SL1[[v]])
-        attr(SL1[[v]],"label") = attributes(SL2[[v]])[["label"]]
-      }
-    }
-    if (class(SL1[[v]]) != class(SL2[[v]]) ) {
-      SL1[[v]] = unlist(apply(data.frame(as.vector(SL1[[v]])),1, make_numbers))
-    }
-  }
-  
-  
-  SL = rbind(SL1[,(intersect(names(SL1),names(SL2))),with = F],
-             SL2[,(intersect(names(SL1),names(SL2))),with = F])
-  
-  save(SL,file = paste0(data_dir,"PAPA_K2.Rdata"))
-  
+  SL = data.table(read_sav(paste0(data_dir,"PAPA_K2.sav")))
+#   SL1 = merge(SL1,data.table(read_sav(paste0(data_dir,"PAPA_K2_2_V1.sav"))), by = index_vars)
+#   SL1 = merge(SL1,data.table(read_sav(paste0(data_dir,"PAPA_K2_3_V1.sav"))), by = index_vars)
+#   SL1 = merge(SL1,data.table(read_sav(paste0(data_dir,"PAPA_K2_4_V1.sav"))), by = index_vars)
+#   SL1[,AlderUtfylt_PAPA_K2 := AlderUtfylt_PAPA_K2_3_V1]
+#   SL1[,K2_INSTRUMENT_ID_V2 := K2_INSTRUMENT_ID.x]
+#   SL1[,(unique(names(SL1)[grep(".x$|.y$",names(SL1))])) := NULL]
+#   SL1[,(unique(names(SL1)[grep(".x$|.y$",names(SL1))])) := NULL]
+#   SL2 = data.table(read_sav(paste0(data_dir,"PAPA_K2_V2.sav")))
+#   SL2[,AlderUtfylt_PAPA_K2 := AlderUtfylt_PAPA_K2_V2]
+#   
+#   for(v in intersect(names(SL1),names(SL2))) {
+#     if (class(SL1[[v]]) == "numeric" & class(SL2[[v]]) == "labelled") {
+#       SL1[[v]] = labelled(SL1[[v]],labels = attr(SL2[[v]],"labels"))
+#     } else if (class(SL1[[v]]) == "character" & class(SL2[[v]]) == "numeric") {
+#       if ( (mean(SL1[[v]] == "") > .5 & mean(is.na(SL2[[v]])) > .5) |
+#            mean(SL2[[v]],na.rm = T) > 1200) {
+#         SL1[[v]] = as.numeric(SL1[[v]])
+#         attr(SL1[[v]],"label") = attributes(SL2[[v]])[["label"]]
+#       }
+#     }
+#     if (class(SL1[[v]]) != class(SL2[[v]]) ) {
+#       SL1[[v]] = unlist(apply(data.frame(as.vector(SL1[[v]])),1, make_numbers))
+#     }
+#   }
+#   
+# 
+#   SL = rbind(SL1[,(intersect(names(SL1),names(SL2))),with = F],
+#              SL2[,(intersect(names(SL1),names(SL2))),with = F])
+#   
+#   save(SL,file = paste0(data_dir,"PAPA_K2.Rdata"))
+#   
   for (v in index_vars) SL[, c(v) := as.numeric(get(v))]
   
   old_names = c("K2_2_1_1_1", "K2_2_1_1_2", "K2_2_1_1_3","K2_2_1_2_1",
@@ -114,7 +114,8 @@ get_PAPA = function(){
   SL[,S.t_asleep := as.numeric(S.t_asleep)]
   
   ################################ emotion regulation  ############################
-  load(paste0(data_dir,"PAPA_K2.Rdata"))
+#  load(paste0(data_dir,"PAPA_K2.Rdata"))
+  SL = data.table(read_sav(paste0(data_dir,"PAPA_K2.sav")))
   REG = SL
   for (v in index_vars) REG[, c(v) := as.numeric(get(v))]
   
@@ -517,7 +518,7 @@ get_PAPA = function(){
   new_names = paste0(gsub("[0-9]","",names(unlist(items2dims))),
                      ".i",
                      gsub("[A-Z]","",names(unlist(items2dims))))
-  
+
   
   setnames(AX,old_names,new_names)
   
@@ -579,7 +580,7 @@ get_PAPA = function(){
              "DevRet","Sleep","SleepL","SleepM","Exhaust","Nighm","Nightsc","Somn","Attachm","Compuls","SadDep",
              "RegMood","RegSens","RegEat")
   
-  
+
   diags = 1:23
   diffs = 24:length(labels)
   
@@ -601,7 +602,7 @@ get_PAPA = function(){
   KK[,(SDcols) := lapply(.SD, function(x) labelled(as.numeric(factor(x)),labels = diagnostic_labels)), .SDcols = SDcols]
   SDcols = names(labels)[diffs]
   KK[,(SDcols) := lapply(.SD, function(x) labelled(as.numeric(factor(x)),labels = difficulties_labels)), .SDcols = SDcols]
-  
+
   
   tmp = KK[,c("KU2_1_1", "KU2_1_2", "KU2_2_1"),with = F]
   tmp[tmp == 0] = 4
@@ -639,8 +640,8 @@ get_PAPA = function(){
   setnames(KK,names(labels),new_names)
   
   keep_vars = c(index_vars,
-                new_names,
-                names(KK)[grep("LANG|EMO|OTHER|SL|XOTHER",names(KK))])
+               new_names,
+               names(KK)[grep("LANG|EMO|OTHER|SL|XOTHER",names(KK))])
   
   KK = KK[,keep_vars,with = F]
   
@@ -648,8 +649,8 @@ get_PAPA = function(){
   names(diag_labels) = vnames
   
   SDcols = c("DIA.ADHD.A","DIA.ADHD.HI","DIA.ADHD.C")
-  KK[,DIA.ADHD.any_ADHD := labelled(max(.SD),labels = diagnostic_labels), by = 1:nrow(KK),.SDcols = SDcols]
-  
+KK[,DIA.ADHD.any_ADHD := labelled(max(.SD),labels = diagnostic_labels), by = 1:nrow(KK),.SDcols = SDcols]
+
   ######################### communication, social play, rep. beh. #################
   
   CSR = data.table(read_sav(paste0(data_dir,"PAPA_K1.sav")))
@@ -707,7 +708,7 @@ get_PAPA = function(){
            paste0("PP.",setdiff(names(PAPA),index_vars)))
   
   ############################### Add labels to variable names ############################
-  
+ 
   attributes(PAPA$PP.ADHD.SC) = list(label = "PAPA: Total number of present ADHD SYMPTOMs")
   attributes(PAPA$PP.ADHD.AT.SC) = list(label = "PAPA: Number of present inattentiveness SYMPTOMs")
   attributes(PAPA$PP.ADHD.HY.SC) = list(label = "PAPA: Number of present hyperactivity SYMPTOMs")
@@ -715,149 +716,150 @@ get_PAPA = function(){
   attributes(PAPA$PP.ADHD.HI.SC) = list(label = "PAPA: Number of present hyperactivity & impulsiveness SYMPTOMs")
   
   abbreviations = c(PP = "PAPA",
-                    SEA = "separation anxiety", 
-                    IMP = "impairments", 
-                    IMPstr = "strong impairments", 
-                    IMPwk = "weak impairments", 
-                    SS = "sum of scores",
-                    SL = "sleep",
-                    SOA = "social anxiety",
-                    GEA = "generalized anxiety",
-                    PHO = "phobia",
-                    ANX = "any anxiety",
-                    AT = "inattention",
-                    HY = "hyperactivity",
-                    IM = "impulsivity",
-                    HI = "hyperactivity and impulsivity",
-                    CD = "conduct disorder",
-                    ODD = "oppositional defient disorder",
-                    DBD =  "disruptive behavior disorders",
-                    SOC = "social play",
-                    COMM = "communication",
-                    ER = "Emotion regulation",
-                    SR = "Sensoric reactivity",
-                    EH = "Eating habits",
-                    REP = "repetetive behavior",
-                    SC = "count of non-zero scores",
-                    MI = "number of missing values",
-                    GR = "diagnostic groups",
-                    SG = "diagnostic sub groups",
-                    ST = "sub threshold",
-                    CAT = "category",
-                    clin = "clinical",
-                    SY = "symptom",
-                    ADHD = "ADHD",
-                    IMPwk = "weak impairment",
-                    IMPstr = "strong impairment",
-                    ST_woi = "sub threshold without impairment",
-                    ST_wi = "sub threshold without impairment",
-                    ODD1 = "Defiance",
-                    ODD2 = "Argues with adults",
-                    ODD3 = "Angry outbursts",
-                    ODD4 = "Annoys others on purpose",
-                    ODD5 = "Blame others",
-                    ODD6 = "Malicious or vindictive",
-                    ODD7 = "Touchy, does not cope with much from others",
-                    ODD8 = "Angry and annoyed",
-                    CD1 = "Lies",
-                    CD2 = "Teasing/Bullying",
-                    CD3 = "Cruel to animals",
-                    CD4 = "Mean/cruel to humans",
-                    CD5 = "Steals",
-                    CD6 = "Fighting/Attacking",
-                    CD7 = "Destroys property",
-                    CD8 = "Arsony/plays with fire",
-                    PHO1 = "Fear of animals",
-                    PHO2 = "Fear of storms, thunder and/or lightning",
-                    PHO3 = "Fear for doctor or dentist",
-                    PHO4 = "Fear of blood/needles",
-                    PHO5 = "Fear of the dark",
-                    PHO6 = "Fear of activities in small spaces",
-                    PHO7 = "Fear of xxxx",
-                    SOA1 = "Social anxiety",
-                    SOA2 = "Fear of activities in public areas",
-                    SOA3 = "FEar of social situations with adults",
-                    SEA1 = "Avoids being alone",
-                    SEA2 = "Pre concern/resistance to being separated",
-                    SEA3 = "Nightmares about separation",
-                    SEA4 = "Scared/anxious about attending kindergarden",
-                    SEA5 = "Fear of possible injury",
-                    SEA6 = "Resistance to going to sleep alone",
-                    GEA1 = "Jumpy",
-                    GEA2 = "Trouble concentrating when anxious",
-                    GEA3 = "Easily tired when anxious/worried",
-                    GEA4 = "Exaggerated need for reassurance",
-                    HY1 = "Physical restlessness",
-                    HY2 = "Hard time sitting still",
-                    HY3 = "Runs/climbs too much",
-                    HY4 = "Always on the run",
-                    HY5 = "Speaks unusually much",
-                    HY6 = "Hard time doing things calmly",
-                    AT1 = "Hard time doing independent tasks or play activities",
-                    AT2 = "Hard time organizing tasks",
-                    AT3 = "Hard time following instructions",
-                    AT4 = "Avoids mentally challenging tasks",
-                    AT5 = "Easily distracted",
-                    AT6 = "FOrgetful with daily chores",
-                    AT7 = "Often drops things",
-                    AT8 = "Do not listen",
-                    AT9 = "Is unprecise",
-                    IM1 = "Hard time waiting for his/her turn",
-                    IM2 = "Blurts out answers to questions",
-                    IM3 = "Often interrupts or disturbs others",
-                    SYwofreq = "symptoms without frequency",
-                    Wk = "weak",
-                    btr = "bedtime ritual",
-                    btr_read = "bedtime ritual, reading",
-                    btr_hist = "bedtime ritual, history/conversation",
-                    btr_sing = "bedtime ritual, singing",
-                    btr_oth = "bedtime ritual, other",
-                    S = "sleep",
-                    slp = "sleep",
-                    slpr = "sleeper",
-                    slps = "sleeps",
-                    unr_a_slp = "unrested after sleep",
-                    slps_d = "sleeps during day",
-                    wk_night = "wakes at night",
-                    d = "day",
-                    e = "evening",
-                    diff_slp = "difficulties sleeping",
-                    Oth = "other",
-                    self_slpr_d = "Cradle oneself to sleep at daytime",
-                    self_slpr_e = "Cradle oneself to sleep in the evening",
-                    restl_sleep = "restless sleep",
-                    Hypsomn = "Increased need for sleep/hypersomnia",
-                    nightm = "nightmares",
-                    DIAG = "diagnostic",
-                    LANG = "language",
-                    OTHER = "other",
-                    t_asleep = "How much time does it thake for the child to og to sleep?",
-                    go2bed = "When does the child go to bed? (minutes after 00:00)",
-                    get_up = "When does the child usually get up in the morning? (minutes after 00:00)",
-                    leaves_bed = "Leaves bed before going to sleep",
-                    EMO = "affective disorder",
-                    somnabul = "Somnabulisme",
-                    XOTHER = "Other disorder than ADHD",
-                    res_slp = "resistance to go to sleep",
-                    h_night = "hours sleep per night",
-                    CSR = "Communication, social behavior, and regulation",
-                    DIF = "Conclusion: Difficulties",
-                    DIA = "Conclusion: Diagnosis",
-                    diag_labels,
-                    C = "combined type",
-                    A = "inattentive type")
+                SEA = "separation anxiety", 
+                IMP = "impairments", 
+                IMPstr = "strong impairments", 
+                IMPwk = "weak impairments", 
+                SS = "sum of scores",
+                SL = "sleep",
+                SOA = "social anxiety",
+                GEA = "generalized anxiety",
+                PHO = "phobia",
+                ANX = "any anxiety",
+                AT = "inattention",
+                HY = "hyperactivity",
+                IM = "impulsivity",
+                HI = "hyperactivity and impulsivity",
+                CD = "conduct disorder",
+                ODD = "oppositional defient disorder",
+                DBD =  "disruptive behavior disorders",
+                SOC = "social play",
+                COMM = "communication",
+                ER = "Emotion regulation",
+                SR = "Sensoric reactivity",
+                EH = "Eating habits",
+                REP = "repetetive behavior",
+                SC = "count of non-zero scores",
+                MI = "number of missing values",
+                GR = "diagnostic groups",
+                SG = "diagnostic sub groups",
+                ST = "sub threshold",
+                CAT = "category",
+                clin = "clinical",
+                SY = "symptom",
+                ADHD = "ADHD",
+                IMPwk = "weak impairment",
+                IMPstr = "strong impairment",
+                ST_woi = "sub threshold without impairment",
+                ST_wi = "sub threshold without impairment",
+                ODD1 = "Defiance",
+                ODD2 = "Argues with adults",
+                ODD3 = "Angry outbursts",
+                ODD4 = "Annoys others on purpose",
+                ODD5 = "Blame others",
+                ODD6 = "Malicious or vindictive",
+                ODD7 = "Touchy, does not cope with much from others",
+                ODD8 = "Angry and annoyed",
+                CD1 = "Lies",
+                CD2 = "Teasing/Bullying",
+                CD3 = "Cruel to animals",
+                CD4 = "Mean/cruel to humans",
+                CD5 = "Steals",
+                CD6 = "Fighting/Attacking",
+                CD7 = "Destroys property",
+                CD8 = "Arsony/plays with fire",
+                PHO1 = "Fear of animals",
+                PHO2 = "Fear of storms, thunder and/or lightning",
+                PHO3 = "Fear for doctor or dentist",
+                PHO4 = "Fear of blood/needles",
+                PHO5 = "Fear of the dark",
+                PHO6 = "Fear of activities in small spaces",
+                PHO7 = "Fear of xxxx",
+                SOA1 = "Social anxiety",
+                SOA2 = "Fear of activities in public areas",
+                SOA3 = "FEar of social situations with adults",
+                SEA1 = "Avoids being alone",
+                SEA2 = "Pre concern/resistance to being separated",
+                SEA3 = "Nightmares about separation",
+                SEA4 = "Scared/anxious about attending kindergarden",
+                SEA5 = "Fear of possible injury",
+                SEA6 = "Resistance to going to sleep alone",
+                GEA1 = "Jumpy",
+                GEA2 = "Trouble concentrating when anxious",
+                GEA3 = "Easily tired when anxious/worried",
+                GEA4 = "Exaggerated need for reassurance",
+                HY1 = "Physical restlessness",
+                HY2 = "Hard time sitting still",
+                HY3 = "Runs/climbs too much",
+                HY4 = "Always on the run",
+                HY5 = "Speaks unusually much",
+                HY6 = "Hard time doing things calmly",
+                AT1 = "Hard time doing independent tasks or play activities",
+                AT2 = "Hard time organizing tasks",
+                AT3 = "Hard time following instructions",
+                AT4 = "Avoids mentally challenging tasks",
+                AT5 = "Easily distracted",
+                AT6 = "FOrgetful with daily chores",
+                AT7 = "Often drops things",
+                AT8 = "Do not listen",
+                AT9 = "Is unprecise",
+                IM1 = "Hard time waiting for his/her turn",
+                IM2 = "Blurts out answers to questions",
+                IM3 = "Often interrupts or disturbs others",
+                SYwofreq = "symptoms without frequency",
+                Wk = "weak",
+                btr = "bedtime ritual",
+                btr_read = "bedtime ritual, reading",
+                btr_hist = "bedtime ritual, history/conversation",
+                btr_sing = "bedtime ritual, singing",
+                btr_oth = "bedtime ritual, other",
+                S = "sleep",
+                slp = "sleep",
+                slpr = "sleeper",
+                slps = "sleeps",
+                unr_a_slp = "unrested after sleep",
+                slps_d = "sleeps during day",
+                wk_night = "wakes at night",
+                d = "day",
+                e = "evening",
+                diff_slp = "difficulties sleeping",
+                Oth = "other",
+                self_slpr_d = "Cradle oneself to sleep at daytime",
+                self_slpr_e = "Cradle oneself to sleep in the evening",
+                restl_sleep = "restless sleep",
+                Hypsomn = "Increased need for sleep/hypersomnia",
+                nightm = "nightmares",
+                DIAG = "diagnostic",
+                LANG = "language",
+                OTHER = "other",
+                t_asleep = "How much time does it thake for the child to og to sleep?",
+                go2bed = "When does the child go to bed? (minutes after 00:00)",
+                get_up = "When does the child usually get up in the morning? (minutes after 00:00)",
+                leaves_bed = "Leaves bed before going to sleep",
+                EMO = "affective disorder",
+                somnabul = "Somnabulisme",
+                XOTHER = "Other disorder than ADHD",
+                res_slp = "resistance to go to sleep",
+                h_night = "hours sleep per night",
+                CSR = "Communication, social behavior, and regulation",
+                DIF = "Conclusion: Difficulties",
+                DIA = "Conclusion: Diagnosis",
+                diag_labels,
+                C = "combined type",
+                A = "inattentive type")
   
-  #   for (variable in names(PAPA)[-c(1,2)]){
-  #     variable_info = strsplit(variable,split = "\\.")[[1]]
-  #     if (length(translate[variable_info]) == length(variable_info)){
-  #       label = paste0("", paste(translate[variable_info],collapse = "; "))
-  #       if ( is(PAPA[[variable]],"labelled") ) {
-  #         attributes(PAPA[[variable]])[["label"]] = label
-  #       } else {
-  #         attributes(PAPA[[variable]]) = list(label = label)
-  #       }
-  #     }
-  #   }
+#   for (variable in names(PAPA)[-c(1,2)]){
+#     variable_info = strsplit(variable,split = "\\.")[[1]]
+#     if (length(translate[variable_info]) == length(variable_info)){
+#       label = paste0("", paste(translate[variable_info],collapse = "; "))
+#       if ( is(PAPA[[variable]],"labelled") ) {
+#         attributes(PAPA[[variable]])[["label"]] = label
+#       } else {
+#         attributes(PAPA[[variable]]) = list(label = label)
+#       }
+#     }
+#   }
   PAPA = add_label(PAPA,"PP",abbreviations)
   return(PAPA)
 }
+
