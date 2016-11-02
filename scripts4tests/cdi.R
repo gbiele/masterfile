@@ -31,6 +31,9 @@ get_cdi = function(qu_a,qu_b,rater){
   }
   
   cdi = rbindlist(list(cdia,cdib),use.names = F)
+  # set items with score -1 to NA
+  # score of -1 must be a coding error
+  cdi[cdi == -1] = NA
   
   setnames(cdi,names(cdi)[-c(1,2)], paste0("CDI.L.P.i",c(1:50,"pronounciation","understood")))
   
@@ -66,6 +69,9 @@ get_cdi_kg = function(kgqa,kgqb){
   }
   
   cdi = rbind(cdia,cdib,use.names = F)
+  # set items with score -1 to NA
+  # score of -1 must be a coding error
+  cdi[cdi == -1] = NA
   
   setnames(cdi,names(cdi)[-c(1,2)], paste0("CDI.L.T.i",c(1:50,"pronounciation","understood")))
   
