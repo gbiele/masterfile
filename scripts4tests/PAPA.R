@@ -604,10 +604,10 @@ get_PAPA = function(){
   
   
   tmp = KK[,c("KU2_1_1", "KU2_1_2", "KU2_2_1"),with = F]
-  tmp[tmp == 0] = 4
-  KK[,LANG.GR := apply(tmp,1,function(x) min(x,na.rm = T))]
+  tmp[is.na(tmp)] = 0
+  KK[,LANG.GR := apply(tmp,1,max)]
   rm(tmp)
-  my_labels = c( "LANG_DEV_PROBL_clin" = 1, "LANG_DEV_PROBL_subclin" = 2, "LANG_DEV_PROBL_lackinfo" = 3, "no_LANG_DEV_PROBL" = 4)
+  my_labels = c("no_LANG_DEV_PROBL" = 0, "LANG_DEV_PROBL_lackinfo" = 1, "LANG_DEV_PROBL_subclin" = 2, "LANG_DEV_PROBL_clin" = 3)
   KK[,LANG.GR := labelled(LANG.GR, labels = my_labels)]
   
   
