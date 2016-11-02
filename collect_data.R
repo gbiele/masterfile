@@ -115,7 +115,8 @@ write.csv(nms,"nms.txt")
 
 scores = c(index_vars,
            "VERSION",
-           names(MASTER)[grep("\\.S$|\\.SS$|\\.GR|\\.SC$|Age|Gender|.errors$|n_miss$|sec$|n2h$",names(MASTER))])
+           names(MASTER)[grep("\\.S$|\\.SS$|\\.GR|\\.SC$|Age|Gender|.errors$|n_miss$|sec$|n2h$",names(MASTER))],
+           names(MASTER)[grep("STP.err",names(MASTER))])
 
 MASTER_scores = MASTER[,scores,with = F]
 
