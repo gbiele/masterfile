@@ -1,7 +1,7 @@
 
 get_StanfordBinet = function(agedata){
   
-  StBdata <- data.table(read_sav(paste0(data_dir,"StB.sav")))
+  StBdata = NaN2NA(data.table(read_sav(paste0(data_dir,"StB.sav"))))
 
   StBdata = merge(StBdata,agedata,by = c(index_vars),all.x = T, all.y = F)
   rm(agedata)

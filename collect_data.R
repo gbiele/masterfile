@@ -32,8 +32,8 @@ MASTER = merge(MASTER,get_ADHD_SCALE_Q6(),by = index_vars,all = T)
 #####################################################
 # screeing scale from Q6, filled out in ADHD Study ##
 #####################################################
-age = data.table(read_sav("../PDB1717_AlderKlinikk.sav"))[,c(index_vars,"Kontroll_Alder"),with = F]
-age = merge(age,data.table(read_sav("../PDB1717_MFR_410_v8.sav"))[,c(index_vars,"KJONN"),with = F],by = index_vars,all.y = F)
+age = NaN2NA(data.table(read_sav("../PDB1717_AlderKlinikk.sav"))[,c(index_vars,"Kontroll_Alder"),with = F])
+age = merge(age,NaN2NA(data.table(read_sav("../PDB1717_MFR_410_v8.sav")))[,c(index_vars,"KJONN"),with = F],by = index_vars,all.y = F)
 setnames(age,"KJONN","Gender")
 age$Gender = factor(age$Gender,labels  = c("boy","girl"))
 
@@ -43,8 +43,8 @@ MASTER = merge(MASTER,get_StanfordBinet(age),by = index_vars,all = T)
 ################ Parent questionnaires ##############
 #####################################################
 
-pqa = data.table(read_sav(paste0(data_dir,"SBF.sav")))
-pqb = data.table(read_sav(paste0(data_dir,"ADHD13_SBF.sav")))
+pqa = NaN2NA(data.table(read_sav(paste0(data_dir,"SBF.sav"))))
+pqb = NaN2NA(data.table(read_sav(paste0(data_dir,"ADHD13_SBF.sav"))))
 
 MASTER = merge(MASTER,get_cdi(pqa,pqb,"P"),by = index_vars,all = T)
 MASTER = merge(MASTER,get_sdq(pqa,pqb,"P"),by = index_vars,all = T)
@@ -62,8 +62,8 @@ rm(pqa,pqb)
 ################ teacher questionnaires ##############
 #####################################################
 
-kgqa = data.table(read_sav(paste0(data_dir,"BHG.sav")))
-kgqb = data.table(read_sav(paste0(data_dir,"ADHD6_BHG.sav")))
+kgqa = NaN2NA(data.table(read_sav(paste0(data_dir,"BHG.sav"))))
+kgqb = NaN2NA(data.table(read_sav(paste0(data_dir,"ADHD6_BHG.sav"))))
 
 MASTER = merge(MASTER,get_cdi_kg(kgqa,kgqb),by = index_vars,all = T)
 MASTER = merge(MASTER,get_sdq(kgqa,kgqb,"T"),by = index_vars,all = T)

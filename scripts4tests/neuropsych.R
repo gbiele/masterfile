@@ -11,7 +11,7 @@
 ################ QUESTIONS ##############
 # what is with NA values?
 get_neuropsych = function(data_dir) {
-  dt = data.table(read_sav(paste0(data_dir,"NpY.sav")))
+  dt = NaN2NA(data.table(read_sav(paste0(data_dir,"NpY.sav"))))
   #dt = data.table(dt[,-c(27:29,32,33)])
   
   ########### corrections Nepsy from Nina ####################
@@ -27,7 +27,7 @@ get_neuropsych = function(data_dir) {
                      grep("serbisk",dt[,NY1_2]))
   dt[invalid_scores,N3_5 := NA]
   
-  #tmp = data.table(read_sav(paste0(data_dir,"Nepsy_Delscore.sav")))
+  #tmp = NaN2NA(data.table(read_sav(paste0(data_dir,"Nepsy_Delscore.sav"))))
   #setnames(tmp,names(tmp)[1:2],names(dt)[1:2])
   #dt = merge(dt,tmp,by = c(index_vars), all = T)
   #setnames(dt,names(dt),gsub("ny","NY",names(dt)))
@@ -78,7 +78,7 @@ get_neuropsych = function(data_dir) {
   #####################################################
   ############## Boston naming task ##################
   #####################################################
-  bnt = data.table(read_sav(paste0(data_dir,"BNT.sav")))
+  bnt = NaN2NA(data.table(read_sav(paste0(data_dir,"BNT.sav"))))
   SDcols = names(bnt)[grep("BN1_",names(bnt))]
   
   bnt[,BNT.compl := is.na(BNBNT0)]
@@ -111,7 +111,7 @@ get_neuropsych = function(data_dir) {
   #####################################################
   ################ COOKIE DELAY TASK ##################
   #####################################################
-  cdt = data.table(read_sav(paste0(data_dir,"CDT.sav")))
+  cdt = NaN2NA(data.table(read_sav(paste0(data_dir,"CDT.sav"))))
   setnames(cdt,"CD1_2","CDT.S")
   attributes(cdt[["CDT.S"]])$label = "Score cookie delay task"
   dt = merge(dt,cdt[,c(index_vars,"CDT.S"),with = F],by = c(index_vars), all = T)
@@ -120,7 +120,7 @@ get_neuropsych = function(data_dir) {
   #####################################################
   ############# TRUCK REVERSAL LEARNING ###############
   #####################################################
-  trl = data.table(read_sav(paste0(data_dir,"TRLT.sav")))
+  trl = NaN2NA(data.table(read_sav(paste0(data_dir,"TRLT.sav"))))
   
   setnames(trl,paste0("TR1_1_",2:13),paste0("TT.A.i",1:12))
   setnames(trl,paste0("TR2_1_",1:8),paste0("TT.B.i",1:8))
@@ -154,7 +154,7 @@ get_neuropsych = function(data_dir) {
   # https://paperpile.com/view/49565dba-6695-029a-ac69-7e1d9bd95028
   # Hughes & ENsor 2005
   
-  stp = data.table(read_sav(paste0(data_dir,"SnurrB.sav")))
+  stp = NaN2NA(data.table(read_sav(paste0(data_dir,"SnurrB.sav"))))
   setnames(stp,"SNURR1_1","STP.t2c")
   setnames(stp,"SNURR1_2","STP.err_e")
   setnames(stp,"SB1_3","STP.err_f")
@@ -183,7 +183,8 @@ get_neuropsych = function(data_dir) {
   # http://www.si-instruments.com/supplier/files/download/lafayette-current-version-grooved-pegboard-test-32025-lafayette-32025-grooved-pegboard-test-manual-pdf.html
   # psychomotoric spees
   
-  gpt = data.table(read_sav(paste0(data_dir,"Pegs.sav")))
+  gpt = NaN2NA(data.table(read_sav(paste0(data_dir,"Pegs.sav"))))
+  gpt[GP1 == "NaN",GP1 := NA]
   gpt[,GP1 := factor(GP1,labels = c("right","left"))]
   setnames(gpt,"GP1","GPT.dh")
   setnames(gpt,"GP2_1","GPT.d.sec")

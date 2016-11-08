@@ -14,15 +14,15 @@ get_PAPA = function(){
   
   ################################ SLEEP #########################################
   
-  SL1 = data.table(read_sav(paste0(data_dir,"PAPA_K2_1_V1.sav")))
-  SL1 = merge(SL1,data.table(read_sav(paste0(data_dir,"PAPA_K2_2_V1.sav"))), by = index_vars)
-  SL1 = merge(SL1,data.table(read_sav(paste0(data_dir,"PAPA_K2_3_V1.sav"))), by = index_vars)
-  SL1 = merge(SL1,data.table(read_sav(paste0(data_dir,"PAPA_K2_4_V1.sav"))), by = index_vars)
+  SL1 = NaN2NA(data.table(read_sav(paste0(data_dir,"PAPA_K2_1_V1.sav"))))
+  SL1 = merge(SL1,NaN2NA(data.table(read_sav(paste0(data_dir,"PAPA_K2_2_V1.sav")))), by = index_vars)
+  SL1 = merge(SL1,NaN2NA(data.table(read_sav(paste0(data_dir,"PAPA_K2_3_V1.sav")))), by = index_vars)
+  SL1 = merge(SL1,NaN2NA(data.table(read_sav(paste0(data_dir,"PAPA_K2_4_V1.sav")))), by = index_vars)
   SL1[,AlderUtfylt_PAPA_K2 := AlderUtfylt_PAPA_K2_3_V1]
   SL1[,K2_INSTRUMENT_ID_V2 := K2_INSTRUMENT_ID.x]
   SL1[,(unique(names(SL1)[grep(".x$|.y$",names(SL1))])) := NULL]
   SL1[,(unique(names(SL1)[grep(".x$|.y$",names(SL1))])) := NULL]
-  SL2 = data.table(read_sav(paste0(data_dir,"PAPA_K2_V2.sav")))
+  SL2 = NaN2NA(data.table(read_sav(paste0(data_dir,"PAPA_K2_V2.sav"))))
   SL2[,AlderUtfylt_PAPA_K2 := AlderUtfylt_PAPA_K2_V2]
   
   for(v in intersect(names(SL1),names(SL2))) {
@@ -140,7 +140,7 @@ get_PAPA = function(){
   ###############################################################################
   ################################ ADHD #########################################
   ###############################################################################
-  AD = data.table(read_sav(paste0(data_dir,"PAPA_K3.sav")))
+  AD = NaN2NA(data.table(read_sav(paste0(data_dir,"PAPA_K3.sav"))))
   for (v in index_vars) AD[, c(v) := as.numeric(get(v))]
   
   #*(Collaps "selvstendig" and "voksenstyrt" activity into variable K33_10).
@@ -241,7 +241,7 @@ get_PAPA = function(){
   ############################### BH: ODD ###############################
   #######################################################################
   
-  BH = data.table(read_sav(paste0(data_dir,"PAPA_K4.sav")))
+  BH = NaN2NA(data.table(read_sav(paste0(data_dir,"PAPA_K4.sav"))))
   for (v in index_vars) BH[, c(v) := as.numeric(get(v))]
   # SYM duration
   freq_vars = sort(c(paste("K44",c(3,4,6,9,12),"2",sep = "_"),paste("K44",c(10,11),"6",sep = "_"),"K44_8_4"))
@@ -395,7 +395,7 @@ get_PAPA = function(){
   ####################################################################
   ########################### ANXIETY ################################
   ####################################################################
-  AX = data.table(read_sav(paste0(data_dir,"PAPA_K5.sav")))
+  AX = NaN2NA(data.table(read_sav(paste0(data_dir,"PAPA_K5.sav"))))
   for (v in index_vars) AX[, c(v) := as.numeric(get(v))]
   ########################### PHOBIA ################################
   ax_cols = paste("K55",2:8,"1",sep = "_")
@@ -535,7 +535,7 @@ get_PAPA = function(){
   AX = AX[,c(1,2,grep("SOA|GEA|SEA|PHO|ANX",names(AX))),with = F]
   
   ######################### konklusions ###################
-  KK = data.table(read_sav(paste0(data_dir,"ADHD_KONKL.sav")))
+  KK = NaN2NA(data.table(read_sav(paste0(data_dir,"ADHD_KONKL.sav"))))
   
   labels = c(KU1_4_1 = "Neuropsychological evaluation",
              KU2_1_1 = "Expressive speach problems",
@@ -652,7 +652,7 @@ get_PAPA = function(){
   
   ######################### communication, social play, rep. beh. #################
   
-  CSR = data.table(read_sav(paste0(data_dir,"PAPA_K1.sav")))
+  CSR = NaN2NA(data.table(read_sav(paste0(data_dir,"PAPA_K1.sav"))))
   
   labels = c(K11_2_1 = "Delayed or reduced speach",
              K11_2_2 = "Stereotyic and repetetive speach",

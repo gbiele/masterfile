@@ -5,6 +5,12 @@ library(car)
 library(stringr)
 library(foreign)
 
+NaN2NA = function(DT) {
+  for (j in names(DT))
+    set(DT,which(is.na(DT[[j]])),j,NA)
+  return(DT)
+}
+
 make_sum_scores = function(DT,items,ss_var,count_score = F,count_cutoff_idx = 1){
   DT[,sNAs := sum(is.na(.SD)),by = 1:nrow(DT),.SDcols = items]
   tmp_items = paste0(items,".tmp")
