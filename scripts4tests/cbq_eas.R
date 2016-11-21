@@ -31,9 +31,11 @@ get_cbq_eas = function(pqa,pqb){
   rm(cbqa,cbqb,cbqavars,cbqbvars)
   
   cbq_item_info = fread("instrument_docs/cbq_items_and_scale.txt")
-  cbq_item_info[,item_number := as.numeric(item_number)]
+  cbq_item_info[,item_direction := sign(item_number)]
+  cbq_item_info[,item_number := abs(item_number)]
   setkey(cbq_item_info,"item_number")
-  empathy_items = setnames(data.table(cbind(37:50,rep("Empathy",14))),c("V1","V2"),names(cbq_item_info))
+  empathy_items = data.table(item_number = 37:50, scale = "Empathy", item_direction = 1)
+  empathy_items[item_number %in% c(44,45,48,49), item_direction := -1]
   cbq_item_info = rbind(cbq_item_info,empathy_items)
   
   cbqitems = paste(paste0("CBQ.P.",cbq_item_info$scale),
@@ -41,6 +43,16 @@ get_cbq_eas = function(pqa,pqb){
                    sep = ".i")
   
   setnames(cbq,paste("SBFCBQ",1:50,sep = ""),cbqitems )
+  
+  
+  ## reflect some items
+  ritems = paste(paste0("CBQ.P.",
+                       cbq_item_info[item_direction < 0,scale]),
+                cbq_item_info[item_direction < 0,item_number],
+                sep = ".i")
+  for ( i in ritems) {
+    cbq[[i]] = abs(cbq[[i]]-8)
+  }
   
   cbq_scales = unique(cbq_item_info$scale)
   for (s in cbq_scales) {
