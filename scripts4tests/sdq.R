@@ -60,7 +60,8 @@ get_sdq = function(qu_a,qu_b,rater){
   setnames(sdqb,
            names(sdqb)[imp_columns],
            paste0(base_name,"IPT.", sub("^p","",impact)))
-  
+  if (rater == "P") {
+    sdqb[SDQ.P.IPT.impleis < 1, SDQ.P.IPT.impleis := NA] }
   for (v in names(sdqa)[grep("IPT",names(sdqa))]){
     sdqb[[v]] = sdqb[[v]]-1
     attributes(sdqb[[v]]) = attributes(sdqa[[v]])

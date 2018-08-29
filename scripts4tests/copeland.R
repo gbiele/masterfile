@@ -42,6 +42,7 @@ get_Copland = function(qu_a,qu_b){
     PPS_vars = c(PPS_vars,new_names)
   }
   for (v in PPS_vars[-c(1,2)])  {
+    qu_b[[v]][ qu_b[[v]] > 5 | qu_b[[v]] < 1 ] = NA
     qu_b[[v]] = qu_b[[v]]-1
     attributes(qu_b[[v]]) = attributes(qu_a[[v]])
     }

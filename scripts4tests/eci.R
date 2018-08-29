@@ -54,6 +54,9 @@ get_eci = function(qu,rater){
     
     new_names = paste0(nbase,v,".i",items2dims[[v]])
     setnames(eci,old_names,new_names)
+    
+    for (i in new_names) eci[[i]][ eci[[i]] > 4 | eci[[i]] < 1 ] = NA
+    
     eci = make_sum_scores(eci,new_names,paste0(nbase,v,".SS"),count_cutoff_idx = 2)
   }
   eci = make_sum_scores(eci,
