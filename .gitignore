@@ -6,6 +6,7 @@ savs
 scripts4tests/old
 instrument_docs/pdfs/*
 instrument_docs/*xls
+instrument_docs/questionnaire-citations.txt
 plots
 *.Rdata
 *.db
@@ -16,6 +17,9 @@ plots
 *.sps
 *.csv
 *.xlsx
-nms.txt
+*.dat
+*.txt
+*.zip
+variable_info.dat
+Data Dictionary ADHD Master file.docx
 Annette.R
-nms.txt
