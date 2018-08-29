@@ -18,9 +18,10 @@ index_vars = c( "PREG_ID_299", "BARN_NR")
 MASTER = get_neuropsych(data_dir)
 
 #####################################################
-################## PAPA interview ###################
+########### PAPA interview & conclusion #############
 #####################################################
 MASTER = merge(MASTER,get_PAPA299(),by = index_vars,all = T)
+MASTER = merge(MASTER,get_conclusion(),by = c(index_vars),all = T)
 
 
 
@@ -40,12 +41,15 @@ MASTER = merge(MASTER,get_ADHD_SCALE_Q6(),by = index_vars,all = T)
 age = NaN2NA(data.table(read_sav("savs/ADHD_Score.sav")))
 age$Gender = factor(mapvalues(age$Gender,c("X_MALE","X_FEMALE"),1:2),labels  = c("boy","girl"))
 setnames(age,c("barn_nr","Sumscore"),c("BARN_NR","MoBa.Q6.ADHD.SS"))
-age = age[,c("PREG_ID_299","BARN_NR","MoBa.Q6.ADHD.SS","Kontroll_Alder","ADHD_Source"),with = F]
+age = age[,c("PREG_ID_299","BARN_NR","MoBa.Q6.ADHD.SS","Kontroll_Alder","ADHD_Source","Gender"),with = F]
 age[,MoBa.Q6.ADHD.SS := MoBa.Q6.ADHD.SS-11]
 
 MASTER = merge(MASTER,get_StanfordBinet(age),by = index_vars,all = T)
 
 MASTER = merge(MASTER,age,by = c(index_vars),all.x = T, all.y = F)
+
+setnames(MASTER,"Gender.y","Gender")
+MASTER[,Gender.x := NULL]
 
 #####################################################
 ################ Parent questionnaires ##############
@@ -85,6 +89,21 @@ rm(kgqa,kgqb)
 
 MASTER = MASTER[,-which(colSums(is.na(MASTER)) == nrow(MASTER)),with = F]
 
+################ Masternal age, edu, parity ##############
+load("../MoBa/redSkjema1_PDB299_v6.Rdata")
+SES = Q1r[,c("PREG_ID_299","AA1124","AA1125")]
+SES[which(is.na(SES$AA1124) & SES$AA1125 > 1),"AA1124"] = SES[which(is.na(SES$AA1124) & SES$AA1125 > 1),"AA1125"]-1
+SES[which(is.na(SES$AA1124) & SES$AA1125 == 1),"AA1124"] = 1
+SES$mEDU.comp = cut(SES$AA1124,breaks = c(-.5,1.5,4.5,5.5,6.5), labels = c("Elementary", "High-School","Bachelor","Master"))
+SES = SES[,c("PREG_ID_299","mEDU.comp")]
+
+MFR = read_sav("../MoBa/MFR_350_PDB299_v6.sav")
+MFR = MFR[,c("PREG_ID_299","BARN_NR","MORS_ALDER","PARITET_5","SVLEN","VEKT")]
+names(MFR) = c("PREG_ID_299","BARN_NR","mAge","Parity","gest_age_wks","birthweight")
+
+
+MASTER = merge(MASTER,MFR, by = c("PREG_ID_299","BARN_NR"))
+MASTER = merge(MASTER,SES, by = c("PREG_ID_299"))
 ################# corrections #######################
 # GENERELT: slette barn med PREG_ID_299 = 50163 fra alle tester, grunnet usikkerhet rundt barnets norskkunnskaper (dette er inkludert i alle endelige syntakser). 
 # Mor oversetter nær sagt alle testinstruksjoner til serbisk, vi har ikke kontroll på hva hun sier.
@@ -124,26 +143,26 @@ write.csv(nms,"nms.txt")
 scores = c(index_vars,
            "VERSION",
            names(MASTER)[grep("\\.S$|\\.SS$|\\.GR|\\.SC$|Age|Gender|.errors$|n_miss$|sec$|n2h$",names(MASTER))])
-
-MASTER_scores = MASTER[,scores,with = F]
+scores_plus = c(scores,"mEDU.comp","mAge","Parity","gest_age_wks","birthweight")
+MASTER_scores = MASTER[,scores_plus,with = F]
 
 ########### 4 annette ############
-vars = c("StB.NVWMS.S", "StB.VWMS.S" ,"STP.S" ,
-         "TT.A.errors","TT.B.errors",
-         "NY.INHIB.Statue.S","CDT.S",
-         "MoBa.Q6.ADHD.SS","Kontroll_Alder",
-         "ADHD_Source")
-
-D = MASTER[,c("StB.NVWMS.S", "StB.VWMS.S" ,"STP.S" ,
-              "TT.A.errors","TT.B.errors",
-              "NY.INHIB.Statue.S","CDT.S",
-              "MoBa.Q6.ADHD.SS","Kontroll_Alder",
-              "ADHD_Source","PP.ADHD.CAT","PP.ADHD.SS","PP.ADHD.SC"), with = F]
-D = D[!is.na(PP.ADHD.SS),]
-
-save(D,file = "AnnettesData.Rdata")
-
-#####################################
+# vars = c("StB.NVWMS.S", "StB.VWMS.S" ,"STP.S" ,
+#          "TT.A.errors","TT.B.errors",
+#          "NY.INHIB.Statue.S","CDT.S",
+#          "MoBa.Q6.ADHD.SS","Kontroll_Alder",
+#          "ADHD_Source")
+# 
+# D = MASTER[,c("StB.NVWMS.S", "StB.VWMS.S" ,"STP.S" ,
+#               "TT.A.errors","TT.B.errors",
+#               "NY.INHIB.Statue.S","CDT.S",
+#               "MoBa.Q6.ADHD.SS","Kontroll_Alder",
+#               "ADHD_Source","PP.ADHD.CAT","PP.ADHD.SS","PP.ADHD.SC"), with = F]
+# D = D[!is.na(PP.ADHD.SS),]
+# 
+# save(D,file = "AnnettesData.Rdata")
+# 
+# #####################################
 
 par(ps = 12)
 pdf(file = "histograms.pdf",width = 29/2.54,height = 21/2.54,pointsize = 10)
