@@ -46,27 +46,28 @@ get_neuropsych = function(data_dir) {
   
     
   # Visuospatial Processing Domain
-  setnames(dt,"NY1_1","NY.VP.DesCop.S")
+  setnames(dt,"NY1_1","NY.VSP.DesCop.S")
   # Attention and Executive Functioning
   setnames(dt,"NY6_1","NY.INHIB.Statue.S")
   # Language
-  setnames(dt,"NY4_2","NY.L.PhonProc")
+  setnames(dt,"NY4_2","NY.LANG.PhonProc.S")
   # Visual Attention
-  dt[,NY.VI.cats.S := char2num(dt$NY5_2_3)]
-  dt[NY.VI.cats.S > 20, NY.VI.cats.S:=20]
-  print("2 NY.VI.cats.S values larger 20 set to 20")
-  dt[,NY.VI.cats.T := char2num(NY5_2_4)]
-  dt[,NY.VI.bunniescats.S := char2num(dt$NY5_3_3)]
-  dt[NY.VI.bunniescats.S > 45, NY.VI.bunniescats.S := NA]
-  setnames(dt,"NY5_3_4","NY.VI.bunniescats.T")
-  dt[, NY.VI.bunniescats.T := char2num(NY.VI.bunniescats.T)]
+  dt[,NY.VA.cats.S := char2num(dt$NY5_2_3)]
+  dt[NY.VA.cats.S > 20, NY.VA.cats.S:=NA]
+  print("set NY.VA.cats.S values larger 20 set to NA")
+  dt[,NY.VA.cats.T := char2num(NY5_2_4)]
+  dt[,NY.VA.bunniescats.S := char2num(dt$NY5_3_3)]
+  dt[NY.VA.bunniescats.S > 45, NY.VA.bunniescats.S := NA]
+  print("set NY.VA.bunniescats.S values larger 45 set to NA")
+  setnames(dt,"NY5_3_4","NY.VA.bunniescats.T")
+  dt[, NY.VA.bunniescats.T := char2num(NY.VA.bunniescats.T)]
   
   dt = dt[,-grep("NY5_",names(dt)),with = F]
   
   abbreviations = c(NY = "NEPSY",
-                    L = "Language",
-                    VI = "Visual attention",
-                    VP = "Visual processing",
+                    LANG = "Language",
+                    VA = "Visual attention",
+                    VSP = "Visuospatial processing",
                     DesCop = "design copying",
                     S = "Score",
                     T = "time",
@@ -112,6 +113,10 @@ get_neuropsych = function(data_dir) {
   ################ COOKIE DELAY TASK ##################
   #####################################################
   cdt = NaN2NA(data.table(read_sav(paste0(data_dir,"CDT.sav"))))
+  
+  invalids = grep("Usikkert om hun forsto|Far holdt en|Ikke skårbar|ikke valid|spiste annenkjeks under opg|Ikke valid|Mor gir tegn til at barnet|Tror hun forstår instruksjon|Får hjelp av mor|Usikker på om hun forstår|Oppg. avlsuttet pga manglende samarbeid",
+                  cdt[,CD1_3])
+  cdt[invalids,CD1_2 := NA]
   setnames(cdt,"CD1_2","CDT.S")
   attributes(cdt[["CDT.S"]])$label = "Score cookie delay task"
   dt = merge(dt,cdt[,c(index_vars,"CDT.S"),with = F],by = c(index_vars), all = T)
