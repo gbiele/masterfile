@@ -54,11 +54,11 @@ get_StanfordBinet = function(agedata){
   StBdata[StBdata$SB3_5 == "Ikke valid. Nr. 2 og 3 ikke administrert. Avbrøt også tidlig. Barnet vegret.",VWMS := NA]
   
   #################### VOS Fluid Reasoning ####################
-  StBdata[Age_in_months >= 37 & Age_in_months < 40, VWMS := mapvalues(SB6_5,0:11,c(3,5,7,9,10,12:14,16:19),warn_missing = F)]
-  StBdata[Age_in_months >= 40 & Age_in_months < 42, VWMS := mapvalues(SB6_5,0:12,c(3,5,7,9,10,11,13:19),warn_missing = F)]
-  StBdata[Age_in_months >= 42 & Age_in_months < 44, VWMS := mapvalues(SB6_5,0:13,c(3,5,7:9,11:13,15:17,18,18,19),warn_missing = F)]
-  StBdata[Age_in_months >= 44 & Age_in_months < 46, VWMS := mapvalues(SB6_5,0:13,c(3,5,7:10,12:19),warn_missing = F)]
-  StBdata[Age_in_months >= 46 & Age_in_months < 48, VWMS := mapvalues(SB6_5,0:13,c(3,5,7:15,17:19),warn_missing = F)]
+  StBdata[Age_in_months >= 37 & Age_in_months < 40, VOS := mapvalues(SB6_5,0:11,c(3,5,7,9,10,12:14,16:19),warn_missing = F)]
+  StBdata[Age_in_months >= 40 & Age_in_months < 42, VOS := mapvalues(SB6_5,0:12,c(3,5,7,9,10,11,13:19),warn_missing = F)]
+  StBdata[Age_in_months >= 42 & Age_in_months < 44, VOS := mapvalues(SB6_5,0:13,c(3,5,7:9,11:13,15:17,18,18,19),warn_missing = F)]
+  StBdata[Age_in_months >= 44 & Age_in_months < 46, VOS := mapvalues(SB6_5,0:13,c(3,5,7:10,12:19),warn_missing = F)]
+  StBdata[Age_in_months >= 46 & Age_in_months < 48, VOS := mapvalues(SB6_5,0:13,c(3,5,7:15,17:19),warn_missing = F)]
   
   
   ################################ Abbreviated IQ (ABIQ) ################################
@@ -112,19 +112,20 @@ get_StanfordBinet = function(agedata){
   new_item_names = gsub("SB","SB.i",old_item_names)
   setnames(StBdata,old_item_names,new_item_names)
   
-  old_names = c("NVIQ","VIQ","NVWMS","VWMS","ABIQ","ABIQ.PR","WMindex" )
+  old_names = c("NVIQ","VIQ","NVWMS","VWMS","VOS","ABIQ","ABIQ.PR","WMindex" )
   new_names = gsub("PR.S","PR",paste0("SB.",old_names,".S"))
   setnames(StBdata,old_names,new_names)
 
   abbreviations = c(SB = "Stanford Binet test battery",
                     S = "Score",
                     ABIQ = "Abbreviated IQ",
-                    VIQ = "verbal IQ",
-                    NVIQ = "non-verbal IQ",
-                    VWMS = "visual working memory",
-                    NVWMS = "non-visual working memory",
-                    WMindex = "workig memory index",
-                    PR = "percent rank")
+                    VIQ = "Verbal IQ",
+                    NVIQ = "Non-verbal IQ",
+                    VWMS = "Visual working memory",
+                    NVWMS = "Non-visual working memory",
+                    VOS = "Fluid Reasoning (verbal)",
+                    WMindex = "Workig memory index",
+                    PR = "Percent rank")
   StBdata = StBdata[,c(1,2,grep("^SB\\.|Age|Gender",names(StBdata))),with = F]
   attributes(StBdata$Age_in_days) = list(label = "Age in days at at clinical assessment for ADHD Study")
   attributes(StBdata$Age_in_months) = list(label = "Age in months at at clinical assessment for ADHD Study")
