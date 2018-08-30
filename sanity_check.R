@@ -1,18 +1,20 @@
 
-
-load("masterfile_scores.Rdata")
+source("scripts4tests/utils.R")
+load("masterfile_scores_nni.Rdata")
 
 test_vars = names(MASTER_scores)[-grep("Age|Gender|PREG|BARN|VERSION|DIAG|.GR",names(MASTER_scores))]
 
 MASTER_scores[,Age := scale(Age_in_days)]
 MASTER_scores[,Gender := factor(gsub("ALE","",Gender))]
 MASTER_scores[,ADHD := scale(PP.ADHD.SS)]
-pdf(file = "sanity_check.pdf",width = 29/2.54,height = 21/2.54,pointsize = 10)
+pdf(file = "sanity_check_nni.pdf",width = 29/2.54,height = 21/2.54,pointsize = 10)
 par(mfrow = c(5,4),mar = c(2,7,2,.5))
 for (v in test_vars) {
-  MASTER_scores[, y := scale(get(v))]
-  f = lm(y~Age*Gender+ADHD,MASTER_scores)
-  my_coefplot(f)
+  if(class(MASTER_scores[[v]]) == "numeric") {
+    MASTER_scores[, y := scale(get(v))]
+    f = lm(y~Age*Gender+ADHD,MASTER_scores)
+    my_coefplot(f) 
+  }
 }
 dev.off()
 
