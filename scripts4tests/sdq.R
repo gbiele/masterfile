@@ -25,7 +25,7 @@ get_sdq = function(qu_a,qu_b,rater){
 
   sdq_dims = list(EMOTION = c("somatic", "worries", "unhappy", "clingy", "afraid"),
                   CONDUCT = c("tantrum", "q.obeys", "fights", "lies", "steals"),
-                  HYPERACT   = c("restles", "fidgety", "distrac", "q.reflect", "qattends"),
+                  HYPERACT   = c("restles", "fidgety", "distrac", "q.reflect", "q.attends"),
                   PEERREL    = c("loner", "q.friend", "q.popular", "bullied", "oldbest"),
                   PROSOCIAL  = c("consid", "shares", "caring", "kind", "helpout"),
                   IMPACT  = impact)
@@ -71,7 +71,14 @@ get_sdq = function(qu_a,qu_b,rater){
               sdqb[,names(sdqb)[names(sdqb) %in% names(sdqa)],with = F])
   sdq = merge(sdq,sdqa[,c(index_vars,setdiff(names(sdqa),names(sdqb))),with = F],by = index_vars, all = T)
   sdq = merge(sdq,sdqb[,c(index_vars,setdiff(names(sdqb),names(sdqa))),with = F],by = index_vars, all = T)
-
+  
+  sdq = smart_impute(sdq,
+                     items = names(sdq) %in% grep(paste(unique(do.call(c,sdq_dims[1:5])),
+                                                        collapse = "|"),
+                                                  names(sdq),
+                                                  value = T)
+                     )
+  
   for (vn in names(sdq)[grep("IPT",names(sdq))]) {
     vnq = sub("IPT.","IPT.q.",vn)
     sdq[[vnq]] = recode(sdq[[vn]], "0:1=0; 2=1; 3=2; NA=0")

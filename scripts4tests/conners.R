@@ -41,9 +41,14 @@ get_conners = function(qu,rater){
     
     new_names = paste0(nbase,v,".i",items2dims[[v]])
     setnames(CS,old_names,new_names)
+  }
+  
+  CS = smart_impute(CS)
+  
+  for (v in names(items2dims))
     CS = make_sum_scores(CS,new_names,paste0(nbase,v,".SS"),
                          count_cutoff_idx = 2)
-  }
+  
   CS = make_sum_scores(CS,
                        unlist(lapply(names(items2dims[2:3]), 
                                      function(v) paste0(nbase,v,".i",items2dims[[v]]))),

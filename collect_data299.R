@@ -87,8 +87,6 @@ MASTER$VERSION = factor(1+MASTER[,get(index_vars[1])] %in% kgqb[,get(index_vars[
 rm(kgqa,kgqb)
 # no cbq in kindergarden cbq = get_cbq_eas(pqa,pqb)
 
-MASTER = MASTER[,-which(colSums(is.na(MASTER)) == nrow(MASTER)),with = F]
-
 ################ Masternal age, edu, parity ##############
 load("../MoBa/redSkjema1_PDB299_v6.Rdata")
 SES = Q1r[,c("PREG_ID_299","AA1124","AA1125")]
@@ -107,18 +105,17 @@ MASTER = merge(MASTER,SES, by = c("PREG_ID_299"))
 ################# corrections #######################
 # GENERELT: slette barn med PREG_ID_299 = 50163 fra alle tester, grunnet usikkerhet rundt barnets norskkunnskaper (dette er inkludert i alle endelige syntakser). 
 # Mor oversetter nær sagt alle testinstruksjoner til serbisk, vi har ikke kontroll på hva hun sier.
-is50163 = which(MASTER$Age_in_days == 1215 & MASTER$PP.ADHD.SS == 14)
-MASTER = MASTER[-is50163,]
+#is50163 = which(MASTER$Age_in_days == 1215 & MASTER$PP.ADHD.SS == 14)
+#MASTER = MASTER[-is50163,]
 
 # Vær obs på sakene 50163 og 87831 når disse syntaksene kjøres. Ingen av disse sakene skal ha valid ABIQ!!
-is87831 = which(MASTER$Age_in_days == 1294 & MASTER$PP.ADHD.SS == 3 & MASTER$PP.ODD.SS == 4)
-
-MASTER[["StB.ABIQ.S"]][is87831] = NA
-MASTER[["StB.ABIQ.PR"]][is87831] = NA
-MASTER[["StB.WMindex.S"]][is87831] = NA
+#is87831 = which(MASTER$Age_in_days == 1294 & MASTER$PP.ADHD.SS == 3 & MASTER$PP.ODD.SS == 4)
+#MASTER[["StB.ABIQ.S"]][is87831] = NA
+#MASTER[["StB.ABIQ.PR"]][is87831] = NA
+#MASTER[["StB.WMindex.S"]][is87831] = NA
 
 # Nina: slette BNT skåre til barnet der mor oversetter alle testinstruksjonene.
-MASTER[["BNT.S"]][is87831] = NA
+#MASTER[["BNT.S"]][is87831] = NA
 
 # bnt$BNT.SCORE = rowSums(bnt[,names(bnt)[grep("BN1_",names(bnt))],with = F] < 5)
 
@@ -165,7 +162,7 @@ MASTER_scores = MASTER[,scores_plus,with = F]
 # #####################################
 
 par(ps = 12)
-pdf(file = "histograms.pdf",width = 29/2.54,height = 21/2.54,pointsize = 10)
+pdf(file = "histograms_nni.pdf",width = 29/2.54,height = 21/2.54,pointsize = 10)
 hist_by_version(MASTER_scores[,-c(1,2,4,grep("\\.GR$",names(MASTER_scores))),with = F])
 dev.off()
 
@@ -175,8 +172,8 @@ hists(MASTER_scores[,grep("\\.SC$",names(MASTER_scores)),with = F])
 impdata = MASTER_scores[,-grep("\\.GR$",names(MASTER_scores)),with = F]
 
 #write.foreign(MASTER[,1:2,with = F], paste0(getwd(),"/MASTER.txt"), paste0(getwd(),"/MASTER.sps"),   package="SPSS")
-save(MASTER,file = "masterfile.Rdata")
-save(MASTER_scores,file = "masterfile_scores.Rdata")
+save(MASTER,file = "masterfile_nni.Rdata")
+save(MASTER_scores,file = "masterfile_scores_nni.Rdata")
 
 variable_infoa = data.frame(unlist(lapply(MASTER_scores, function(x) attr(x,"label"))))
 variable_infob = data.frame(unlist(lapply(MASTER_scores, function(x) paste(paste(names(attr(x,"labels")),
@@ -192,7 +189,7 @@ variable_info = merge(variable_infoa,
                       by = "Variable_name")[,c("Variable_name","Variable_label","Value_labels")]
 rm(variable_infoa,variable_infob)
 
-write.table(variable_info,file = "varivariable_info.dat",sep = "\t")
+write.table(variable_info,file = "varivariable_info_nni.dat",sep = "\t")
 
 #writeSPSSfromLabelled(MASTER,paste0(getwd(),"/MASTER.csv"),"MASTER.sps")
 #writeSPSSfromLabelled(MASTER_scores,paste0(getwd(),"/MASTER_scores.csv"),"MASTER_scores.sps")

@@ -9,7 +9,7 @@
 # questionnaire. We have also included the two additional questions that are at the end of EAS
 # in Q6 (made by MoBa).
 
-# info short form: http://www.bowdoin.edu/~sputnam/rothbart-temperament-questionnaires/pdf/CBQ-development-of-short-form.pdf 
+# info short form: https://research.bowdoin.edu/rothbart-temperament-questionnaires/files/2016/09/cbq_short_form_paper.pdf 
 
 get_cbq_eas = function(pqa,pqb){
   cbqavars = c(index_vars,names(pqa)[grep("SBFCBQ",names(pqa))])
@@ -25,9 +25,6 @@ get_cbq_eas = function(pqa,pqb){
   }
   
   cbq = rbind(cbqa,cbqb,use.names = F)
-  
-  
-  
   rm(cbqa,cbqb,cbqavars,cbqbvars)
   
   cbq_item_info = fread("instrument_docs/cbq_items_and_scale.txt")
@@ -54,13 +51,8 @@ get_cbq_eas = function(pqa,pqb){
     cbq[[i]] = abs(cbq[[i]]-8)
   }
   
-  cbq_scales = unique(cbq_item_info$scale)
-  for (s in cbq_scales) {
-    cbq = make_sum_scores(cbq,grep(s,names(cbq)),paste0("CBQ.P.",s,".SS"))
-  }
-
   
-  ############### need to add scale scores for EAS ####################
+  ############### items for EAS ####################
   # from mathiesen & tambs, 1999
   eas_scales = list(EMOTION = c(1,7,10),
                     ACTIVITY = c(2,4,-8),
@@ -70,13 +62,41 @@ get_cbq_eas = function(pqa,pqb){
   for (s in names(eas_scales)) scl[abs(eas_scales[[s]])] = s
   
   setnames(cbq,paste("SBFCBQ",51:62,sep = ""),paste0("EAS.P.",scl,".i",1:12))
-  for (s in names(eas_scales)) {
-    w = eas_scales[[s]]
-    cbq[[paste0("EAS.P.",s,sep = ".SS")]] = 
-      (as.matrix(cbq[,grep(s,names(cbq)),with = F]) %*% sign(w))
+  
+  cbq = smart_impute(cbq)
+  
+  ########### sum scores #############
+  
+  cbq_scales = unique(cbq_item_info$scale)
+  iteminfo = ""
+  for (s in cbq_scales) {
+    iteminfo = paste(iteminfo,
+                     paste0("#### ",s, " ####"),
+                     "\n",
+                     paste(sapply(cbq[,grep(s,names(cbq)),with = F], attr, "label"),collapse = "\n"),
+                     "\n")
+    cbq = make_sum_scores(cbq,grep(s,names(cbq)),paste0("CBQ.P.",s,".SS"))
   }
-  cbq$EAS.P.SHYNESS.SS = cbq$EAS.P.SHYNESS.SS - min(cbq$EAS.P.SHYNESS.SS,na.rm = T)
-  print("set minimum value of EAS.P.SHYNESS.SS to 0")
+  cat(iteminfo,file = "item_info/cbq.txt")
+  
+  for (d in names(eas_scales)) {
+    for (item in abs(eas_scales[[d]][eas_scales[[d]]<0])) {
+      item_name = paste0("EAS.P.",d,".i",item)
+      cbq[[item_name]] = cbq[[item_name]]*-1+max(cbq[[item_name]],na.rm = T)+1
+    }
+  }
+  
+  iteminfo = ""
+  for (s in names(eas_scales)) {
+    iteminfo = paste(iteminfo,
+                     paste0("#### ",s, " ####"),
+                     "\n",
+                     paste(sapply(cbq[,grep(s,names(cbq)),with = F], attr, "label"),collapse = "\n"),
+                     "\n")
+    cbq = make_sum_scores(cbq,grep(s,names(cbq)),paste0("EAS.P.",s,sep = ".SS"))
+  }
+  cat(iteminfo,file = "item_info/eas.txt")
+  
   abbreviations = c(CBQ = "CBQ",
                     EAS = "EAS",
                     P = "Parent rating",

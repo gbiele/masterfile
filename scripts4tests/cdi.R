@@ -37,6 +37,8 @@ get_cdi = function(qu_a,qu_b,rater){
   
   setnames(cdi,names(cdi)[-c(1,2)], paste0("CDI.L.P.i",c(1:50,"pronounciation","understood")))
   
+  cdi = smart_impute(cdi)
+  
   cdi = make_sum_scores(cdi,names(cdi)[grep("CDI\\.L\\.P\\.i[0-9]",names(cdi))],"CDI.L.P.SS")
  
   for (k in 3:length(cdiavars)) attributes(cdi[[k]])$label = varlabels[k]

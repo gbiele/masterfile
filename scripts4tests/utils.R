@@ -1,5 +1,4 @@
 library(haven)
-library(data.table)
 library(plyr)
 library(car)
 library(stringr)
@@ -12,28 +11,61 @@ NaN2NA = function(DT) {
 }
 
 make_sum_scores = function(DT,items,ss_var,count_score = F,count_cutoff_idx = 1){
+  DT$sNAs = 0L
   DT[,sNAs := sum(is.na(.SD)),by = 1:nrow(DT),.SDcols = items]
   tmp_items = paste0(items,".tmp")
   DT[,(tmp_items):=lapply(.SD, function(col) as.numeric(factor(col))-1),.SDcols = items]
   
-  DT[, sum_score := sum(.SD,na.rm = T),by = 1:nrow(DT), .SDcols = tmp_items]
-  DT[, sum_score := round(sum_score/(length(tmp_items)-sNAs)*length(tmp_items))]
+  #DTi = smart_impute(DT[,tmp_items,with = F])
+  #DT[, sum_score := rowSums(DTi)]
+  DT[, sum_score := sum(.SD), by = 1:nrow(DT), .SDcols = items]
+  
   DT[sNAs >= (length(items)/2) , sum_score := NA,]
   setnames(DT,"sum_score",ss_var)
   
   if (count_score){
-    count_cutoff = sort(unique(unlist(lapply(DT[,tmp_items,with = F],
+    count_cutoff = sort(unique(unlist(lapply(DT[,items,with = F],
                                              unique))))[count_cutoff_idx]
-    DT[, count_score := sum(.SD > count_cutoff,na.rm = T),by = 1:nrow(DT), .SDcols = tmp_items]
-    DT[, count_score := round(count_score/(length(tmp_items)-sNAs)*length(tmp_items))]
-    DT[sNAs >= (length(items)/2) , count_score := NA,]
+    #DT[, count_score := sum(.SD > count_cutoff,na.rm = T),by = 1:nrow(DT), .SDcols = tmp_items]
+    #DT[, count_score := round(count_score/(length(tmp_items)-sNAs)*length(tmp_items))]
+    DT$count_score = rowSums(DT[,items,with = F])
     setnames(DT,"count_score",sub(".SS",".SC",ss_var))
   }
   
   DT = DT[,-which(names(DT) %in% c("sNAs",tmp_items)),with = F]
+  #png(filename = paste0("IRT_FA/",gsub("\\.","_",ss_var),".png"),units = "cm", width = 30, height = 20, res = 150)
+  #irt.fa(DT[,items,with = F])
+  #dev.off()
   return(DT)
 }
 
+smart_impute = function(dt,items = NULL) {
+  if(is.null(items))
+    items =  names(dt) %in% grep("i[0-9]",names(dt), value = T)
+  dt_complete = dt[rowSums(is.na(dt[,items,with = F])) == 0,]
+  dt_missing = which(rowSums(is.na(dt[,items,with = F])) > 0 & rowSums(is.na(dt[,items,with = F])) < (sum(items)/2))
+  
+  for (k in dt_missing) {
+    idx = as.vector(!(is.na(dt[k]))) & items
+    
+    mat = as.matrix(dt_complete[,idx,with = F])
+    rvec = as.matrix(dt[k,idx,with = F])
+    d = apply(mat,
+              1,
+              function(x) dist(rbind(x,rvec)))
+    
+    impvars = intersect(names(dt)[!idx],
+                        names(dt)[items])
+    imp = round(colMeans(dt_complete[d == min(d),
+                                     impvars,
+                                     with = F]
+                         )
+                )
+    for (v in impvars)
+      dt[[v]][k] = imp[v]
+  }
+  return(dt)
+}
 
 add_label = function(dt,prefix,abbreviations,my_warning = T) {
   for (v in  names(dt)[grep(paste0("^",prefix),names(dt))]) {

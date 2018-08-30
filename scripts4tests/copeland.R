@@ -47,6 +47,7 @@ get_Copland = function(qu_a,qu_b){
     attributes(qu_b[[v]]) = attributes(qu_a[[v]])
     }
   PPS = rbind(qu_a[,PPS_vars,with = F],qu_b[,PPS_vars,with = F])
+  PPS = smart_impute(PPS)
   for (v in names(items2dimensions)) {
     PPS = make_sum_scores(PPS,PPS_vars[grep(v,PPS_vars)],paste0("PPS.T.",v,".SS"))
   }

@@ -85,9 +85,12 @@ get_neuropsych = function(data_dir) {
   bnt[,BNT.compl := is.na(BNBNT0)]
   bnt[BN2_1 == "Ikke tatt" | BN2_1 == "3 , men avbrutt" , BNT.compl := F]
   
+  bnt[,BNT.miss := sum(is.na(.SD)), by = 1:nrow(bnt),.SDcols = SDcols]
+  
+  bnt = smart_impute(bnt,items = names(bnt) %in% SDcols)
+  
   bnt[,BNT.S := sum(.SD<5,na.rm = T), by = 1:nrow(bnt),.SDcols = SDcols]
   bnt[BNT.compl == F,BNT.S := NA]
-  bnt[,BNT.miss := sum(is.na(.SD)), by = 1:nrow(bnt),.SDcols = SDcols]
   bnt[,BNT.errors := sum(.SD == 5, na.rm = T), by = 1:nrow(bnt),.SDcols = SDcols]
   
   bnt[BNT.miss == 25, BNT.compl := F]
