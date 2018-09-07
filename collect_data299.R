@@ -24,15 +24,16 @@ MASTER = merge(MASTER,get_PAPA299(),by = index_vars,all = T)
 MASTER = merge(MASTER,get_conclusion(),by = c(index_vars),all = T)
 
 
-
 #####################################################
-################## Stanford Binet ###################
+# screeing scale from Q6, filled out in ADHD Study ##
 #####################################################
 MASTER = merge(MASTER,get_ADHD_SCALE_Q6(),by = index_vars,all = T)
 
 #####################################################
-# screeing scale from Q6, filled out in ADHD Study ##
+################## Stanford Binet ###################
 #####################################################
+
+
 #age = NaN2NA(data.table(read_sav("../PDB1717_AlderKlinikk.sav")))[,c(index_vars,"Kontroll_Alder"),with = F]
 #age = NaN2NA(merge(age,data.table(read_sav("../PDB1717_MFR_410_v8.sav")))[,c(index_vars,"KJONN"),with = F],by = index_vars,all.y = F)
 #setnames(age,"KJONN","Gender")
@@ -189,7 +190,7 @@ variable_info = merge(variable_infoa,
                       by = "Variable_name")[,c("Variable_name","Variable_label","Value_labels")]
 rm(variable_infoa,variable_infob)
 
-write.table(variable_info,file = "varivariable_info_nni.dat",sep = "\t")
+write.table(variable_info,file = "variable_info_nni.dat",sep = "\t")
 
 #writeSPSSfromLabelled(MASTER,paste0(getwd(),"/MASTER.csv"),"MASTER.sps")
 #writeSPSSfromLabelled(MASTER_scores,paste0(getwd(),"/MASTER_scores.csv"),"MASTER_scores.sps")

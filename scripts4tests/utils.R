@@ -3,6 +3,7 @@ library(plyr)
 library(car)
 library(stringr)
 library(foreign)
+library(data.table)
 
 NaN2NA = function(DT) {
   for (j in names(DT))
