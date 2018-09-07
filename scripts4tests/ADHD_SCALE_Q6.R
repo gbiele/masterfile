@@ -1,5 +1,12 @@
 get_ADHD_SCALE_Q6 = function(){
   dt = NaN2NA(data.table(read_sav(paste0(data_dir,"ATFERD.sav"))))
+  dt = merge(dt,
+             dt[,list(N = .N), by = c("PREG_ID_299","BARN_NR")],
+             by = c("PREG_ID_299","BARN_NR"))
+  
+  dt[, x := paste0(PREG_ID_299,BARN_NR)]
+  dt[, delete := (N > 1 & is.na(A__0_2))]
+  dt = dt[delete == F]
   
   old_names = names(dt)[grep("^AT3",names(dt))]
   new_names = paste("MB3S.ADHDi",1:11,sep = "")
