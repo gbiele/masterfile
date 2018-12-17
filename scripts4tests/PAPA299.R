@@ -535,7 +535,10 @@ get_PAPA299 = function(){
   
   AX = AX[,c(1,2,grep("SOA|GEA|SEA|PHO|ANX",names(AX))),with = F]
   
+  #########################################################
   ######################### konklusions ###################
+  #########################################################
+  
   KK = NaN2NA(data.table(read_sav(paste0(data_dir,"ADHD_KONKL.sav"))))
   
   labels = c(KU1_4_1 = "Neuropsychological evaluation",
@@ -589,50 +592,56 @@ get_PAPA299 = function(){
   
   KK[,(names(labels)) := lapply(.SD, function(x) {x[is.na(x)] = 0; return(x)}), .SDcols = names(labels)]
   
-  diagnostic_labels = c(Non_symptomatic = 1,
-                        insufficent_information = 2,
-                        subthreshold_symptoms = 3,
-                        clinical_diagnosis = 4,
-                        situational_ADHD = 5)
-  difficulties_labels = c(No_difficulties = 1,
-                          Difficulties_present_without_impact = 2,
-                          Difficulties_present_with_impact= 3)
+  translate_labels = function(v) {
+    v = gsub("Utilstrekkelig informasjon","Insufficient Information",v)
+    v = gsub("Subterskel fenomener","subclinical symptoms",v)
+    v = gsub("Klinisk diagnose","clinical diagnosis",v)
+    v = gsub("Fenomen tilstede uten impact","Symptoms without impact",v)
+    v = gsub("Fenomen tilstede med impact","Symptoms with impact",v)
+  }
   
-  SDcols = names(labels)[diags]
-  KK[,(SDcols) := lapply(.SD, function(x) labelled(as.numeric(factor(x)),labels = diagnostic_labels)), .SDcols = SDcols]
-  SDcols = names(labels)[diffs]
-  KK[,(SDcols) := lapply(.SD, function(x) labelled(as.numeric(factor(x)),labels = difficulties_labels)), .SDcols = SDcols]
-
+  for (vx in c(names(labels)[diags],names(labels)[diffs])) {
+    names(attr(KK[[vx]],"labels")) = translate_labels(names(attr(KK[[vx]],"labels")))
+    if(min(attr(KK[[vx]],"labels")) > 0 & min(KK[[vx]]) == 0) {
+      if(vx %in% names(labels)[diags]) {
+        attr(KK[[vx]],"labels") = c(c("no diagnosis" = 0), attr(KK[[vx]],"labels"))
+      } else {
+        attr(KK[[vx]],"labels") = c(c("no symptoms" = 0), attr(KK[[vx]],"labels"))
+      }
+    }
+  }
   
   tmp = KK[,c("KU2_1_1", "KU2_1_2", "KU2_2_1"),with = F]
-  tmp[tmp == 0] = 4
-  KK[,LANG.GR := apply(tmp,1,function(x) min(x,na.rm = T))]
+  KK[,kLANG.GR := apply(tmp,1,function(x) max(x,na.rm = T))]
   rm(tmp)
-  my_labels = c( "LANG_DEV_PROBL_clin" = 1, "LANG_DEV_PROBL_subclin" = 2, "LANG_DEV_PROBL_lackinfo" = 3, "no_LANG_DEV_PROBL" = 4)
-  KK[,LANG.GR := labelled(LANG.GR, labels = my_labels)]
+  my_labels = c( "no_LANG_DEV_PROBL" = 0,
+                 "LANG_DEV_PROBL_lackinfo" = 1,
+                 "LANG_DEV_PROBL_subclin" = 2,
+                 "LANG_DEV_PROBL_clin" = 3)
+  KK[,kLANG.GR := labelled(kLANG.GR, labels = my_labels)]
   
   
-  KK[, OTHER.GR := 4]
-  for (v in 3:1) KK[KU4_1_1==v | KU6_1_1==v | KU6_1_2==v | KU6_3_1==v | KU6_3_2==v | KU6_3_3==v | KU7_1_1==v | KU7_1_2==v, OTHER.GR := v]
-  my_labels = c( "OTHER_DISORDER_clin" = 1, "OTHER_DISORDER_subclin" = 2, "OTHER_DISORDER_lackinfo" = 3, "no_OTHER_DISORDER" = 4)
-  KK[,OTHER.GR := labelled(OTHER.GR, labels = my_labels)]
+  KK[, kOTHER.GR := 0]
+  for (v in 3:1) KK[KU4_1_1==v | KU6_1_1==v | KU6_1_2==v | KU6_3_1==v | KU6_3_2==v | KU6_3_3==v | KU7_1_1==v | KU7_1_2==v, kOTHER.GR := v]
+  my_labels = c("no_OTHER_DISORDER" = 0, "OTHER_DISORDER_clin" = 1, "OTHER_DISORDER_subclin" = 2, "OTHER_DISORDER_lackinfo" = 3)
+  KK[,kOTHER.GR := labelled(kOTHER.GR, labels = my_labels)]
   
-  KK[, SL.GR := 4]
-  KK[KU7_3_7==2 | KU7_3_1==2 | KU7_3_2==2 | KU7_3_3==2 | KU7_3_8==2 | KU7_3_4==2 | KU7_3_6==2, SL.GR := 2]
-  KK[KU7_3_7==3 | KU7_3_1==3 | KU7_3_2==3 | KU7_3_3==3 | KU7_3_8==3 | KU7_3_4==3 | KU7_3_6==3, SL.GR := 1]
-  my_labels = c("SLEEP_REG_PROBL_wimp" = 1, "SLEEP_REG_PROBL_woimp" = 2, "no_SLEEP_REG_PROBL" = 4)
-  KK[,SL.GR := labelled(SL.GR, labels = my_labels)]
+  KK[, kSL.GR := 0]
+  KK[KU7_3_7==2 | KU7_3_1==2 | KU7_3_2==2 | KU7_3_3==2 | KU7_3_8==2 | KU7_3_4==2 | KU7_3_6==2, kSL.GR := 2]
+  KK[KU7_3_7==3 | KU7_3_1==3 | KU7_3_2==3 | KU7_3_3==3 | KU7_3_8==3 | KU7_3_4==3 | KU7_3_6==3, kSL.GR := 1]
+  my_labels = c("no_SLEEP_REG_PROBL" = 0, "SLEEP_REG_PROBL_wimp" = 1, "SLEEP_REG_PROBL_woimp" = 2)
+  KK[,kSL.GR := labelled(kSL.GR, labels = my_labels)]
   
   
-  KK[, EMO.GR := 4]
-  KK[KU8_1_1==2 | KU8_1_2==2 | KU8_1_3==2 | KU8_1_4==2 | KU8_1_5==2 | KU8_1_6==2, EMO.GR := 2]
-  KK[KU8_1_1==3 | KU8_1_2==3 | KU8_1_3==3 | KU8_1_4==3 | KU8_1_5==3 | KU8_1_6==3, EMO.GR := 1]
-  my_labels = c("EMOT_DYSREG_wimp" = 1, "EMOT_DYSREG_woimp" = 2, "EMOT_DYSREG_PROBL" = 4)
-  KK[,EMO.GR := labelled(EMO.GR, labels = my_labels)]
+  KK[, kEMO.GR := 0]
+  KK[KU8_1_1==2 | KU8_1_2==2 | KU8_1_3==2 | KU8_1_4==2 | KU8_1_5==2 | KU8_1_6==2, kEMO.GR := 2]
+  KK[KU8_1_1==3 | KU8_1_2==3 | KU8_1_3==3 | KU8_1_4==3 | KU8_1_5==3 | KU8_1_6==3, kEMO.GR := 1]
+  my_labels = c("EMOT_DYSREG_PROBL" = 0, "EMOT_DYSREG_wimp" = 1, "EMOT_DYSREG_woimp" = 2)
+  KK[,kEMO.GR := labelled(kEMO.GR, labels = my_labels)]
   
-  KK[, XOTHER.GR := 2]
-  KK[OTHER.GR < 3 | SL.GR < 3 | EMO.GR < 3,XOTHER.GR := 1]
-  KK[,XOTHER.GR := labelled(XOTHER.GR, labels = c("Yes" = 1, "No" = 2))]
+  KK[, kXOTHER.GR := 2]
+  KK[kOTHER.GR < 3 | kSL.GR < 3 | kEMO.GR < 3,kXOTHER.GR := 1]
+  KK[,kXOTHER.GR := labelled(kXOTHER.GR, labels = c("Yes" = 1, "No" = 2))]
   
   
   new_names = c(paste0("DIA.",vnames[diags]),
@@ -649,7 +658,10 @@ get_PAPA299 = function(){
   names(diag_labels) = vnames
   
   SDcols = c("DIA.ADHD.A","DIA.ADHD.HI","DIA.ADHD.C")
-KK[,DIA.ADHD.any_ADHD := labelled(max(.SD),labels = diagnostic_labels), by = 1:nrow(KK),.SDcols = SDcols]
+  KK[,DIA.ADHD.any_ADHD := labelled(max(.SD),
+                                    labels = attr(KK$DIA.ADHD.A,"labels")),
+     by = 1:nrow(KK),
+     .SDcols = SDcols]
 
   ######################### communication, social play, rep. beh. #################
   
