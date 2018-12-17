@@ -94,7 +94,10 @@ SES = Q1r[,c("PREG_ID_299","AA1124","AA1125")]
 SES[which(is.na(SES$AA1124) & SES$AA1125 > 1),"AA1124"] = SES[which(is.na(SES$AA1124) & SES$AA1125 > 1),"AA1125"]-1
 SES[which(is.na(SES$AA1124) & SES$AA1125 == 1),"AA1124"] = 1
 SES$mEDU.comp = cut(SES$AA1124,breaks = c(-.5,1.5,4.5,5.5,6.5), labels = c("Elementary", "High-School","Bachelor","Master"))
-SES = SES[,c("PREG_ID_299","mEDU.comp")]
+SES$mEDU.compf = factor(SES$AA1124,
+                        levels = c(1:6),
+                        labels = c("Elementary", "HS 1-2","HS Y","HS 3","Bachelor","Master"))
+SES = SES[,c("PREG_ID_299","mEDU.comp","mEDU.compf")]
 
 MFR = read_sav("../MoBa/MFR_350_PDB299_v6.sav")
 MFR = MFR[,c("PREG_ID_299","BARN_NR","MORS_ALDER","PARITET_5","SVLEN","VEKT")]
@@ -141,7 +144,7 @@ write.csv(nms,"nms.txt")
 scores = c(index_vars,
            "VERSION",
            names(MASTER)[grep("\\.S$|\\.SS$|\\.GR|\\.SC$|Age|Gender|.errors$|n_miss$|sec$|n2h$",names(MASTER))])
-scores_plus = c(scores,"mEDU.comp","mAge","Parity","gest_age_wks","birthweight")
+scores_plus = c(scores,"mEDU.comp","mEDU.compf","mAge","Parity","gest_age_wks","birthweight")
 MASTER_scores = MASTER[,scores_plus,with = F]
 
 ########### 4 annette ############
