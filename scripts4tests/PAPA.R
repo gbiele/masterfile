@@ -13,38 +13,47 @@
 get_PAPA = function(){
   
   ################################ SLEEP #########################################
+  data_dir = ifelse(
+    file.exists(paste0(data_dir,"PAPA_K2.Rdata")),
+    data_dir,
+    paste0(data_dir,"PDB2565_"))
   
-  SL1 = NaN2NA(data.table(read_sav(paste0(data_dir,"PAPA_K2_1_V1.sav"))))
-  SL1 = merge(SL1,NaN2NA(data.table(read_sav(paste0(data_dir,"PAPA_K2_2_V1.sav")))), by = index_vars)
-  SL1 = merge(SL1,NaN2NA(data.table(read_sav(paste0(data_dir,"PAPA_K2_3_V1.sav")))), by = index_vars)
-  SL1 = merge(SL1,NaN2NA(data.table(read_sav(paste0(data_dir,"PAPA_K2_4_V1.sav")))), by = index_vars)
-  SL1[,AlderUtfylt_PAPA_K2 := AlderUtfylt_PAPA_K2_3_V1]
-  SL1[,K2_INSTRUMENT_ID_V2 := K2_INSTRUMENT_ID.x]
-  SL1[,(unique(names(SL1)[grep(".x$|.y$",names(SL1))])) := NULL]
-  SL1[,(unique(names(SL1)[grep(".x$|.y$",names(SL1))])) := NULL]
-  SL2 = NaN2NA(data.table(read_sav(paste0(data_dir,"PAPA_K2_V2.sav"))))
-  SL2[,AlderUtfylt_PAPA_K2 := AlderUtfylt_PAPA_K2_V2]
-  
-  for(v in intersect(names(SL1),names(SL2))) {
-    if (class(SL1[[v]]) == "numeric" & class(SL2[[v]]) == "labelled") {
-      SL1[[v]] = labelled(SL1[[v]],labels = attr(SL2[[v]],"labels"))
-    } else if (class(SL1[[v]]) == "character" & class(SL2[[v]]) == "numeric") {
-      if ( (mean(SL1[[v]] == "") > .5 & mean(is.na(SL2[[v]])) > .5) |
-           mean(SL2[[v]],na.rm = T) > 1200) {
-        SL1[[v]] = as.numeric(SL1[[v]])
-        attr(SL1[[v]],"label") = attributes(SL2[[v]])[["label"]]
+  if (file.exists(paste0(data_dir,"PAPA_K2.Rdata"))) {
+    load(paste0(data_dir,"PAPA_K2.Rdata"))
+  } else {
+    SL1 = NaN2NA(data.table(read_sav(paste0(data_dir,"PAPA_K2_1_V1.sav"))))
+    SL1 = merge(SL1,NaN2NA(data.table(read_sav(paste0(data_dir,"PAPA_K2_2_V1.sav")))), by = index_vars)
+    SL1 = merge(SL1,NaN2NA(data.table(read_sav(paste0(data_dir,"PAPA_K2_3_V1.sav")))), by = index_vars)
+    SL1 = merge(SL1,NaN2NA(data.table(read_sav(paste0(data_dir,"PAPA_K2_4_V1.sav")))), by = index_vars)
+    SL1[,AlderUtfylt_PAPA_K2 := AlderUtfylt_PAPA_K2_3_V1]
+    SL1[,K2_INSTRUMENT_ID_V2 := K2_INSTRUMENT_ID.x]
+    SL1[,(unique(names(SL1)[grep(".x$|.y$",names(SL1))])) := NULL]
+    SL1[,(unique(names(SL1)[grep(".x$|.y$",names(SL1))])) := NULL]
+    SL2 = NaN2NA(data.table(read_sav(paste0(data_dir,"PAPA_K2_V2.sav"))))
+    SL2[,AlderUtfylt_PAPA_K2 := AlderUtfylt_PAPA_K2_V2]
+    
+    for(v in intersect(names(SL1),names(SL2))) {
+      if (class(SL1[[v]]) == "numeric" & class(SL2[[v]]) == "labelled") {
+        SL1[[v]] = labelled(SL1[[v]],labels = attr(SL2[[v]],"labels"))
+      } else if (class(SL1[[v]]) == "character" & class(SL2[[v]]) == "numeric") {
+        if ( (mean(SL1[[v]] == "") > .5 & mean(is.na(SL2[[v]])) > .5) |
+             mean(SL2[[v]],na.rm = T) > 1200) {
+          SL1[[v]] = as.numeric(SL1[[v]])
+          attr(SL1[[v]],"label") = attributes(SL2[[v]])[["label"]]
+        }
+      }
+      if (class(SL1[[v]]) != class(SL2[[v]]) ) {
+        SL1[[v]] = unlist(apply(data.frame(as.vector(SL1[[v]])),1, make_numbers))
       }
     }
-    if (class(SL1[[v]]) != class(SL2[[v]]) ) {
-      SL1[[v]] = unlist(apply(data.frame(as.vector(SL1[[v]])),1, make_numbers))
-    }
+    
+    
+    SL = rbind(SL1[,(intersect(names(SL1),names(SL2))),with = F],
+               SL2[,(intersect(names(SL1),names(SL2))),with = F])
+    
+    save(SL,file = paste0(data_dir,"PAPA_K2.Rdata"))
   }
   
-  
-  SL = rbind(SL1[,(intersect(names(SL1),names(SL2))),with = F],
-             SL2[,(intersect(names(SL1),names(SL2))),with = F])
-  
-  save(SL,file = paste0(data_dir,"PAPA_K2.Rdata"))
   
   for (v in index_vars) SL[, c(v) := as.numeric(get(v))]
   

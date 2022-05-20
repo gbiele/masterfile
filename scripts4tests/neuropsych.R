@@ -190,34 +190,34 @@ get_neuropsych = function(data_dir) {
   #####################################################
   # http://www.si-instruments.com/supplier/files/download/lafayette-current-version-grooved-pegboard-test-32025-lafayette-32025-grooved-pegboard-test-manual-pdf.html
   # psychomotoric spees
-  
-  gpt = NaN2NA(data.table(read_sav(paste0(data_dir,"Pegs.sav"))))
-  gpt[GP1 == "NaN",GP1 := NA]
-  gpt[,GP1 := factor(GP1,labels = c("right","left"))]
-  setnames(gpt,"GP1","GPT.dh")
-  setnames(gpt,"GP2_1","GPT.d.sec")
-  setnames(gpt,"GP2_2","GPT.d.n_miss")
-  setnames(gpt,"GP2_3","GPT.d.n2h")
-  setnames(gpt,"GP3_1","GPT.nd.sec")
-  setnames(gpt,"GP3_2","GPT.nd.n_miss")
-  setnames(gpt,"GP3_3","GPT.nd.n2h")
-  gpt$GPT.d.sec = char2num(gpt$GPT.d.sec)
-  gpt$GPT.nd.sec = char2num(gpt$GPT.nd.sec)
-  
-  gpt = gpt[, c(which(index_vars %in% names(gpt)),
-                grep("^GPT",names(gpt))),with = F]
-  
-  abbreviations = c(GPT = "Grooved pegboard task",
-                    dh = "dominant hand",
-                    d = "dominant hand",
-                    nd = "non-dominant hand",
-                    n_miss = "number missed pins",
-                    n2h = "number used two hands",
-                    sec = "seconds")
-  for (n in names(gpt)[-c(1,2)]) gpt[[n]] = as.numeric(gpt[[n]])
-  gpt = add_label(gpt,"GPT",abbreviations)
-  dt = merge(dt,gpt,by = c(index_vars), all = T)
-  rm(gpt)
+  # 
+  # gpt = NaN2NA(data.table(read_sav(paste0(data_dir,"Pegs.sav"))))
+  # gpt[GP1 == "NaN",GP1 := NA]
+  # gpt[,GP1 := factor(GP1,labels = c("right","left"))]
+  # setnames(gpt,"GP1","GPT.dh")
+  # setnames(gpt,"GP2_1","GPT.d.sec")
+  # setnames(gpt,"GP2_2","GPT.d.n_miss")
+  # setnames(gpt,"GP2_3","GPT.d.n2h")
+  # setnames(gpt,"GP3_1","GPT.nd.sec")
+  # setnames(gpt,"GP3_2","GPT.nd.n_miss")
+  # setnames(gpt,"GP3_3","GPT.nd.n2h")
+  # gpt$GPT.d.sec = char2num(gpt$GPT.d.sec)
+  # gpt$GPT.nd.sec = char2num(gpt$GPT.nd.sec)
+  # 
+  # gpt = gpt[, c(which(index_vars %in% names(gpt)),
+  #               grep("^GPT",names(gpt))),with = F]
+  # 
+  # abbreviations = c(GPT = "Grooved pegboard task",
+  #                   dh = "dominant hand",
+  #                   d = "dominant hand",
+  #                   nd = "non-dominant hand",
+  #                   n_miss = "number missed pins",
+  #                   n2h = "number used two hands",
+  #                   sec = "seconds")
+  # for (n in names(gpt)[-c(1,2)]) gpt[[n]] = as.numeric(gpt[[n]])
+  # gpt = add_label(gpt,"GPT",abbreviations)
+  # dt = merge(dt,gpt,by = c(index_vars), all = T)
+  # rm(gpt)
   return(dt)
 }
 

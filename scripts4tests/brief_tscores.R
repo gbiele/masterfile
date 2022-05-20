@@ -1,4 +1,4 @@
-library(XLConnect)
+#library(XLConnect)
 library(data.table)
 library(plyr)
 library(VIM)
