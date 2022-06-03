@@ -54,14 +54,17 @@ get_eci = function(qu,rater){
     
     new_names = paste0(nbase,v,".i",items2dims[[v]])
     setnames(eci,old_names,new_names)
+    for (i in new_names) eci[[i]][ eci[[i]] > 4 | eci[[i]] < 1 ] = NA
   }
   
-  for (i in new_names) eci[[i]][ eci[[i]] > 4 | eci[[i]] < 1 ] = NA
   
   eci = smart_impute(eci)
   
+  for (i in grep("PREG_ID|BARN", names(eci), value = T, invert = T))
+    eci[[i]] = eci[[i]]-1
+  
   for (v in names(items2dims))
-    eci = make_sum_scores(eci,new_names,paste0(nbase,v,".SS"),count_cutoff_idx = 2)
+    eci = make_sum_scores(eci,paste0(nbase,v,".i",items2dims[[v]]),paste0(nbase,v,".SS"),count_cutoff_idx = 2)
   
   eci = make_sum_scores(eci,
                         unlist(lapply(names(items2dims[2:3]), 
@@ -109,7 +112,7 @@ get_eci = function(qu,rater){
   eci = eci[,c(index_vars,names(eci)[grep("^ECI",names(eci))]),with = F]
   
   eci = add_label(eci,"ECI",abbreviations)
-  eci_labels = c(Never = 1, Sometimes = 2, Often = 3, VeryOften = 4)
+  eci_labels = c(Never = 0, Sometimes = 1, Often = 2, VeryOften = 3)
   for (v in names(eci)[grep("i[0-9]",names(eci))]) {
     eci[[v]] = labelled(eci[[v]],labels = eci_labels)
   }
