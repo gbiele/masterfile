@@ -82,6 +82,15 @@ rm(kgqa,kgqb)
 
 MASTER = MASTER[,-which(colSums(is.na(MASTER)) == nrow(MASTER)),with = F]
 
+################# make ECI/CS SS ####################
+
+MASTER[, CSECI.P.ADHD.SS := ifelse(is.na(ECI.P.ADHD.SS),CS.P.xADHD.SS,ECI.P.ADHD.SS)]
+MASTER[, CSECI.P.AIA.SS := ifelse(is.na(ECI.P.AIA.SS),CS.P.xAIA.SS,ECI.P.AIA.SS)]
+MASTER[, CSECI.P.AHI.SS := ifelse(is.na(ECI.P.AHI.SS),CS.P.xAHI.SS,ECI.P.AIA.SS)]
+MASTER[, CSECI.T.ADHD.SS := ifelse(is.na(ECI.T.ADHD.SS),CS.T.xADHD.SS,ECI.T.ADHD.SS)]
+MASTER[, CSECI.T.AIA.SS := ifelse(is.na(ECI.T.AIA.SS),CS.T.xAIA.SS,ECI.T.AIA.SS)]
+MASTER[, CSECI.T.AHI.SS := ifelse(is.na(ECI.T.AHI.SS),CS.T.xAHI.SS,ECI.T.AIA.SS)]
+
 ################# corrections #######################
 # # GENERELT: slette barn med PREG_ID_299 = 50163 fra alle tester, grunnet usikkerhet rundt barnets norskkunnskaper (dette er inkludert i alle endelige syntakser). 
 # # Mor oversetter nær sagt alle testinstruksjoner til serbisk, vi har ikke kontroll på hva hun sier.
